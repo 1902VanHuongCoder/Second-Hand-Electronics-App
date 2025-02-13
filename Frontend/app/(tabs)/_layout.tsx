@@ -7,9 +7,15 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
-
+import { usePathname } from 'expo-router';
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const pathname = usePathname(); // Lấy đường dẫn hiện tại
+
+  // Nếu đang ở trang "welcome", không hiển thị Tabs
+  if (pathname === "/welcomePage") {
+    return null;
+  }
 
   return (
     <Tabs
@@ -29,7 +35,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: 'Trang Chủ',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
         }}
       />
