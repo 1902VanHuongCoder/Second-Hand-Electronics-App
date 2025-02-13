@@ -8,7 +8,7 @@ const index = () => {
     return (
         <SafeAreaView>
             <View>
-                <HomePage />
+                <WelcomePage />
             </View>
         </SafeAreaView>
     );
