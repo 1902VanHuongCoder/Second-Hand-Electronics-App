@@ -4,8 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function welcomePage() {
     return (
-        <SafeAreaView className="flex-1">
-            <View className='relative flex-1 bg-[#9661D9] w-full h-full items-center'>
+        <SafeAreaView>
+            <View className='relative bg-[#9661D9] w-full h-full items-center'>
                 <View className="items-center mt-24">
                     <Image className="w-[50px] h-[50px]" source={require('../assets/images/2HAND MARKET.png')} />
                     <Image className="w-[350px] h-[350px]" source={require('../assets/images/image 2.png')} />
