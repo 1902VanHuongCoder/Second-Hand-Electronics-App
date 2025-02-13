@@ -11,7 +11,7 @@ export default function welcomePage() {
                     <Image className="w-[350px] h-[350px]" source={require('../assets/images/image 2.png')} />
                 </View>
                 <Image className='absolute bottom-[-70px]' source={require('../assets/images/Vector 8.png')} />
-                <View className='mt-40 flex-row justify-center items-center gap-10'>
+                <View className='absolute bottom-12 flex-row justify-center items-center gap-10'>
                     <TouchableOpacity className='border-4 border-[#9661D9] px-10 py-3 rounded-2xl'>
                         <Text className='text-[#9661D9] text-center text-[20px] font-bold'>Đăng ký</Text>
                     </TouchableOpacity>
