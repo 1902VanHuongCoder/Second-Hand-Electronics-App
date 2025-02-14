@@ -8,19 +8,14 @@ import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { usePathname } from 'expo-router';
+import Icon from "react-native-vector-icons/FontAwesome";
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const pathname = usePathname(); // Lấy đường dẫn hiện tại
-
-  // Nếu đang ở trang "welcome", không hiển thị Tabs
-  if (pathname === "/welcomePage") {
-    return null;
-  }
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: '#9661D9',
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
@@ -35,15 +30,15 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Trang Chủ',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: 'Home',
+          tabBarIcon: ({ color }) => <IconSymbol size={25} name="house.fill" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="profile"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: 'Tài khoản',
+          tabBarIcon: ({ color }) => <Icon size={25} name="user-circle" color={color} />,
         }}
       />
     </Tabs>
