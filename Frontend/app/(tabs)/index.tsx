@@ -1,19 +1,19 @@
 import React from 'react';
-import { View } from 'react-native';
 import { SafeAreaView } from 'react-native';
-import LoginScreen from '../login';
-import WelcomePage from '../welcomePage';
-import HomePage from '../homePage';
+import AuthScreen from '../AuthScreen';
+import Home from '../Home';
+import { useAuth } from '../../context/AuthContext';
 
+export default function Index() {
+    const { userToken } = useAuth();
 
-const index = () => {
     return (
-        <SafeAreaView>
-            <View>
-                <WelcomePage />
-            </View>
+        <SafeAreaView style={{ flex: 1 }}>
+            {userToken ? (
+                <Home />
+            ) : (
+                <AuthScreen />
+            )}
         </SafeAreaView>
     );
-};
-
-export default index;
+}
