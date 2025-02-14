@@ -11,7 +11,6 @@ import { usePathname } from 'expo-router';
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const pathname = usePathname(); // Lấy đường dẫn hiện tại
-
   // Nếu đang ở trang "welcome", không hiển thị Tabs
   if (pathname === "/welcomePage") {
     return null;
@@ -20,7 +19,7 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: '#9661D9',
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,

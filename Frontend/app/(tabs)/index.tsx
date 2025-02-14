@@ -9,8 +9,8 @@ import HomePage from '../homePage';
 const index = () => {
     return (
         <SafeAreaView>
-            <View>
-                <WelcomePage />
+            <View className='bg-white w-full min-h-screen'>
+                <HomePage />
             </View>
         </SafeAreaView>
     );
