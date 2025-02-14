@@ -7,17 +7,17 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 import "../global.css";
 import { useColorScheme } from '@/hooks/useColorScheme';
-// import { Provider, useSelector } from 'react-redux';
+// import { Provider } from 'react-redux';
 // import { store } from '../store/store';
+// import { useSelector } from 'react-redux';
 // import { RootState } from '../store/store';
 
 // Prevent splash screen from auto-hiding before loading assets
 SplashScreen.preventAutoHideAsync();
 
-// ✅ Move `RootLayoutInner` inside `Provider`
-export default function RootLayoutInner() {
-  // const router = useRouter();
-  // const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+export default function RootLayout() {
+  const router = useRouter();
+  // const isAuthenticated = useSelector(((state: RootState) => state.auth.isAuthenticated));
   const colorScheme = useColorScheme();
   
   const [loaded] = useFonts({
@@ -38,14 +38,16 @@ export default function RootLayoutInner() {
   //   if (!isAuthenticated) {
   //     router.replace("/login");
   //   }
-  // }, [isAuthenticated]);
+  // }, [isAuthenticated])
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
+      {/* <Provider store={store}> */}
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+      {/* </Provider> */}
       <StatusBar style="auto" />
     </ThemeProvider>
   );
