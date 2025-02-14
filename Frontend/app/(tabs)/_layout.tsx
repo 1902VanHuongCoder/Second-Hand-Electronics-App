@@ -41,6 +41,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <Icon size={25} name="user-circle" color={color} />,
         }}
       />
+
     </Tabs>
   );
 }
