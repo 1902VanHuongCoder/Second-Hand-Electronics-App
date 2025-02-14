@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native';
 import LoginScreen from '../login';
 import WelcomePage from '../welcomePage';
 import HomePage from '../homePage';
-
+import Profile from './profile';
 
 const index = () => {
     return (

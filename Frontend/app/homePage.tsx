@@ -4,16 +4,30 @@ import {
   TouchableHighlight,
   Image,
   ScrollView,
+  TextInput
 } from "react-native";
 import React, { Component } from "react";
 import LinearGradient from "react-native-linear-gradient";
-import { StyleSheet, TextInput } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 export default function HomePage() {
   const [text, onChangeText] = React.useState("");
   const products = [
     {
+      id: "1",
+      name: "Laptop Acer Aspire 3 Spin A3SP14-31PT-387Z",
+      configuration: "I3-N305/8GB/512GB/14.0 FHD+/CẢM ỨNG/WIN11/XÁM",
+      price: "9.000.000 đ",
+      address: "Ba Đình - Hà Nội",
+      postingDate: "23:34:23 12/02/2024",
+      image:
+        "../assets/images/z6316149378615_f6d6f665171bf597c35f86bf13ca61b2.jpg",
+      avatar:
+        "../assets/images/z6186705977978_00edd678a64db50dba5ef61a50391611.jpg",
+      nameUser: "Hoàng Anh Lê",
+    },
+    {
+      id: "2",
       name: "Laptop Acer Aspire 3 Spin A3SP14-31PT-387Z",
       configuration: "I3-N305/8GB/512GB/14.0 FHD+/CẢM ỨNG/WIN11/XÁM",
       price: "9.000.000 đ",
@@ -26,6 +40,7 @@ export default function HomePage() {
       nameUser: "Hoàng Anh",
     },
     {
+      id: "3",
       name: "Laptop Acer Aspire 3 Spin A3SP14-31PT-387Z",
       configuration: "I3-N305/8GB/512GB/14.0 FHD+/CẢM ỨNG/WIN11/XÁM",
       price: "9.000.000 đ",
@@ -39,7 +54,7 @@ export default function HomePage() {
     },
   ];
   return (
-    <SafeAreaView className="p-4">
+    <SafeAreaView className="p-4 mb-20" style={{ flex: 1 }}>
       <View className="flex-row justify-between items-center">
         <TextInput
           className="border-2 border-[#D9D9D9] w-2/3 px-2 py-4 text-[#000] rounded-lg font-semibold"
@@ -91,7 +106,7 @@ export default function HomePage() {
       </View>
       <ScrollView>
         {products.map(product => (
-          <View className="mt-6 flex-col gap-4 border-b border-[#D9D9D9] pb-4">
+          <View key={product.id} className="mt-6 flex-col gap-4 border-b border-[#D9D9D9] pb-4">
             <View className="flex-col gap-4">
               <View className="flex-row gap-2 w-full">
                 <Image
