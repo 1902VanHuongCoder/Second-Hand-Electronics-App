@@ -7,10 +7,10 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 import "../global.css";
 import { useColorScheme } from '@/hooks/useColorScheme';
-// import { Provider } from 'react-redux';
-// import { store } from '../store/store';
-// import { useSelector } from 'react-redux';
-// import { RootState } from '../store/store';
+import { Provider } from 'react-redux';
+import { store } from '../store/store';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
 
 // Prevent splash screen from auto-hiding before loading assets
 SplashScreen.preventAutoHideAsync();
@@ -42,12 +42,12 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      {/* <Provider store={store}> */}
+      <Provider store={store}>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
         </Stack>
-      {/* </Provider> */}
+      </Provider>
       <StatusBar style="auto" />
     </ThemeProvider>
   );

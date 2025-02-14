@@ -10,7 +10,7 @@ const index = () => {
     return (
         <SafeAreaView>
             <View>
-                <WelcomePage />
+                <LoginScreen />
             </View>
         </SafeAreaView>
     );
