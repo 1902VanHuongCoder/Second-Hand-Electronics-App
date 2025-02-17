@@ -30,8 +30,22 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: 'Trang chủ',
           tabBarIcon: ({ color }) => <IconSymbol size={25} name="house.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="post_management"
+        options={{
+          title: 'Quản lý tin',
+          tabBarIcon: ({ color }) => <Icon size={25} name="list" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="message"
+        options={{
+          title: 'Tin Nhắn',
+          tabBarIcon: ({ color }) => <Icon size={25} name="comments" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -41,7 +55,6 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <Icon size={25} name="user-circle" color={color} />,
         }}
       />
-
     </Tabs>
   );
 }
