@@ -4,13 +4,13 @@ import { SafeAreaView } from 'react-native';
 import LoginScreen from '../login';
 import WelcomePage from '../welcomePage';
 import HomePage from '../homePage';
-
+import Profile from './profile';
 
 const index = () => {
     return (
         <SafeAreaView>
-            <View>
-                <LoginScreen />
+            <View className='bg-white w-full min-h-screen'>
+                <HomePage />
             </View>
         </SafeAreaView>
     );
