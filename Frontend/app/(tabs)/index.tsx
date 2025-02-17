@@ -9,9 +9,6 @@ import Profile from './profile';
 const index = () => {
     return (
         <SafeAreaView>
-
-<!--                 <LoginScreen /> -->
-
             <View className='bg-white w-full min-h-screen'>
                 <HomePage />
             </View>

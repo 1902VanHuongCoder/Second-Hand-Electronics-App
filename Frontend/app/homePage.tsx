@@ -4,10 +4,10 @@ import {
   TouchableHighlight,
   Image,
   ScrollView,
-  TextInput
+  TextInput,
 } from "react-native";
 import React, { Component } from "react";
-import LinearGradient from "react-native-linear-gradient";
+import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 export default function HomePage() {
@@ -68,7 +68,13 @@ export default function HomePage() {
           </Text>
         </TouchableHighlight>
       </View>
-      <View className="bg-[#9661D9] mt-4 w-full h-[170px] p-4 rounded-2xl flex-row items-center">
+      <LinearGradient
+        colors={['#523471', '#9C62D7']}
+        start={{ x: 1, y: 0 }}
+        end={{ x: 0, y: 0 }}
+        style={{ padding: 12, borderRadius: 10, marginTop: 20 }}
+        className="flex-row items-center"
+      >
         <View className="w-[50%]">
           <Text className="uppercase font-bold text-white text-[18px]">
             2Hand Market
@@ -81,7 +87,7 @@ export default function HomePage() {
           style={{ width: 150, height: 150 }}
           source={require("../assets/images/image 2.png")}
         />
-      </View>
+      </LinearGradient>
       <View className="flex-row gap-4 mt-6 items-center justify-center">
         <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
           <View className="flex-row items-center justify-center gap-2">
@@ -105,21 +111,25 @@ export default function HomePage() {
         </TouchableHighlight>
       </View>
       <ScrollView>
-        {products.map(product => (
-          <View key={product.id} className="mt-6 flex-col gap-4 border-b border-[#D9D9D9] pb-4">
+        {products.map((product) => (
+          <View
+            key={product.id}
+            className="mt-6 flex-col gap-4 border-b border-[#D9D9D9] pb-4"
+          >
             <View className="flex-col gap-4">
               <View className="flex-row gap-2 w-full">
                 <Image
                   style={{ width: 170, height: 170 }}
-                  source={require('../assets/images/z6316149378615_f6d6f665171bf597c35f86bf13ca61b2.jpg')}
+                  source={require("../assets/images/z6316149378615_f6d6f665171bf597c35f86bf13ca61b2.jpg")}
                 />
                 <View className="w-[50%] flex-col gap-1">
-                  <Text className="font-bold text-[16px]">
-                    {product.name}
-                  </Text>
-                  <Text className="text-[12px]">
-                    {product.configuration}
-                  </Text>
+                  <View className="flex-row gap-1">
+                    <Text className="font-bold text-[16px]">{product.name}</Text>
+                    <TouchableHighlight>
+                      <Icon name="ellipsis-v" size={18} color="#9661D9" />
+                    </TouchableHighlight>
+                  </View>
+                  <Text className="text-[12px]">{product.configuration}</Text>
                   <Text className="font-bold text-[#9661D9] text-[16px]">
                     {product.price}
                   </Text>
@@ -142,7 +152,7 @@ export default function HomePage() {
                   <Image
                     style={{ width: 50, height: 50 }}
                     className="rounded-full"
-                    source={require('../assets/images/z6186705977978_00edd678a64db50dba5ef61a50391611.jpg')}
+                    source={require("../assets/images/z6186705977978_00edd678a64db50dba5ef61a50391611.jpg")}
                   />
                   <View>
                     <Text className="font-medium text-[14px]">Người bán</Text>
