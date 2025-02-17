@@ -2,17 +2,19 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import LoginScreen from './login';
-// Import other screens as needed
+import HomePage from './homePage';
+import Profile from './(tabs)/profile';
+import SignUpScreen from './signup';
 
 const Tab = createBottomTabNavigator();
 
 export default function TabNavigator() {
   return (
-    <NavigationContainer>
       <Tab.Navigator>
+        <Tab.Screen name="Home" component={HomePage} />
         <Tab.Screen name="Login" component={LoginScreen} />
-        {/* Add other tabs here */}
+        <Tab.Screen name="SignUp" component={SignUpScreen} />
       </Tab.Navigator>
-    </NavigationContainer>
+  
   );
 }
