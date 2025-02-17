@@ -42,6 +42,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="post_news"
+        options={{
+          title: 'Đăng tin',
+          tabBarIcon: ({ color }) => <Icon size={25} name="pencil-square" color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="message"
         options={{
           title: 'Tin Nhắn',
