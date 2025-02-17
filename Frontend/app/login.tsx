@@ -23,7 +23,7 @@ export default function LoginScreen() {
         }
       
         alert("Đăng nhập thành công");
-        // dispatch(loginUser({ phone, password }));
+        dispatch(loginUser({ phone, password }));
     };
 
     return (
