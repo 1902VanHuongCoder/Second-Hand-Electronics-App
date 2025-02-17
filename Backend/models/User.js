@@ -2,19 +2,44 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: false,
+  },
+  email: {
+    type: String,
+    required: false,
+    unique: true,
+  },
+  password: {
+    type: String,
+    required: true,
+  },
   phone: {
     type: String,
     required: true,
     unique: true,
   },
-  password: {
+  address: {
     type: String,
-    required: true
+    required: false,
+  },
+  avatarUrl: {
+    type: String,
+    required: false,
+  },
+  role: {
+    type: String,
+    default: 'user',
   },
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 // Mã hóa mật khẩu trước khi lưu

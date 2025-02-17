@@ -23,10 +23,12 @@ const AuthScreen = () => {
         <Login 
           onLoginSuccess={handleLoginSuccess}
           onSwitchToRegister={toggleAuth}
+          options={{ tabBarStyle: { display: 'none' } }}
         />
       ) : (
         <Register 
           onSwitchToLogin={toggleAuth}
+          options={{ tabBarStyle: { display: 'none' } }}
         />
       )}
     </View>

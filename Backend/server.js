@@ -2,8 +2,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
-const User = require('./models/User');
-const jwt = require('jsonwebtoken');
+const userRoutes = require('./routes/userRoutes');
 
 // Load env vars trước khi làm bất cứ điều gì khác
 dotenv.config();
@@ -50,104 +49,8 @@ app.post('/api/hello', (req, res) => {
   });
 });
 
-// Route đăng ký
-app.post('/api/register', async (req, res) => {
-  try {
-    const { phone, password } = req.body;
-    
-    // Kiểm tra xem số điện thoại đã tồn tại chưa
-    const existingUser = await User.findOne({ phone });
-    if (existingUser) {
-      return res.status(400).json({ 
-        success: false,
-        message: 'Số điện thoại đã được đăng ký' 
-      });
-    }
-
-    // Tạo user mới
-    const user = await User.create({
-      phone,
-      password // Trong thực tế nên mã hóa password
-    });
-
-    // Tạo JWT token
-    const token = jwt.sign(
-      { id: user._id },
-      'your_jwt_secret', // Nên đặt trong biến môi trường
-      { expiresIn: '30d' }
-    );
-
-    res.status(201).json({
-      success: true,
-      message: 'Đăng ký thành công',
-      data: {
-        token,
-        user: {
-          phone: user.phone,
-          id: user._id
-        }
-      }
-    });
-
-  } catch (error) {
-    console.error('Lỗi đăng ký:', error);
-    res.status(500).json({ 
-      success: false,
-      message: 'Lỗi server' 
-    });
-  }
-});
-
-// Route đăng nhập
-app.post('/api/login', async (req, res) => {
-  try {
-    const { phone, password } = req.body;
-
-    // Tìm user theo số điện thoại
-    const user = await User.findOne({ phone });
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Số điện thoại hoặc mật khẩu không đúng'
-      });
-    }
-
-    // Kiểm tra mật khẩu
-    const isMatch = await user.matchPassword(password);
-    if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        message: 'Số điện thoại hoặc mật khẩu không đúng'
-      });
-    }
-
-    // Tạo JWT token
-    const token = jwt.sign(
-      { id: user._id },
-      'your_jwt_secret', // Nên đặt trong biến môi trường
-      { expiresIn: '30d' }
-    );
-
-    res.json({
-      success: true,
-      message: 'Đăng nhập thành công',
-      data: {
-        token,
-        user: {
-          phone: user.phone,
-          id: user._id
-        }
-      }
-    });
-
-  } catch (error) {
-    console.error('Lỗi đăng nhập:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Lỗi server'
-    });
-  }
-});
+// Sử dụng các route người dùng
+app.use('/api', userRoutes);
 
 // Kết nối database
 const startServer = async () => {

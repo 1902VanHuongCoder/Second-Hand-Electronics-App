@@ -11,12 +11,6 @@ import { usePathname } from 'expo-router';
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const pathname = usePathname(); // Lấy đường dẫn hiện tại
-
-  // Nếu đang ở trang "welcome", không hiển thị Tabs
-  if (pathname === "/welcomePage") {
-    return null;
-  }
-
   return (
     <Tabs
       screenOptions={{
@@ -35,15 +29,15 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Trang Chủ',
+          title: "Home",
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="PersonalPage"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: "Trang cá nhân",
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
         }}
       />
     </Tabs>

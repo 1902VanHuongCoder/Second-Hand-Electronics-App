@@ -11,9 +11,10 @@ const API_URL = 'http://10.0.2.2:5000'; // Cập nhật URL theo cấu hình c�
 interface LoginProps {
   onLoginSuccess: (data: any) => Promise<void>;
   onSwitchToRegister: () => void;
+  options?: { tabBarStyle?: { display: string } };
 }
 
-const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToRegister }) => {
+const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToRegister, options }) => {
     const router = useRouter();
     const dispatch = useDispatch();
     const [phone, setPhone] = useState('');
@@ -50,7 +51,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToRegister }) => 
             } else {
                 Alert.alert('Lỗi', data.message);
             }
-        } catch (error) {
+        } catch (error: any) {
             Alert.alert('Lỗi', 'Không thể kết nối đến server');
             console.error(error);
         } finally {
@@ -59,7 +60,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToRegister }) => 
     };
 
     return (
-        <View style={styles.container}>
+        <View style={styles.container} >
             <Text style={styles.title}>ĐĂNG NHẬP</Text>
             <TextInput
                 style={styles.input}

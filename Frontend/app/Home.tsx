@@ -1,9 +1,11 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { useSelector } from 'react-redux';
 
 const Home = () => {
   const { userData, logout } = useAuth();
+  const { userData: reduxUserData } = useSelector((state: any) => state.auth);
 
   const handleLogout = async () => {
     await logout();
@@ -13,7 +15,7 @@ const Home = () => {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.welcomeText}>
-          Chào mừng, {userData?.phone}! 👋
+          Chào mừng, {reduxUserData?.name || 'Người dùng'}! 👋
         </Text>
       </View>
 
@@ -21,10 +23,16 @@ const Home = () => {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Thông tin tài khoản</Text>
           <Text style={styles.cardText}>
-            Số điện thoại: {userData?.phone}
+            Khách hàng: {reduxUserData?.name}
           </Text>
           <Text style={styles.cardText}>
-            ID: {userData?.id}
+            Số điện thoại: {reduxUserData?.phone}
+          </Text>
+          <Text style={styles.cardText}>
+            Email: {reduxUserData?.email}
+          </Text>
+          <Text style={styles.cardText}>
+            Địa chỉ: {reduxUserData?.address}
           </Text>
         </View>
 

@@ -8,9 +8,10 @@ const API_URL = 'http://10.0.2.2:5000';
 
 interface RegisterProps {
   onSwitchToLogin: () => void; // Định nghĩa kiểu cho onSwitchToLogin
+  options?: { tabBarStyle?: { display: string } }; // Add options prop
 }
 
-const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
+const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, options }) => {
   const dispatch = useDispatch();
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -35,16 +36,9 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
       const data = await response.json();
 
       if (response.ok) {
-        if (data.data && data.data.token) {
-          await AsyncStorage.setItem('userToken', data.data.token);
-          await AsyncStorage.setItem('userData', JSON.stringify(data.data.user));
-          dispatch(registerAction(data.data));
-          Alert.alert('Thành công', data.message);
-          setPhone('');
-          setPassword('');
-        } else {
-          Alert.alert('Lỗi', 'Không nhận được token từ server');
-         }
+        Alert.alert('Thành công', data.message);
+        setPhone('');
+        setPassword('');
       } else {
         Alert.alert('Lỗi', data.message);
       }

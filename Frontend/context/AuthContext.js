@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useDispatch, useSelector } from 'react-redux';
-import { login as loginAction, logout as logoutAction, register as registerAction } from '../store/authSlice';
+import { login as loginAction, logout as logoutAction, register as registerAction, updateUser as updateUserAction } from '../store/authSlice';
 
 const AuthContext = createContext();
 
@@ -48,6 +48,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateUser = async (data) => {
+    await AsyncStorage.setItem('userData', JSON.stringify(data));
+    dispatch(updateUserAction(data));
+  };
+
   return (
     <AuthContext.Provider value={{ 
       isLoading,
@@ -55,7 +60,8 @@ export const AuthProvider = ({ children }) => {
       userData,
       login,
       register,
-      logout
+      logout,
+      updateUser
     }}>
       {children}
     </AuthContext.Provider>
