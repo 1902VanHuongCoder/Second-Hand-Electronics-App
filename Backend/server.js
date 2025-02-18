@@ -3,7 +3,9 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const userRoutes = require('./routes/userRoutes');
-
+const gpuRoutes = require('./routes/gpuRoutes'); 
+const cpuRoutes = require('./routes/cpuRoutes'); 
+const storageTypeRoutes = require('./routes/storageTypeRoutes'); 
 // Load env vars trước khi làm bất cứ điều gì khác
 dotenv.config();
 
@@ -51,6 +53,12 @@ app.post('/api/hello', (req, res) => {
 
 // Sử dụng các route người dùng
 app.use('/api', userRoutes);
+
+app.use('/api', gpuRoutes );
+
+app.use('/api', cpuRoutes);
+
+app.use('/api', storageTypeRoutes);
 
 // Kết nối database
 const startServer = async () => {

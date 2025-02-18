@@ -69,8 +69,8 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, options }) => {
         secureTextEntry
         editable={!loading}
       />
-      <TouchableOpacity 
-        style={[styles.button, loading && styles.buttonDisabled]} 
+      <TouchableOpacity
+        style={[styles.button, loading && styles.buttonDisabled]}
         onPress={handleRegister}
         disabled={loading}
       >

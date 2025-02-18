@@ -9,9 +9,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const API_URL = 'http://10.0.2.2:5000'; // Cập nhật URL theo cấu hình của bạn
 
 interface LoginProps {
-  onLoginSuccess: (data: any) => Promise<void>;
-  onSwitchToRegister: () => void;
-  options?: { tabBarStyle?: { display: string } };
+    onLoginSuccess: (data: any) => Promise<void>;
+    onSwitchToRegister: () => void;
+    options?: { tabBarStyle?: { display: string } };
 }
 
 const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToRegister, options }) => {
@@ -78,8 +78,8 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToRegister, optio
                 secureTextEntry
                 editable={!loading}
             />
-            <TouchableOpacity 
-                style={[styles.button, loading && styles.buttonDisabled]} 
+            <TouchableOpacity
+                style={[styles.button, loading && styles.buttonDisabled]}
                 onPress={handleLogin}
                 disabled={loading}
             >

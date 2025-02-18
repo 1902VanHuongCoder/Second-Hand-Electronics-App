@@ -27,7 +27,6 @@ export default function RootLayout() {
   if (!loaded) {
     return null;
   }
-
   return (
     <Provider store={store}>
       <AuthProvider>
@@ -35,7 +34,7 @@ export default function RootLayout() {
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="register" options={{ navigationBarHidden: true }} />
-            <Stack.Screen name="+not-found" />
+            <Stack.Screen name="+not-found"/>
           </Stack>
           <StatusBar style="auto" />
         </ThemeProvider>
