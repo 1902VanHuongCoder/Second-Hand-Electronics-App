@@ -39,19 +39,19 @@ export default function profile() {
                     <View className='mt-4 flex-row gap-4 items-center justify-between'>
                         <Text className='font-bold text-[16px]'>Email: </Text>
                         <View className='border-2 border-[#D9D9D9] p-2 rounded-lg w-2/3'>
-                            <Text className='bg-[#D9D9D9] p-2 text-[14px] font-medium'>lehuuhoanganhhg2003@gmail.com</Text>
+                            <Text className='p-2 text-[14px] font-medium'>lehuuhoanganhhg2003@gmail.com</Text>
                         </View>
                     </View>
                     <View className='mt-4 flex-row gap-4 items-center justify-between w-full'>
                         <Text className='font-bold text-[16px]'>Điện thoại: </Text>
                         <View className='border-2 border-[#D9D9D9] p-2 rounded-lg w-2/3'>
-                            <Text className='bg-[#D9D9D9] p-2 text-[14px] font-medium'>033.333.3333</Text>
+                            <Text className='p-2 text-[14px] font-medium'>033.333.3333</Text>
                         </View>
                     </View>
                     <View className='mt-4 flex-row gap-4 items-center justify-between w-full'>
                         <Text className='font-bold text-[16px]'>Địa chỉ: </Text>
                         <View className='border-2 border-[#D9D9D9] p-2 w-2/3 rounded-lg flex-row justify-between items-center'>
-                            <Text className='bg-[#D9D9D9] p-2 text-[14px] font-medium'>Tân Phú - Long Mỹ - Hậu Giang</Text>
+                            <Text className='p-2 text-[14px] font-medium'>Tân Phú - Long Mỹ - Hậu Giang</Text>
                             <Icon name="map-marker" size={18} color="#DC143C" />
                         </View>
                     </View>
@@ -62,7 +62,7 @@ export default function profile() {
                             colors={[ '#523471', '#9C62D7']}
                             start={{ x: 1, y: 0 }} 
                             end={{ x: 0, y: 0 }}
-                            style={{ padding: 10, borderRadius: 10 }}
+                            style={{ padding: 10, borderRadius: 8 }}
                         >
                             <View className="flex-row items-center justify-center gap-2">
                                 <Text className="font-bold text-[18px] text-[#fff]">Cập nhật thông tin</Text>
@@ -73,7 +73,7 @@ export default function profile() {
                 <View className='mt-8'>
                     <TouchableHighlight className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
                         <View className="flex-row items-center justify-center gap-2">
-                            <Icon name="comments" size={22} color="#333" />
+                            <Icon name="sign-out" size={22} color="#333" />
                             <Text className="font-bold text-[18px] text-[#333]">Đăng xuất</Text>
                         </View>
                     </TouchableHighlight>
