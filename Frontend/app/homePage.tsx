@@ -54,7 +54,7 @@ export default function HomePage() {
     },
   ];
   return (
-    <SafeAreaView className="p-4 mb-20" style={{ flex: 1 }}>
+    <View className="p-4" style={{ flex: 1 }}>
       <View className="flex-row justify-between items-center">
         <TextInput
           className="border-2 border-[#D9D9D9] w-2/3 px-2 py-4 text-[#000] rounded-lg font-semibold"
@@ -68,49 +68,49 @@ export default function HomePage() {
           </Text>
         </TouchableHighlight>
       </View>
-      <LinearGradient
-        colors={['#523471', '#9C62D7']}
-        start={{ x: 1, y: 0 }}
-        end={{ x: 0, y: 0 }}
-        style={{ padding: 12, borderRadius: 10, marginTop: 20 }}
-        className="flex-row items-center"
-      >
-        <View className="w-[50%]">
-          <Text className="uppercase font-bold text-white text-[18px]">
-            2Hand Market
-          </Text>
-          <Text className="text-[14px] text-white font-medium">
-            Buôn bán các thiết bị hiện tại và uy tính.
-          </Text>
-        </View>
-        <Image
-          style={{ width: 150, height: 150 }}
-          source={require("../assets/images/image 2.png")}
-        />
-      </LinearGradient>
-      <View className="flex-row gap-4 mt-6 items-center justify-center">
-        <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
-          <View className="flex-row items-center justify-center gap-2">
-            <Icon name="slack" size={22} color="#9661D9" />
-            <Text className="font-bold text-[18px] text-[#9661D9]">All</Text>
-          </View>
-        </TouchableHighlight>
-        <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
-          <View className="flex-row items-center justify-center gap-2">
-            <Icon name="mobile" size={24} color="#9661D9" />
-            <Text className="font-bold text-[18px] text-[#9661D9]">
-              Điện thoại
+      <ScrollView>
+        <LinearGradient
+          colors={['#523471', '#9C62D7']}
+          start={{ x: 1, y: 0 }}
+          end={{ x: 0, y: 0 }}
+          style={{ padding: 12, borderRadius: 10, marginTop: 20 }}
+          className="flex-row items-center"
+        >
+          <View className="w-[50%]">
+            <Text className="uppercase font-bold text-white text-[18px]">
+              2Hand Market
+            </Text>
+            <Text className="text-[14px] text-white font-medium">
+              Buôn bán các thiết bị hiện tại và uy tính.
             </Text>
           </View>
-        </TouchableHighlight>
-        <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
-          <View className="flex-row items-center justify-center gap-2">
-            <Icon name="laptop" size={22} color="#9661D9" />
-            <Text className="font-bold text-[18px] text-[#9661D9]">Laptop</Text>
-          </View>
-        </TouchableHighlight>
-      </View>
-      <ScrollView>
+          <Image
+            style={{ width: 150, height: 150 }}
+            source={require("../assets/images/image 2.png")}
+          />
+        </LinearGradient>
+        <View className="flex-row gap-4 mt-6 items-center justify-center">
+          <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
+            <View className="flex-row items-center justify-center gap-2">
+              <Icon name="slack" size={22} color="#9661D9" />
+              <Text className="font-bold text-[18px] text-[#9661D9]">All</Text>
+            </View>
+          </TouchableHighlight>
+          <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
+            <View className="flex-row items-center justify-center gap-2">
+              <Icon name="mobile" size={24} color="#9661D9" />
+              <Text className="font-bold text-[18px] text-[#9661D9]">
+                Điện thoại
+              </Text>
+            </View>
+          </TouchableHighlight>
+          <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
+            <View className="flex-row items-center justify-center gap-2">
+              <Icon name="laptop" size={22} color="#9661D9" />
+              <Text className="font-bold text-[18px] text-[#9661D9]">Laptop</Text>
+            </View>
+          </TouchableHighlight>
+        </View>
         {products.map((product) => (
           <View
             key={product.id}
@@ -169,7 +169,7 @@ export default function HomePage() {
           </View>
         ))}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

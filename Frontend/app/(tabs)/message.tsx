@@ -39,7 +39,7 @@ export default function Message() {
                     className="bg-[#D9D9D9] p-4 text-[#000] rounded-lg font-semibold"
                     onChangeText={onChangeText}
                     value={text}
-                    placeholder="Tìm kiếm ..."
+                    placeholder="Nhắn tin ..."
                 />
                 <TouchableHighlight>
                     <Icon name="image" size={30} color={'#9661D9'} />
