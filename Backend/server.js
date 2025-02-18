@@ -6,7 +6,14 @@ const userRoutes = require('./routes/userRoutes');
 const gpuRoutes = require('./routes/gpuRoutes'); 
 const cpuRoutes = require('./routes/cpuRoutes'); 
 const storageTypeRoutes = require('./routes/storageTypeRoutes'); 
+const storageRoutes = require('./routes/storageRoutes'); 
+const ramRoutes = require('./routes/ramRoutes'); 
+const categoryRoutes = require('./routes/categoryRoutes'); 
+const conditionRoutes = require('./routes/conditionRoutes'); 
+const brandRoutes = require('./routes/brandRoutes'); 
+const versionRoutes = require('./routes/versionRoutes'); 
 // Load env vars trước khi làm bất cứ điều gì khác
+
 dotenv.config();
 
 console.log('MONGODB_URI:', process.env.MONGODB_URI);
@@ -59,6 +66,24 @@ app.use('/api', gpuRoutes );
 app.use('/api', cpuRoutes);
 
 app.use('/api', storageTypeRoutes);
+
+// Sử dụng các route Storage
+app.use('/api', storageRoutes);
+
+// Sử dụng các route RAM
+app.use('/api', ramRoutes);
+
+// Sử dụng các route Category
+app.use('/api', categoryRoutes);
+
+// Sử dụng các route Condition
+app.use('/api', conditionRoutes);
+
+// Sử dụng các route Brand
+app.use('/api', brandRoutes);
+
+// Sử dụng các route Version
+app.use('/api', versionRoutes);
 
 // Kết nối database
 const startServer = async () => {
