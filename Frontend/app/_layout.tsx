@@ -40,11 +40,16 @@ export default function RootLayout() {
   //   }
   // }, [isAuthenticated])
 
+
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Provider store={store}>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="login" /> 
+          <Stack.Screen name="signup" />
+          <Stack.Screen name="postDetails" />
+          <Stack.Screen name="_sitemap" />
           <Stack.Screen name="+not-found" />
         </Stack>
       </Provider>

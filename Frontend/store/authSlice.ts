@@ -32,7 +32,20 @@ export const loginUser = createAsyncThunk(
       await AsyncStorage.setItem('token', response.data.token);
       return response.data;
     } catch (error) {
-      return rejectWithValue((error as any).response?.data || 'Login failed');
+      return rejectWithValue((error as any).response?.data || 'Đăng nhập thất bại');
+    }
+  }
+);
+
+export const signupUser = createAsyncThunk(
+  'auth/signupUser',
+  async ({ phone, password }: { phone: string; password: string }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post<{ token: string; user: User }>('https://your-api.com/signup', { phone, password });
+      await AsyncStorage.setItem('token', response.data.token);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue((error as any).response?.data || 'Đăng ký thất bại');
     }
   }
 );
@@ -61,9 +74,24 @@ const authSlice = createSlice({
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      })
+      .addCase(signupUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(signupUser.fulfilled, (state, action: PayloadAction<{ user: User; token: string }>) => {
+        state.loading = false;
+        state.user = action.payload.user;
+        state.token = action.payload.token;
+      })
+      .addCase(signupUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       });
   },
-});
+}, 
+
+);
 
 export const { logout } = authSlice.actions;
 export default authSlice.reducer;
