@@ -80,65 +80,63 @@ export default function HomePage() {
 
   return (
     // <SafeAreaView className="flex-1">
-    <View className="px-4 mt-6">
-      <View className="flex flex-row justify-start items-center gap-4">
-           <TextInput
+    <View className="p-4" style={{ flex: 1 }}>
+      <View className="flex-row justify-between items-center border-b-2 pb-4 border-[#D9D9D9]">
+        <TextInput
           className="border-2 border-[#D9D9D9] w-2/3 px-2 py-4 text-[#000] rounded-lg font-semibold"
           onChangeText={onChangeText}
           value={text}
           placeholder="Tìm kiếm ..."
-        /><TouchableHighlight className="bg-[#9661D9] w-1/3 px-6 py-4 rounded-lg flex items-center justify-center">
+        />
+        <TouchableHighlight className="bg-[#9661D9] px-5 py-4 rounded-lg flex items-center justify-center">
           <Text className="text-[#fff] font-semibold text-[16px] text-center">
             Tìm kiếm
           </Text>
         </TouchableHighlight>
-        </View>
-       
-        
-    
-      <LinearGradient
-        colors={['#523471', '#9C62D7']}
-        start={{ x: 1, y: 0 }}
-        end={{ x: 0, y: 0 }}
-        style={{ padding: 12, borderRadius: 10, marginTop: 20 }}
-        className="flex-row items-center"
-      >
-        <View className="w-[50%]">
-          <Text className="uppercase font-bold text-white text-[18px]">
-            2Hand Market
-          </Text>
-          <Text className="text-[14px] text-white font-medium">
-            Buôn bán các thiết bị hiện tại và uy tính.
-          </Text>
-        </View>
-        <Image
-          style={{ width: 150, height: 150 }}
-          source={require("../assets/images/image 2.png")}
-        />
-      </LinearGradient>
-      <View className="flex-row gap-4 mt-6 items-center justify-center">
-        <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
-          <View className="flex-row items-center justify-center gap-2">
-            <Ionicons name="logo-slack" className="text-[]" size={22} color="#9661D9" />
-            <Text className="font-bold text-[18px] text-[#9661D9]">All</Text>
-          </View>
-        </TouchableHighlight>
-        <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
-          <View className="flex-row items-center justify-center gap-2">
-            <Icon name="mobile" size={24} color="#9661D9" />
-            <Text className="font-bold text-[18px] text-[#9661D9]">
-              Điện thoại
-            </Text>
-          </View>
-        </TouchableHighlight>
-        <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
-          <View className="flex-row items-center justify-center gap-2">
-            <Icon name="laptop" size={22} color="#9661D9" />
-            <Text className="font-bold text-[18px] text-[#9661D9]">Laptop</Text>
-          </View>
-        </TouchableHighlight>
       </View>
       <ScrollView>
+        <LinearGradient
+          colors={['#523471', '#9C62D7']}
+          start={{ x: 1, y: 0 }}
+          end={{ x: 0, y: 0 }}
+          style={{ padding: 12, borderRadius: 10, marginTop: 20 }}
+          className="flex-row items-center"
+        >
+          <View className="w-[50%]">
+            <Text className="uppercase font-bold text-white text-[18px]">
+              2Hand Market
+            </Text>
+            <Text className="text-[14px] text-white font-medium">
+              Buôn bán các thiết bị hiện tại và uy tính.
+            </Text>
+          </View>
+          <Image
+            style={{ width: 150, height: 150 }}
+            source={require("../assets/images/image 2.png")}
+          />
+        </LinearGradient>
+        <View className="flex-row gap-4 mt-6 items-center justify-center">
+          <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
+            <View className="flex-row items-center justify-center gap-2">
+              <Ionicons name="logo-slack" className="text-[]" size={22} color="#9661D9" />
+              <Text className="font-bold text-[18px] text-[#9661D9]">All</Text>
+            </View>
+          </TouchableHighlight>
+          <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
+            <View className="flex-row items-center justify-center gap-2">
+              <Icon name="mobile" size={24} color="#9661D9" />
+              <Text className="font-bold text-[18px] text-[#9661D9]">
+                Điện thoại
+              </Text>
+            </View>
+          </TouchableHighlight>
+          <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
+            <View className="flex-row items-center justify-center gap-2">
+              <Icon name="laptop" size={22} color="#9661D9" />
+              <Text className="font-bold text-[18px] text-[#9661D9]">Laptop</Text>
+            </View>
+          </TouchableHighlight>
+        </View>
         {products.map((product) => (
           <View
             key={product.id}
@@ -152,10 +150,8 @@ export default function HomePage() {
                     source={require("../assets/images/z6316149378615_f6d6f665171bf597c35f86bf13ca61b2.jpg")}
                   /> </Link>
                 <View className="w-[50%] flex-col gap-1">
-                  <View className="flex-row gap-1">
-                    <Text className="font-bold text-[16px]">
-                      {product.name}
-                    </Text>
+                  <View className="flex-row">
+                    <Text className="font-bold text-[16px]">{product.name}</Text>
                     <TouchableHighlight onPress={() => handleReportPress(product.id)}>
                       <Icon name="ellipsis-v" size={18} color="#9661D9" />
                     </TouchableHighlight>
@@ -211,7 +207,6 @@ export default function HomePage() {
         ))}
       </ScrollView>
     </View>
-
     // </SafeAreaView>
   );
 }
