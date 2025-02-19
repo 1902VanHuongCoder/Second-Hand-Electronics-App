@@ -94,8 +94,9 @@ export default function HomePage() {
             Tìm kiếm
           </Text>
         </TouchableHighlight>
-<!-- <<<<<<< vanhuong
-        </View>
+
+
+        {/* </View>
        
         
     
@@ -139,9 +140,8 @@ export default function HomePage() {
             <Icon name="laptop" size={22} color="#9661D9" />
             <Text className="font-bold text-[18px] text-[#9661D9] font-Roboto">Laptop</Text>
           </View>
-        </TouchableHighlight>
-======= -->
->>>>>>> master
+        </TouchableHighlight> */}
+
       </View>
       <ScrollView>
         <LinearGradient
@@ -199,15 +199,14 @@ export default function HomePage() {
                     source={require("../assets/images/z6316149378615_f6d6f665171bf597c35f86bf13ca61b2.jpg")}
                   /> </Link>
                 <View className="w-[50%] flex-col gap-1">
-<!-- <<<<<<< vanhuong
-                  <View className="flex-row gap-1">
+
+                  {/* <View className="flex-row gap-1">
                     <Text className="font-bold text-[16px] font-Monomakh">
                       {product.name}
-                    </Text>
-======= -->
+                    </Text> */}
+
                   <View className="flex-row">
                     <Link href="/postDetails"><Text className="font-bold text-[16px]">{product.name}</Text></Link>
-<!-- >>>>>>> master -->
                     <TouchableHighlight onPress={() => handleReportPress(product.id)}>
                       <Icon name="ellipsis-v" size={18} color="#9661D9" />
                     </TouchableHighlight>
