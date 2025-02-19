@@ -6,15 +6,11 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
+import { StyleSheet } from 'react-native';
 import "../global.css";
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Provider } from 'react-redux';
 import { store } from '../store/store';
-import { useSelector } from 'react-redux';
-import { RootState } from '../store/store';
-import { ImageBackground, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-
 // Prevent splash screen from auto-hiding before loading assets
 SplashScreen.preventAutoHideAsync();
 
@@ -24,6 +20,9 @@ export default function RootLayout() {
 
   const [loaded] = useFonts({
     Roboto: require('../assets/fonts/Roboto.ttf'),
+    RobotoItalic: require('../assets/fonts/Roboto-VariableFont_wdth,wght.ttf'),
+    Monomakh: require('../assets/fonts/Monomakh-Regular.ttf'),
+    Knewave: require('../assets/fonts/Knewave-Regular.ttf'),
   });
 
   useEffect(() => {

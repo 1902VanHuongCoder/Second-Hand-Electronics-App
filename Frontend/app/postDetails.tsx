@@ -108,11 +108,7 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
   },
-  postName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginVertical: 10,
-  },
+ 
   description: {
     fontSize: 16,
     marginVertical: 10,
@@ -183,5 +179,13 @@ const styles = StyleSheet.create({
   expandedText: {
     fontSize: 16,
     marginVertical: 10,
+    fontFamily: 'Knewave',
+  },
+  postName: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginVertical: 10,
+    fontFamily: 'Knewave',
   },
 });
+
