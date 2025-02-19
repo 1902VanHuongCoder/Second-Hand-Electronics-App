@@ -1,3 +1,4 @@
+
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -54,6 +55,7 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
+
     logout: (state) => {
       state.user = null;
       state.token = null;
