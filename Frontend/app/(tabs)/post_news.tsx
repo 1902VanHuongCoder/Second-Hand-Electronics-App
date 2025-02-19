@@ -109,7 +109,7 @@ export default function PostNews() {
     return (
         <View className='w-full h-full bg-white p-4'>
             <ScrollView>
-                <View className='flex-col gap-3'>
+                <View className='flex-col gap-5'>
                     <View className='flex-col gap-2'>
                         <Text className='font-bold text-[16px]'>Danh mục <Text className='text-[#DC143C]'>*</Text></Text>
                         <View className='border-2 border-[#D9D9D9] rounded-lg'>

@@ -56,7 +56,7 @@ export default function profile() {
                         </View>
                     </View>
                 </View>
-                <View className='my-4'>
+                <View className='mb-4 mt-6'>
                     <TouchableHighlight className="rounded-lg">
                         <LinearGradient
                             colors={[ '#523471', '#9C62D7']}
