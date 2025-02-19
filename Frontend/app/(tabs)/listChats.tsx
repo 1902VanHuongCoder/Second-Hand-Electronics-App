@@ -30,6 +30,7 @@ export default function ListChats() {
                 </View>
                 <Image style={{ width: 70, height: 70 }} className='rounded-md' source={require('../../assets/images/z6316149378615_f6d6f665171bf597c35f86bf13ca61b2.jpg')} />
             </View>
-        </View> );
-    
+        </View>
+    );
+
 }

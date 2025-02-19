@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function welcomePage() {
     return (
-        <SafeAreaView>
+        <View>
             <View className='relative bg-[#9661D9] w-full min-h-screen items-center'>
                 <View className="items-center mt-24">
                     <Image style={{ width: 300, height: 40 }} source={require('../assets/images/2HAND MARKET.png')} />
@@ -21,6 +21,6 @@ export default function welcomePage() {
                     </TouchableOpacity>
                 </View>
             </View>
-        </SafeAreaView>
+        </View>
     );
 }
