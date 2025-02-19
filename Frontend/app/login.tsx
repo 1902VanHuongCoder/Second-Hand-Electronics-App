@@ -28,7 +28,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <View className='relative  bg-red-500 flex h-screen justify-center items-center bg-white px-10'>
+    <View className='relative flex h-screen justify-center items-center bg-white px-10'>
       <Text className='text-4xl font-bold w-full '>ĐĂNG NHẬP</Text>
       <Text className='mt-8 w-full text-left text-lg'>Số điện thoại</Text>
       <TextInput

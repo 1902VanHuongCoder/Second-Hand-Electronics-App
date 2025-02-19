@@ -3,9 +3,16 @@ import React, { useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Picker } from '@react-native-picker/picker';
 import { LinearGradient } from "expo-linear-gradient";
+import Icon from "react-native-vector-icons/FontAwesome";
 
+// Định nghĩa kiểu cho ảnh và video
+interface Media {
+    uri: string;
+}
 export default function PostNews() {
     const [selectedValue, setSelectedValue] = useState("Điện thoại");
+    const [images, setImages] = useState<Media[]>([]); // Định nghĩa kiểu cho images
+    const [videos, setVideos] = useState<Media[]>([]); // Định nghĩa kiểu cho videos
     const colors = [
         { id: '1', label: 'Đen', value: 'Đen' },
         { id: '2', label: 'Đỏ', value: 'Đỏ' },
@@ -98,6 +105,7 @@ export default function PostNews() {
         { id: '4', label: '17.3 inch', value: '17.3 inch' },
         { id: '5', label: '11.6 inch', value: '11.6 inch' },
     ];
+
     return (
         <SafeAreaView className='w-full h-full bg-white p-4'>
             <ScrollView>
@@ -116,6 +124,47 @@ export default function PostNews() {
                         </View>
                     </View>
                     <Text className='font-bold text-[16px] uppercase'>Thông tin chi tiết</Text>
+                    <View className='flex-col gap-2'>
+                        <View className='border-2 border-[#D9D9D9] rounded-lg p-3 flex-col items-center'>
+                            <Text className='text-[#9661D9] font-semibold self-end'>Hình ảnh hợp lệ</Text>
+                            <Icon name='camera' size={40} color='#9661D9' />
+                            <TouchableHighlight
+                                onPress={() => {}}
+                                underlayColor="#DDDDDD"
+                                style={{ padding: 10, alignItems: 'center' }}
+                            >
+                                <Text className='font-bold uppercase'>Đăng từ 01 đến 06 hình</Text>
+                            </TouchableHighlight>
+                            <ScrollView horizontal>
+                                {images.map((image, index) => (
+                                    <Image
+                                        key={index}
+                                        source={{ uri: image.uri }}
+                                        style={{ width: 100, height: 100, margin: 5 }}
+                                    />
+                                ))}
+                            </ScrollView>
+                        </View>
+                    </View>
+                    <View className='flex-col gap-2'>
+                        <View className='border-2 border-[#D9D9D9] rounded-lg p-3 flex-col items-center'>
+                            <Icon className='mt-4' name='video-camera' size={40} color='#9661D9' />
+                            <TouchableHighlight
+                                onPress={() => {}}
+                                underlayColor="#DDDDDD"
+                                style={{ padding: 10, alignItems: 'center' }}
+                            >
+                                <Text className='font-bold uppercase'>Đăng tối đa 01 video sản phẩm</Text>
+                            </TouchableHighlight>
+                            <ScrollView horizontal>
+                                {videos.map((video, index) => (
+                                    <Text key={index} style={{ margin: 5 }}>
+                                        {video.uri ? video.uri.split('/').pop() : 'Video chưa chọn'} {/* Hiển thị tên video */}
+                                    </Text>
+                                ))}
+                            </ScrollView>
+                        </View>
+                    </View>
                     <View className='flex-col gap-2'>
                         <Text className='font-bold text-[16px]'>Tình trạng <Text className='text-[#DC143C]'>*</Text></Text>
                         <View className='border-2 border-[#D9D9D9] rounded-lg'>
@@ -264,21 +313,6 @@ export default function PostNews() {
                                 selectedValue={selectedValue}
                                 onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
                             >
-                                <Picker.Item label="Onboard" value="Onboard" />
-                                <Picker.Item label="AMD" value="AMD" />
-                                <Picker.Item label="NVIDIA" value="NVIDIA" />
-                                <Picker.Item label="Khác" value="Khác" />
-                            </Picker>
-                        </View>
-                    </View>
-                    <View className='flex-col gap-2'>
-                        <Text className='font-bold text-[16px]'>Kích cỡ màn hình <Text className='text-[#DC143C]'>*</Text></Text>
-                        <View className='border-2 border-[#D9D9D9] rounded-lg'>
-                            <Picker
-                                className='font-semibold'
-                                selectedValue={selectedValue}
-                                onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
-                            >
                                 {screenSizes.map(screenSize => (
                                     <Picker.Item key={screenSize.id} label={screenSize.label} value={screenSize.value} />
                                 ))}
@@ -378,3 +412,4 @@ export default function PostNews() {
 }
 
 //npm install @react-native-picker/picker cài thư viện này để sử dụng select option giống web
+//npm install react-native-image-picker

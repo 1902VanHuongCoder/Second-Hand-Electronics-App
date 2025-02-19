@@ -31,7 +31,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Trang chủ',
-          tabBarIcon: ({ color }) => <IconSymbol size={25} name="house.fill" color={color} />,
+          tabBarIcon: ({ color }) => <Icon size={25} name="home" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -47,9 +47,8 @@ export default function TabLayout() {
           title: 'Đăng tin',
           tabBarIcon: ({ color }) => <Icon size={25} name="pencil-square" color={color} />,
         }}
-      />
-      <Tabs.Screen
-        name="message"
+      /><Tabs.Screen
+        name="listChats"
         options={{
           title: 'Tin Nhắn',
           tabBarIcon: ({ color }) => <Icon size={25} name="comments" color={color} />,

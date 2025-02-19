@@ -6,12 +6,15 @@ import {
   ScrollView,
   TextInput,
 } from "react-native";
-import React, { Component } from "react";
+import React, { useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 export default function HomePage() {
   const [text, onChangeText] = React.useState("");
+  const [reportVisible, setReportVisible] = useState(false); // State để theo dõi trạng thái hiển thị menu báo cáo
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null); // Chỉ định kiểu cho selectedProductId
+  const [selectedReason, setSelectedReason] = useState<string | null>(null); // State để lưu lý do đã chọn
   const products = [
     {
       id: "1",
@@ -53,8 +56,27 @@ export default function HomePage() {
       nameUser: "Hoàng Anh",
     },
   ];
+
+  const reportReasons = [
+    "Nội dung không phù hợp",
+    "Hàng giả, hàng nhái",
+    "Lừa đảo",
+    "Spam",
+    "Khác",
+  ];
+
+  const handleReportPress = (productId: string) => {
+    setSelectedProductId(productId);
+    setReportVisible(!reportVisible); // Chuyển đổi trạng thái hiển thị menu báo cáo
+  };
+
+  const handleReasonSelect = (reason: string) => {
+    setSelectedReason(reason);
+    alert(`Bạn đã chọn lý do: ${reason}`); // Thực hiện hành động báo cáo ở đây
+  };
+
   return (
-    <SafeAreaView className="p-4 mb-20" style={{ flex: 1 }}>
+    <View className="p-4" style={{ flex: 1 }}>
       <View className="flex-row justify-between items-center">
         <TextInput
           className="border-2 border-[#D9D9D9] w-2/3 px-2 py-4 text-[#000] rounded-lg font-semibold"
@@ -68,49 +90,51 @@ export default function HomePage() {
           </Text>
         </TouchableHighlight>
       </View>
-      <LinearGradient
-        colors={['#523471', '#9C62D7']}
-        start={{ x: 1, y: 0 }}
-        end={{ x: 0, y: 0 }}
-        style={{ padding: 12, borderRadius: 10, marginTop: 20 }}
-        className="flex-row items-center"
-      >
-        <View className="w-[50%]">
-          <Text className="uppercase font-bold text-white text-[18px]">
-            2Hand Market
-          </Text>
-          <Text className="text-[14px] text-white font-medium">
-            Buôn bán các thiết bị hiện tại và uy tính.
-          </Text>
-        </View>
-        <Image
-          style={{ width: 150, height: 150 }}
-          source={require("../assets/images/image 2.png")}
-        />
-      </LinearGradient>
-      <View className="flex-row gap-4 mt-6 items-center justify-center">
-        <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
-          <View className="flex-row items-center justify-center gap-2">
-            <Icon name="slack" size={22} color="#9661D9" />
-            <Text className="font-bold text-[18px] text-[#9661D9]">All</Text>
-          </View>
-        </TouchableHighlight>
-        <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
-          <View className="flex-row items-center justify-center gap-2">
-            <Icon name="mobile" size={24} color="#9661D9" />
-            <Text className="font-bold text-[18px] text-[#9661D9]">
-              Điện thoại
+      <ScrollView>
+        <LinearGradient
+          colors={["#523471", "#9C62D7"]}
+          start={{ x: 1, y: 0 }}
+          end={{ x: 0, y: 0 }}
+          style={{ padding: 12, borderRadius: 10, marginTop: 20 }}
+          className="flex-row items-center"
+        >
+          <View className="w-[50%]">
+            <Text className="uppercase font-bold text-white text-[18px]">
+              2Hand Market
+            </Text>
+            <Text className="text-[14px] text-white font-medium">
+              Buôn bán các thiết bị hiện tại và uy tính.
             </Text>
           </View>
-        </TouchableHighlight>
-        <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
-          <View className="flex-row items-center justify-center gap-2">
-            <Icon name="laptop" size={22} color="#9661D9" />
-            <Text className="font-bold text-[18px] text-[#9661D9]">Laptop</Text>
-          </View>
-        </TouchableHighlight>
-      </View>
-      <ScrollView>
+          <Image
+            style={{ width: 150, height: 150 }}
+            source={require("../assets/images/image 2.png")}
+          />
+        </LinearGradient>
+        <View className="flex-row gap-4 mt-6 items-center justify-center">
+          <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
+            <View className="flex-row items-center justify-center gap-2">
+              <Icon name="slack" size={22} color="#9661D9" />
+              <Text className="font-bold text-[18px] text-[#9661D9]">All</Text>
+            </View>
+          </TouchableHighlight>
+          <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
+            <View className="flex-row items-center justify-center gap-2">
+              <Icon name="mobile" size={24} color="#9661D9" />
+              <Text className="font-bold text-[18px] text-[#9661D9]">
+                Điện thoại
+              </Text>
+            </View>
+          </TouchableHighlight>
+          <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
+            <View className="flex-row items-center justify-center gap-2">
+              <Icon name="laptop" size={22} color="#9661D9" />
+              <Text className="font-bold text-[18px] text-[#9661D9]">
+                Laptop
+              </Text>
+            </View>
+          </TouchableHighlight>
+        </View>
         {products.map((product) => (
           <View
             key={product.id}
@@ -124,8 +148,10 @@ export default function HomePage() {
                 />
                 <View className="w-[50%] flex-col gap-1">
                   <View className="flex-row gap-1">
-                    <Text className="font-bold text-[16px]">{product.name}</Text>
-                    <TouchableHighlight>
+                    <Text className="font-bold text-[16px]">
+                      {product.name}
+                    </Text>
+                    <TouchableHighlight onPress={() => handleReportPress(product.id)}>
                       <Icon name="ellipsis-v" size={18} color="#9661D9" />
                     </TouchableHighlight>
                   </View>
@@ -166,10 +192,20 @@ export default function HomePage() {
                 </View>
               </View>
             </View>
+            {reportVisible && selectedProductId === product.id && ( // Hiển thị menu báo cáo nếu điều kiện thỏa mãn
+              <View className="bg-[#F4E9FF] p-4 rounded-lg mt-2">
+                <Text className="text-[#000] font-bold text-[18px]">Chọn lý do báo cáo:</Text>
+                {reportReasons.map((reason, index) => (
+                  <TouchableHighlight key={index} underlayColor="#9661D9" onPress={() => handleReasonSelect(reason)}>
+                    <Text className="text-[#9661D9] mt-2 text-[16px] font-medium">{reason}</Text>
+                  </TouchableHighlight>
+                ))}
+              </View>
+            )}
           </View>
         ))}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
