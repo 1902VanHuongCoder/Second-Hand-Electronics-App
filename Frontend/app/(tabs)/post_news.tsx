@@ -107,7 +107,7 @@ export default function PostNews() {
     ];
 
     return (
-        <SafeAreaView className='w-full h-full bg-white p-4'>
+        <View className='w-full h-full bg-white p-4'>
             <ScrollView>
                 <View className='flex-col gap-3'>
                     <View className='flex-col gap-2'>
@@ -407,7 +407,7 @@ export default function PostNews() {
                     </TouchableHighlight>
                 </View>
             </ScrollView>
-        </SafeAreaView>
+        </View>
     )
 }
 

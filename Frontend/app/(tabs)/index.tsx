@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { View } from 'react-native';
 import HomePage from '../homePage';
 import ListChats from './listChats';
@@ -6,6 +6,7 @@ import EditProfile from '../editProfile';
 import Payment from '../payment';
 import Message from '../message';
 import HidePosting from '../hidePosting';
+import WelcomePage from '../welcomePage';
 // import PostDetailsScreen from '../postDetails';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PushNews from '../pushNews';
