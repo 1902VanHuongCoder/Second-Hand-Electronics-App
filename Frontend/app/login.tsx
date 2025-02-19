@@ -15,16 +15,22 @@ export default function LoginScreen() {
   const dispatch = useDispatch<AppDispatch>();
   const { loading, error, user } = useSelector((state: RootState) => state.auth) as { loading: boolean, error: string, user: any };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (password === '') {
       setValidateInput({ ...validateInput, passwordError: 'Vui lòng nhập mật khẩu' });
+      return;
     }
     if (phone === '') {
       setValidateInput({ ...validateInput, phoneError: 'Vui lòng nhập số điện thoại' });
+      return;
     }
 
-    alert("Đăng nhập thành công");
-    dispatch(loginUser({ phone, password }));
+    const resultAction = await dispatch(loginUser({ phone, password }));
+    if (loginUser.fulfilled.match(resultAction)) {
+      alert("Đăng nhập thành công");
+    } else {
+      alert(resultAction.payload);
+    }
   };
 
   return (
@@ -76,7 +82,7 @@ export default function LoginScreen() {
       <Image className='absolute top-0 w-screen -z-10' source={require('@/assets/images/Vector 1.png')} style={{ alignSelf: 'center' }} />
       <Image className='absolute bottom-10 w-screen -z-10' source={require('@/assets/images/Vector 2.png')} style={{ alignSelf: 'center' }} />
       <Text className='my-5 text-lg'>Hoặc</Text>
-      <Link href="/AuthScreen/signup">
+      <Link href="/signup">
         <Text className='underline text-lg'>Đăng ký</Text>
       </Link>
        {/* <Pressable onPress={() => navigation.navigate('signup')}>

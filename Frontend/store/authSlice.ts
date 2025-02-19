@@ -1,4 +1,3 @@
-
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -29,11 +28,14 @@ export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async ({ phone, password }: { phone: string; password: string }, { rejectWithValue }) => {
     try {
-      const response = await axios.post<{ token: string; user: User }>('https://your-api.com/login', { phone, password });
-      await AsyncStorage.setItem('token', response.data.token);
+      const response = await axios.post<{ token: any; user: User }>('http://10.0.2.2:5000/api/login', { phone, password });
+      
+       await AsyncStorage.setItem('token', response.data.token);
+     console.log(response.data.token)
       return response.data;
-    } catch (error) {
-      return rejectWithValue((error as any).response?.data || 'Đăng nhập thất bại');
+    } catch (error) {  
+      console.log(error );
+      return rejectWithValue((error as any).response?.data.message || 'Đăng nhập thất bại');
     }
   }
 );
@@ -42,11 +44,10 @@ export const signupUser = createAsyncThunk(
   'auth/signupUser',
   async ({ phone, password }: { phone: string; password: string }, { rejectWithValue }) => {
     try {
-      const response = await axios.post<{ token: string; user: User }>('https://your-api.com/signup', { phone, password });
-      await AsyncStorage.setItem('token', response.data.token);
+      const response = await axios.post<{ token: string; user: User }>('http://10.0.2.2:5000/api/signup', { phone, password });
       return response.data;
     } catch (error) {
-      return rejectWithValue((error as any).response?.data || 'Đăng ký thất bại');
+      return rejectWithValue((error as any).response?.data.message || 'Đăng ký thất bại');
     }
   }
 );
@@ -55,7 +56,9 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-
+    login: (state, action: PayloadAction<{ phone: string; password: string }>) => {
+      // Xử lý đăng nhập
+    },
     logout: (state) => {
       state.user = null;
       state.token = null;
@@ -91,9 +94,7 @@ const authSlice = createSlice({
         state.error = action.payload as string;
       });
   },
-}, 
+});
 
-);
-
-export const { logout } = authSlice.actions;
+export const { login: loginAction, logout } = authSlice.actions;
 export default authSlice.reducer;

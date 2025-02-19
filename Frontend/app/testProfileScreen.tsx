@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { useDispatch } from 'react-redux';
-import { updateUser as updateUserAction } from '../store/authSlice';
+import updateUser from '../store/authSlice';
 
 const ProfileScreen = () => {
   const { userData, userToken } = useAuth();
@@ -135,3 +135,7 @@ const styles = StyleSheet.create({
 });
 
 export default ProfileScreen;
+
+function updateUserAction(arg0: { user: { id: any; name: any; email: any; phone: any; address: any; }; }): any {
+  throw new Error('Function not implemented.');
+}
