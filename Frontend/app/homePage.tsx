@@ -81,7 +81,7 @@ export default function HomePage() {
   return (
     // <SafeAreaView className="flex-1">
     <View className="p-4" style={{ flex: 1 }}>
-      <View className="flex-row justify-between items-center border-b-2 pb-4 border-[#D9D9D9]">
+      <View className="flex-row justify-between items-center border-b-2 pb-6 border-[#D9D9D9]">
         <TextInput
           className="border-2 border-[#D9D9D9] w-2/3 px-2 py-4 text-[#000] rounded-lg font-semibold"
           onChangeText={onChangeText}
@@ -103,7 +103,7 @@ export default function HomePage() {
           className="flex-row items-center"
         >
           <View className="w-[50%]">
-            <Text className="uppercase font-bold text-white text-[18px]">
+            <Text className="uppercase font-extrabold text-white text-[18px]">
               2Hand Market
             </Text>
             <Text className="text-[14px] text-white font-medium">
@@ -151,7 +151,7 @@ export default function HomePage() {
                   /> </Link>
                 <View className="w-[50%] flex-col gap-1">
                   <View className="flex-row">
-                    <Text className="font-bold text-[16px]">{product.name}</Text>
+                    <Link href="/postDetails"><Text className="font-bold text-[16px]">{product.name}</Text></Link>
                     <TouchableHighlight onPress={() => handleReportPress(product.id)}>
                       <Icon name="ellipsis-v" size={18} color="#9661D9" />
                     </TouchableHighlight>
@@ -175,7 +175,7 @@ export default function HomePage() {
                 </View>
               </View>
               <View className="flex-row justify-between items-center w-full">
-                <View className="flex-row gap-2">
+                <View className="flex-row gap-2 items-center">
                   <Image
                     style={{ width: 50, height: 50 }}
                     className="rounded-full"

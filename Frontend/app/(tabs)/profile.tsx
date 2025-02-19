@@ -8,7 +8,7 @@ export default function profile() {
         <View className='bg-white w-full min-h-screen'>
             <View className='bg-[#9661D9] w-full h-[200px] flex justify-center items-center'>
                 <View className='relative'>
-                    <Image className='rounded-full' style={{ width: 70, height: 70 }} source={require('../../assets/images/z6186705977978_00edd678a64db50dba5ef61a50391611.jpg')} />
+                    <Image className='rounded-full border-4 border-[#fff]' style={{ width: 80, height: 80 }} source={require('../../assets/images/z6186705977978_00edd678a64db50dba5ef61a50391611.jpg')} />
                     <View className='absolute bottom-0 -right-1 bg-white p-2 rounded-full'>
                         <Icon name='camera' size={14} color={'#333'} />
                     </View>
@@ -56,7 +56,7 @@ export default function profile() {
                         </View>
                     </View>
                 </View>
-                <View className='mt-6'>
+                <View className='my-4'>
                     <TouchableHighlight className="rounded-lg">
                         <LinearGradient
                             colors={[ '#523471', '#9C62D7']}
@@ -70,7 +70,7 @@ export default function profile() {
                         </LinearGradient>
                     </TouchableHighlight>
                 </View >
-                <View className='mt-8'>
+                <View>
                     <TouchableHighlight className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
                         <View className="flex-row items-center justify-center gap-2">
                             <Icon name="sign-out" size={22} color="#333" />

@@ -14,42 +14,42 @@ export default function PostDetailsScreen() {
       <Carousel />
       <View style={styles.content}>
         <Text style={styles.postName}>Laptop gaming ASUS 16GB 256GB</Text>
-        <Text style={styles.description}>This is a detailed description of the post. It provides all the necessary information about the post.</Text>
+        <Text style={styles.description} className='text-justify'>This is a detailed description of the post. It provides all the necessary information about the post.</Text>
         <Text style={styles.price}>100 VND</Text>
-        <Text style={styles.location}>Location: New York, USA</Text>
-        <Text style={styles.location}>Time: 20:30 01/01/2025</Text>
-        <Text style={styles.location}>Mô tả chi tiết</Text>
+        <Text style={styles.location} className='font-bold'>Địa chỉ: <Text className='font-normal'>New York, USA</Text></Text>
+        <Text style={styles.location} className='font-bold'>Ngày đăng: <Text className='font-normal'>20:30 01/01/2025</Text></Text>
+        <Text style={styles.location} className='font-bold uppercase'>Mô tả chi tiết</Text>
         <TouchableOpacity onPress={() => setExpanded(!expanded)}>
           <Text style={styles.expandText}>
             {expanded ? 'Thu gọn' : 'Xem thêm'}
           </Text>
         </TouchableOpacity>
         {expanded && (
-          <Text style={styles.expandedText}>
+          <Text style={styles.expandedText} className='text-justify'>
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec faucibus orci at augue blandit euismod. Morbi et ex convallis, congue risus venenatis, efficitur magna. Pellentesque non nisi maximus, elementum sem at, gravida ligula. Integer dapibus arcu sit amet libero malesuada accumsan. Suspendisse vehicula fringilla accumsan. Nullam accumsan leo quis luctus blandit. Mauris dapibus vitae eros ac accumsan...
           </Text>
         )}
-        <Text style={styles.specs}>Thông số kỹ thuật</Text>
+        <Text style={styles.specs} className='font-bold uppercase'>Thông số kỹ thuật</Text>
         <View style={styles.specsContainer}>
           <View style={styles.specItem}>
-            <Ionicons name="hardware-chip-outline" size={24} color="black" />
-            <Text style={styles.specText}>CPU: Intel Core i7</Text>
+            <Ionicons name="hardware-chip-outline" size={24} color="black" className='font-bold'/>
+            <Text style={styles.specText} className='font-bold'>CPU: <Text className='font-normal'>Intel Core i7</Text></Text>
           </View>
           <View style={styles.specItem}>
             <Ionicons name="at-sharp" size={24} color="black" />
-            <Text style={styles.specText}>RAM: 16GB</Text>
+            <Text style={styles.specText} className='font-bold'>RAM: <Text className='font-normal'>16GB</Text></Text>
           </View>
           <View style={styles.specItem}>
             <Ionicons name="disc-outline" size={24} color="black" />
-            <Text style={styles.specText}>Storage: 256GB SSD</Text>
+            <Text style={styles.specText} className='font-bold'>Storage: <Text className='font-normal'>256GB SSD</Text></Text>
           </View>
           <View style={styles.specItem}>
             <Ionicons name="laptop-outline" size={24} color="black" />
-            <Text style={styles.specText}>Display: 15.6" FHD</Text>
+            <Text style={styles.specText} className='font-bold'>Display: <Text className='font-normal'>15.6" FHD</Text></Text>
           </View>
           <View style={styles.specItem}>
             <Ionicons name="battery-charging-outline" size={24} color="black" />
-            <Text style={styles.specText}>Battery: 97%</Text>
+            <Text style={styles.specText} className='font-bold'>Battery: <Text className='font-normal'>97%</Text></Text>
           </View>
         </View>
         <View style={styles.buttonContainer}>
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: 'green',
+    color: '#9661D9',
     marginVertical: 10,
   },
   location: {
@@ -134,8 +134,8 @@ const styles = StyleSheet.create({
   specs: {
     fontSize: 16,
     marginVertical: 10,
-    borderTopColor: 'gray',
-    borderTopWidth: 1,
+    borderTopColor: '#D9D9D9',
+    borderTopWidth: 2,
     borderStyle: 'solid',
     paddingVertical: 10,
     paddingTop: 30,
