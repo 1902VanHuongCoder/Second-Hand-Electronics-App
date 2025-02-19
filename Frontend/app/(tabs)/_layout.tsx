@@ -28,7 +28,7 @@ export default function TabLayout() {
           fontSize: 20,
           fontWeight: 'bold',
         },
-        headerShadowVisible: false, 
+        headerShadowVisible: true, 
         headerLeft: () => (
           <TouchableOpacity  onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="white" style={{ marginLeft: 15 }} />
@@ -38,7 +38,7 @@ export default function TabLayout() {
           ios: {
             // Use a transparent background on iOS to show the blur effect
             position: 'absolute',
-            backgroundColor: 'rgba(255, 255, 255, 0.9)', // Semi-transparent background
+            backgroundColor: 'rgba(240, 0, 0, 0.9)', // Semi-transparent background
             borderTopWidth: 0, // Remove top border
             height: 70, // Increase height
             paddingBottom: 10, // Add padding to the bottom
@@ -111,7 +111,7 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: '#fff',
+    // backgroundColor: '',
     height: 70,
     paddingBottom: 10,
     paddingTop: 10,

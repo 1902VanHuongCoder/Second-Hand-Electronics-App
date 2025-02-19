@@ -5,6 +5,7 @@ import {
   Image,
   ScrollView,
   TextInput,
+  StyleSheet,
 } from "react-native";
 import React, { useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
@@ -80,7 +81,7 @@ export default function HomePage() {
 
   return (
     // <SafeAreaView className="flex-1">
-    <View className="px-4 mt-6">
+    <View className="px-4 " style={styles.container}>
       <View className="flex flex-row justify-start items-center gap-4">
            <TextInput
           className="border-2 border-[#D9D9D9] w-2/3 px-2 py-4 text-[#000] rounded-lg font-semibold"
@@ -107,7 +108,7 @@ export default function HomePage() {
           <Text className="uppercase font-bold text-white text-[18px]">
             2Hand Market
           </Text>
-          <Text className="text-[14px] text-white font-medium">
+          <Text className="text-[14px] text-white font-medium font-Roboto">
             Buôn bán các thiết bị hiện tại và uy tính.
           </Text>
         </View>
@@ -120,13 +121,13 @@ export default function HomePage() {
         <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
           <View className="flex-row items-center justify-center gap-2">
             <Ionicons name="logo-slack" className="text-[]" size={22} color="#9661D9" />
-            <Text className="font-bold text-[18px] text-[#9661D9]">All</Text>
+            <Text className="font-bold text-[18px] text-[#9661D9] font-Roboto">All</Text>
           </View>
         </TouchableHighlight>
         <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
           <View className="flex-row items-center justify-center gap-2">
             <Icon name="mobile" size={24} color="#9661D9" />
-            <Text className="font-bold text-[18px] text-[#9661D9]">
+            <Text className="font-bold text-[18px] text-[#9661D9] font-Roboto">
               Điện thoại
             </Text>
           </View>
@@ -134,7 +135,7 @@ export default function HomePage() {
         <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
           <View className="flex-row items-center justify-center gap-2">
             <Icon name="laptop" size={22} color="#9661D9" />
-            <Text className="font-bold text-[18px] text-[#9661D9]">Laptop</Text>
+            <Text className="font-bold text-[18px] text-[#9661D9] font-Roboto">Laptop</Text>
           </View>
         </TouchableHighlight>
       </View>
@@ -153,7 +154,7 @@ export default function HomePage() {
                   /> </Link>
                 <View className="w-[50%] flex-col gap-1">
                   <View className="flex-row gap-1">
-                    <Text className="font-bold text-[16px]">
+                    <Text className="font-bold text-[16px] font-Monomakh">
                       {product.name}
                     </Text>
                     <TouchableHighlight onPress={() => handleReportPress(product.id)}>
@@ -211,10 +212,16 @@ export default function HomePage() {
         ))}
       </ScrollView>
     </View>
-
     // </SafeAreaView>
   );
+
 }
+const styles = StyleSheet.create({ container: {
+  // flex: 1,
+  padding: 20,
+  // fontFamily: "Monomakh",
+  // backgroundColor: 'red'
+},})
 
 //npm install react-native-linear-gradient sử dụng này để gradient background
 //npm install react-native-vector-icons cài icon

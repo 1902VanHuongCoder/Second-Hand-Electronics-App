@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 export default function ListChats() {
     const [text, onChangeText] = React.useState("");
     return (
-        <SafeAreaView className='bg-white w-full h-full p-4'>
+        <View className='bg-white w-full h-full p-4'>
             <View className="flex-row justify-between items-center border-b-2 pb-4 border-[#D9D9D9] mb-4">
                 <TextInput
                     className="border-2 border-[#D9D9D9] w-2/3 px-2 py-4 text-[#000] rounded-lg font-semibold"
@@ -30,6 +30,6 @@ export default function ListChats() {
                 </View>
                 <Image style={{ width: 70, height: 70 }} className='rounded-md' source={require('../../assets/images/z6316149378615_f6d6f665171bf597c35f86bf13ca61b2.jpg')} />
             </View>
-        </SafeAreaView>
-    );
+        </View> );
+    
 }
