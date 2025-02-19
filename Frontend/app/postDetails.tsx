@@ -1,37 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Image, Pressable } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import Carousel from 'react-native-snap-carousel';
 import { LinearGradient } from 'expo-linear-gradient';
+import Carousel from '@/components/Carousel';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
 export default function PostDetailsScreen() {
-  const navigation = useNavigation();
-  const images = [
-    'https://letsenhance.io/static/73136da51c245e80edc6ccfe44888a99/1015f/MainBefore.jpg',
-    'https://images.unsplash.com/photo-1575936123452-b67c3203c357?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aW1hZ2V8ZW58MHx8MHx8fDA%3D',
-    'https://media.istockphoto.com/id/537692968/photo/capturing-the-beauty-of-nature.jpg?s=612x612&w=0&k=20&c=V1HaryvwaOZfq80tAzeVPJST9iPoGnWb8ICmE-lmXJA='
-  ];
-
-  const renderItem = ({ item }: { item: string }) => {
-    return (
-      <View style={styles.slide}>
-        <Image source={{ uri: item }} style={styles.image} />
-      </View>
-    );
-  };
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Post Details</Text>
-      </View>
-      <Image source={require('@/assets/images/image 2.png')} style={styles.image} />
+      <Carousel />
       <View style={styles.content}>
         <Text style={styles.postName}>Laptop gaming ASUS 16GB 256GB</Text>
         <Text style={styles.description}>This is a detailed description of the post. It provides all the necessary information about the post.</Text>
@@ -39,7 +19,16 @@ export default function PostDetailsScreen() {
         <Text style={styles.location}>Location: New York, USA</Text>
         <Text style={styles.location}>Time: 20:30 01/01/2025</Text>
         <Text style={styles.location}>Mô tả chi tiết</Text>
-        <Text style={styles.details}>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec faucibus orci at augue blandit euismod. Morbi et ex convallis, congue risus venenatis, efficitur magna. Pellentesque non nisi maximus, elementum sem at, gravida ligula. Integer dapibus arcu sit amet libero malesuada accumsan. Suspendisse vehicula fringilla accumsan. Nullam accumsan leo quis luctus blandit. Mauris dapibus vitae eros ac accumsan...</Text>
+        <TouchableOpacity onPress={() => setExpanded(!expanded)}>
+          <Text style={styles.expandText}>
+            {expanded ? 'Thu gọn' : 'Xem thêm'}
+          </Text>
+        </TouchableOpacity>
+        {expanded && (
+          <Text style={styles.expandedText}>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec faucibus orci at augue blandit euismod. Morbi et ex convallis, congue risus venenatis, efficitur magna. Pellentesque non nisi maximus, elementum sem at, gravida ligula. Integer dapibus arcu sit amet libero malesuada accumsan. Suspendisse vehicula fringilla accumsan. Nullam accumsan leo quis luctus blandit. Mauris dapibus vitae eros ac accumsan...
+          </Text>
+        )}
         <Text style={styles.specs}>Thông số kỹ thuật</Text>
         <View style={styles.specsContainer}>
           <View style={styles.specItem}>
@@ -58,20 +47,24 @@ export default function PostDetailsScreen() {
             <Ionicons name="laptop-outline" size={24} color="black" />
             <Text style={styles.specText}>Display: 15.6" FHD</Text>
           </View>
+          <View style={styles.specItem}>
+            <Ionicons name="battery-charging-outline" size={24} color="black" />
+            <Text style={styles.specText}>Battery: 97%</Text>
+          </View>
         </View>
-        <View className='flex flex-row justify-between mt-5 gap-x-5'>
-          <Pressable >
+        <View style={styles.buttonContainer}>
+          <Pressable style={styles.buttonWrapper}>
             <LinearGradient
               colors={['rgba(156,98,215,1)', 'rgba(82,52,113,1)']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.button} 
             >
-               <Ionicons name="chatbubble-ellipses-outline" size={24} color="white" />
-              <Text style={{ color: 'white', fontWeight: 'bold' }}>NHẮN TIN</Text>
+              <Ionicons name="chatbubble-ellipses-outline" size={24} color="white" />
+              <Text style={styles.buttonText}>NHẮN TIN</Text>
             </LinearGradient>
           </Pressable>
-          <Pressable className=''>
+          <Pressable style={styles.buttonWrapper}>
             <LinearGradient
               colors={['rgba(156,98,215,1)', 'rgba(82,52,113,1)']}
               start={{ x: 0, y: 0 }}
@@ -79,17 +72,14 @@ export default function PostDetailsScreen() {
               style={styles.button}
             >
               <Ionicons name="call-outline" size={24} color="white"/>
-              <Text style={{ color: 'white', fontWeight: 'bold' }}>GỌI ĐIỆN</Text>
+              <Text style={styles.buttonText}>GỌI ĐIỆN</Text>
             </LinearGradient>
           </Pressable>
         </View>
-
       </View>
-
     </ScrollView>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {
@@ -148,9 +138,10 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderStyle: 'solid',
     paddingVertical: 10,
+    paddingTop: 30,
   },
   specsContainer: {
-    marginTop: 10,
+    marginTop: 1,
   },
   specItem: {
     flexDirection: 'row',
@@ -161,14 +152,36 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     fontSize: 16,
   },
+  buttonContainer: {
+    flexDirection: 'row',
+    marginTop: 20,
+    marginBottom: 6,
+    gap: 10,
+  },
+  buttonWrapper: {
+    flex: 1,
+  },
   button: {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    rowGap: 50,
     flexDirection: 'row',
     paddingHorizontal: 40,
     borderRadius: 5,
     paddingVertical: 10,
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    marginLeft: 10,
+  },
+  expandText: {
+    fontSize: 18,
+    color: 'blue',
+    textAlign: 'center',
+  },
+  expandedText: {
+    fontSize: 16,
+    marginVertical: 10,
   },
 });

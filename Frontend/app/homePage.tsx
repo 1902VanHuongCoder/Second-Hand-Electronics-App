@@ -10,6 +10,9 @@ import React, { Component } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
+import { Link } from "expo-router";
+import AppBarForHome from "@/components/AppBarForHome";
+import { Ionicons } from '@expo/vector-icons';
 export default function HomePage() {
   const [text, onChangeText] = React.useState("");
   const products = [
@@ -54,20 +57,24 @@ export default function HomePage() {
     },
   ];
   return (
-    <SafeAreaView className="p-4 mb-20" style={{ flex: 1 }}>
-      <View className="flex-row justify-between items-center">
-        <TextInput
+    // <SafeAreaView className="flex-1">
+    <View className="px-4 mt-6">
+      <View className="flex flex-row justify-start items-center gap-4">
+
+           <TextInput
           className="border-2 border-[#D9D9D9] w-2/3 px-2 py-4 text-[#000] rounded-lg font-semibold"
           onChangeText={onChangeText}
           value={text}
           placeholder="Tìm kiếm ..."
-        />
-        <TouchableHighlight className="bg-[#9661D9] px-5 py-4 rounded-lg flex items-center justify-center">
+        /><TouchableHighlight className="bg-[#9661D9] w-1/3 px-6 py-4 rounded-lg flex items-center justify-center">
           <Text className="text-[#fff] font-semibold text-[16px] text-center">
             Tìm kiếm
           </Text>
         </TouchableHighlight>
-      </View>
+        </View>
+       
+        
+    
       <LinearGradient
         colors={['#523471', '#9C62D7']}
         start={{ x: 1, y: 0 }}
@@ -91,7 +98,7 @@ export default function HomePage() {
       <View className="flex-row gap-4 mt-6 items-center justify-center">
         <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
           <View className="flex-row items-center justify-center gap-2">
-            <Icon name="slack" size={22} color="#9661D9" />
+            <Ionicons name="logo-slack" className="text-[]" size={22} color="#9661D9" />
             <Text className="font-bold text-[18px] text-[#9661D9]">All</Text>
           </View>
         </TouchableHighlight>
@@ -118,10 +125,11 @@ export default function HomePage() {
           >
             <View className="flex-col gap-4">
               <View className="flex-row gap-2 w-full">
-                <Image
-                  style={{ width: 170, height: 170 }}
-                  source={require("../assets/images/z6316149378615_f6d6f665171bf597c35f86bf13ca61b2.jpg")}
-                />
+                <Link href="/postDetails">
+                  <Image
+                    style={{ width: 170, height: 170 }}
+                    source={require("../assets/images/z6316149378615_f6d6f665171bf597c35f86bf13ca61b2.jpg")}
+                  /> </Link>
                 <View className="w-[50%] flex-col gap-1">
                   <View className="flex-row gap-1">
                     <Text className="font-bold text-[16px]">{product.name}</Text>
@@ -169,7 +177,9 @@ export default function HomePage() {
           </View>
         ))}
       </ScrollView>
-    </SafeAreaView>
+    </View>
+
+    // </SafeAreaView>
   );
 }
 

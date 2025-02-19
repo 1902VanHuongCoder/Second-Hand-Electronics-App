@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import Icon from "react-native-vector-icons/FontAwesome";
 export default function profile() {
     return (
-        <SafeAreaView className='bg-white w-full min-h-screen'>
+        <View className='bg-white w-full min-h-screen'>
             <View className='bg-[#9661D9] w-full h-[200px] flex justify-center items-center'>
                 <View className='relative'>
                     <Image className='rounded-full' style={{ width: 70, height: 70 }} source={require('../../assets/images/z6186705977978_00edd678a64db50dba5ef61a50391611.jpg')} />
@@ -79,6 +79,6 @@ export default function profile() {
                     </TouchableHighlight>
                 </View>
             </View>
-        </SafeAreaView>
+        </View>
     );
 }
