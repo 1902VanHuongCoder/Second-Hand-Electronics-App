@@ -47,9 +47,8 @@ export default function TabLayout() {
           title: 'Đăng tin',
           tabBarIcon: ({ color }) => <Icon size={25} name="pencil-square" color={color} />,
         }}
-      />
-      <Tabs.Screen
-        name="message"
+      /><Tabs.Screen
+        name="listChats"
         options={{
           title: 'Tin Nhắn',
           tabBarIcon: ({ color }) => <Icon size={25} name="comments" color={color} />,

@@ -5,8 +5,8 @@ import Icon from "react-native-vector-icons/FontAwesome";
 export default function PushNews() {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const choosePayMents = [
-        { icon: "paypal", name: "PayPal" },
-        { icon: "credit-card", name: "VN Pay" },
+        { id: 1, icon: "paypal", name: "PayPal" },
+        { id: 2, icon: "credit-card", name: "VN Pay" },
     ];
     return (
         <View className="w-full h-full bg-white p-4 flex-col">
@@ -34,6 +34,7 @@ export default function PushNews() {
                 <View className="mt-4 flex-col gap-4">
                     {choosePayMents.map((item, index) => (
                         <TouchableHighlight
+                            key={item.id}
                             underlayColor="#D9D9D9"
                             onPress={() => setSelectedIndex(index)}
                             style={{
