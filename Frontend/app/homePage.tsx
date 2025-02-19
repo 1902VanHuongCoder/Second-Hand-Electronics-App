@@ -82,7 +82,7 @@ export default function HomePage() {
   return (
     // <SafeAreaView className="flex-1">
     <View className="p-4" style={{ flex: 1 }}>
-      <View className="flex-row justify-between items-center border-b-2 pb-6 border-[#D9D9D9]">
+      <View className="flex-row justify-between items-center border-b-2 pb-6 pt-2 border-[#D9D9D9]">
         <TextInput
           className="border-2 border-[#D9D9D9] w-2/3 px-2 py-4 text-[#000] rounded-lg font-semibold"
           onChangeText={onChangeText}
