@@ -7,13 +7,17 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import store from '../store';
+import { store } from '../store/store';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
+
+// Prevent splash screen from auto-hiding before loading assets
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
@@ -27,18 +31,37 @@ export default function RootLayout() {
   if (!loaded) {
     return null;
   }
+
+
+  // useEffect(() => {
+  //   if (!isAuthenticated) {
+  //     router.replace("/login");
+  //   }
+  // }, [isAuthenticated])
+
+
   return (
-    <Provider store={store}>
-      <AuthProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="register" options={{ navigationBarHidden: true }} />
-            <Stack.Screen name="+not-found"/>
-          </Stack>
-          <StatusBar style="auto" />
-        </ThemeProvider>
-      </AuthProvider>
-    </Provider>
+    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <Provider store={store}>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="login" /> 
+          <Stack.Screen name="signup" />
+          <Stack.Screen name="postDetails" />
+          <Stack.Screen name="_sitemap" />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+      </Provider>
+      <StatusBar style="auto" />
+    </ThemeProvider>
   );
 }
+
+// // ✅ Wrap the whole app with `<Provider>`
+// export default function RootLayout() {
+//   return (
+//     <Provider store={store}>
+//       <RootLayoutInner />
+//     </Provider>
+//   );
+// }

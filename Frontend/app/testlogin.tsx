@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useDispatch } from 'react-redux';
-import { login as loginAction } from '../store/authSlice';
+// import { login as loginAction } from '../store/authSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Định nghĩa API_URL
@@ -43,7 +43,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToRegister, optio
                 if (data.data && data.data.token) {
                     await AsyncStorage.setItem('userToken', data.data.token);
                     await AsyncStorage.setItem('userData', JSON.stringify(data.data.user));
-                    dispatch(loginAction(data.data));
+                    // dispatch(loginAction(data.data));
                     onLoginSuccess && onLoginSuccess(data.data);
                 } else {
                     Alert.alert('Lỗi', 'Không nhận được token từ server');

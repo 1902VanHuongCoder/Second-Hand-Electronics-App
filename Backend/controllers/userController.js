@@ -17,9 +17,9 @@ exports.register = async (req, res) => {
     const user = await User.create({ phone, password, name, email, address });
 
     res.status(201).json({
+      type: 'auth/signupUser/fulfilled',
       success: true,
       message: 'Đăng ký thành công. Vui lòng đăng nhập để tiếp tục.',
-      data: {
         user: {
           phone: user.phone,
           id: user._id,
@@ -27,7 +27,6 @@ exports.register = async (req, res) => {
           email: user.email,
           address: user.address
         }
-      }
     });
 
   } catch (error) {
@@ -66,19 +65,21 @@ exports.login = async (req, res) => {
       { expiresIn: '30d' }
     );
 
+    console.log('JWT_SECRET:', process.env.JWT_SECRET);
+    console.log('User ID:', user._id);
+
     res.json({
       success: true,
       message: 'Đăng nhập thành công',
-      data: {
-        token,
-        user: {
-          phone: user.phone,
-          id: user._id,
-          name: user.name, 
-            email: user.email,
-            address: user.address 
-        }
+      token,
+      user: {
+        phone: user.phone,
+        id: user._id,
+        name: user.name, 
+        email: user.email,
+        address: user.address 
       }
+      
     });
 
   } catch (error) {

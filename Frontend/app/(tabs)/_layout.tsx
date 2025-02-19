@@ -8,13 +8,14 @@ import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { usePathname } from 'expo-router';
+import Icon from "react-native-vector-icons/FontAwesome";
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const pathname = usePathname(); // Lấy đường dẫn hiện tại
+
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: '#9661D9',
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
@@ -29,15 +30,38 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+
+          title: 'Trang chủ',
+          tabBarIcon: ({ color }) => <IconSymbol size={25} name="house.fill" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="PersonalPage"
+        name="post_management"
         options={{
-          title: "Trang cá nhân",
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: 'Quản lý tin',
+          tabBarIcon: ({ color }) => <Icon size={25} name="list" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="post_news"
+        options={{
+          title: 'Đăng tin',
+          tabBarIcon: ({ color }) => <Icon size={25} name="pencil-square" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="message"
+        options={{
+          title: 'Tin Nhắn',
+          tabBarIcon: ({ color }) => <Icon size={25} name="comments" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Tài khoản',
+          tabBarIcon: ({ color }) => <Icon size={25} name="user-circle" color={color} />,
+
         }}
       />
     </Tabs>
