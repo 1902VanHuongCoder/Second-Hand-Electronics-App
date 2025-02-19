@@ -73,8 +73,8 @@ export default function LoginScreen() {
         </Pressable>
       )}
 
-      <Image className='absolute top-0 w-screen -z-10' source={require('@/assets/images/Vector 1.png')} style={{ alignSelf: 'center' }} />
-      <Image className='absolute bottom-10 w-screen -z-10' source={require('@/assets/images/Vector 2.png')} style={{ alignSelf: 'center' }} />
+      <Image className='absolute top-0 w-screen -z-10' source={require('../assets/images/Vector 1.png')} style={{ alignSelf: 'center' }} />
+      <Image className='absolute bottom-10 w-screen -z-10' source={require('../assets/images/Vector 2.png')} style={{ alignSelf: 'center' }} />
       <Text className='my-5 text-lg'>Hoặc</Text>
       <Link href="/signup">
         <Text className='underline text-lg'>Đăng ký</Text>

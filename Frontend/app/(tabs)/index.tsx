@@ -6,15 +6,19 @@ import EditProfile from '../editProfile';
 import Payment from '../payment';
 import Message from '../message';
 import HidePosting from '../hidePosting';
-import PostDetailsScreen from '../postDetails';
+// import PostDetailsScreen from '../postDetails';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PushNews from '../pushNews';
 import SearchResults from '../searchResults';
+import PostDetailsScreen from '../postDetails';
+import AppBarForHome from '@/components/AppBarForHome';
+
 const index = () => {
     return (
         <SafeAreaView>
             <View className='bg-white w-full h-full'>
-                <Message />
+                <AppBarForHome />
+                <HomePage />
             </View>
         </SafeAreaView>
     );

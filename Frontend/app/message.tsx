@@ -9,10 +9,9 @@ interface Media {
 }
 export default function Message() {
     const [text, onChangeText] = React.useState("");
-    const [images, setImages] = useState<Media[]>([]); // Định nghĩa kiểu cho images
-    
     return (
-        <View className="w-full h-full bg-white p-4 flex flex-col flex-1">
+        // <SafeAreaView className="w-full h-full bg-white p-4 flex flex-col flex-1">
+            <View className="w-full h-full bg-white p-4 flex flex-col flex-1">
             <View className="flex-row gap-1 border-b-2 border-[#D9D9D9] pb-4">
                 <Image
                     style={{ width: 70, height: 70 }}
@@ -54,7 +53,7 @@ export default function Message() {
                 >
                     <Icon name="image" size={30} color={'#9661D9'} />
                 </TouchableHighlight>
-            </View>
-        </View>
+            </View> </View>
+        // </SafeAreaView>
     );
 }

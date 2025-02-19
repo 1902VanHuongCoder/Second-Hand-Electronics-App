@@ -28,7 +28,7 @@ export default function PostManagement() {
         },
     ];
     return (
-        <SafeAreaView className="bg-white w-full h-full" style={{ flex: 1 }}>
+        // <SafeAreaView className="bg-red-500 w-full h-full" style={{ }}>
             <ScrollView>
                 {products.map(product => (
                     <View key={product.id} className='flex-col gap-4 border-b-2 border-[#D9D9D9] pb-6'>
@@ -64,6 +64,6 @@ export default function PostManagement() {
                     </View>
                 ))}
             </ScrollView>
-        </SafeAreaView>
+        // </SafeAreaView>
     );
 }
