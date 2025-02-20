@@ -13,6 +13,7 @@ import PushNews from '../pushNews';
 import SearchResults from '../searchResults';
 import PostDetailsScreen from '../postDetails';
 import AppBarForHome from '@/components/AppBarForHome';
+import LoginScreen from '../login';
 
 const index = () => {
     return (
@@ -20,6 +21,7 @@ const index = () => {
             <View className='bg-white w-full h-full'>
                 <AppBarForHome />
                 <HomePage />
+                {/* <LoginScreen /> */}
             </View>
         </SafeAreaView>
     );

@@ -109,7 +109,7 @@ export default function HomePage() {
           </Text>
         </TouchableHighlight>
       </View>
-      <ScrollView>
+      <ScrollView className="">
         <LinearGradient
           colors={['#523471', '#9C62D7']}
           start={{ x: 1, y: 0 }}
