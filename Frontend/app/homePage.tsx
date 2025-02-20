@@ -14,6 +14,7 @@ import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { Link } from "expo-router";
 import AppBarForHome from "@/components/AppBarForHome";
 import { Ionicons } from '@expo/vector-icons';
+import Notification from "@/components/Notification";
 export default function HomePage() {
   const [text, onChangeText] = React.useState("");
   const [reportVisible, setReportVisible] = useState(false); // State để theo dõi trạng thái hiển thị menu báo cáo
@@ -79,9 +80,22 @@ export default function HomePage() {
     alert(`Bạn đã chọn lý do: ${reason}`); // Thực hiện hành động báo cáo ở đây
   };
 
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error'; visible: boolean }>({
+    message: 'Thông báo thành công',
+    type: 'success',
+    visible: false,
+  });
+
+  const showNotification = (msg: string, type: 'success' | 'error') => {
+    setNotification({ message: msg, type, visible: true });
+    setTimeout(() => {
+      setNotification((prev) => ({ ...prev, visible: false })); // Ẩn thông báo sau 3 giây
+    }, 2000);
+  };
+  // showNotification("Thông báo thành công", "error");
+
   return (
-    // <SafeAreaView className="flex-1">
-    <View className="p-4" style={{ flex: 1 }}>
+    <View className="p-4 relative" style={{ flex: 1 }}>
       <View className="flex-row justify-between items-center border-b-2 pb-6 pt-2 border-[#D9D9D9]">
         <TextInput
           className="border-2 border-[#D9D9D9] w-2/3 px-2 py-4 text-[#000] rounded-lg font-semibold"
@@ -94,54 +108,6 @@ export default function HomePage() {
             Tìm kiếm
           </Text>
         </TouchableHighlight>
-
-
-        {/* </View>
-       
-        
-    
-      <LinearGradient
-        colors={['#523471', '#9C62D7']}
-        start={{ x: 1, y: 0 }}
-        end={{ x: 0, y: 0 }}
-        style={{ padding: 12, borderRadius: 10, marginTop: 20 }}
-        className="flex-row items-center"
-      >
-        <View className="w-[50%]">
-          <Text className="uppercase font-bold text-white text-[18px]">
-            2Hand Market
-          </Text>
-          <Text className="text-[14px] text-white font-medium font-Roboto">
-            Buôn bán các thiết bị hiện tại và uy tính.
-          </Text>
-        </View>
-        <Image
-          style={{ width: 150, height: 150 }}
-          source={require("../assets/images/image 2.png")}
-        />
-      </LinearGradient>
-      <View className="flex-row gap-4 mt-6 items-center justify-center">
-        <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
-          <View className="flex-row items-center justify-center gap-2">
-            <Ionicons name="logo-slack" className="text-[]" size={22} color="#9661D9" />
-            <Text className="font-bold text-[18px] text-[#9661D9] font-Roboto">All</Text>
-          </View>
-        </TouchableHighlight>
-        <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
-          <View className="flex-row items-center justify-center gap-2">
-            <Icon name="mobile" size={24} color="#9661D9" />
-            <Text className="font-bold text-[18px] text-[#9661D9] font-Roboto">
-              Điện thoại
-            </Text>
-          </View>
-        </TouchableHighlight>
-        <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
-          <View className="flex-row items-center justify-center gap-2">
-            <Icon name="laptop" size={22} color="#9661D9" />
-            <Text className="font-bold text-[18px] text-[#9661D9] font-Roboto">Laptop</Text>
-          </View>
-        </TouchableHighlight> */}
-
       </View>
       <ScrollView>
         <LinearGradient
@@ -261,17 +227,16 @@ export default function HomePage() {
           </View>
         ))}
       </ScrollView>
+      <Notification message={notification.message} type={notification.type} visible={notification.visible} />
     </View>
-    // </SafeAreaView>
   );
 
 }
-const styles = StyleSheet.create({ container: {
-  // flex: 1,
-  padding: 20,
-  // fontFamily: "Monomakh",
-  // backgroundColor: 'red'
-},})
+const styles = StyleSheet.create({
+  container: {
+    padding: 20,
+  },
+})
 
 //npm install react-native-linear-gradient sử dụng này để gradient background
 //npm install react-native-vector-icons cài icon
