@@ -7,7 +7,7 @@ import { LinearGradient } from "expo-linear-gradient";
 interface Media {
     uri: string;
 }
-export default function EditProfile() {
+export default function ProfileSettings() {
     const [selectedValue, setSelectedValue] = useState("Điện thoại");
     const [images, setImages] = useState<Media[]>([]); // Định nghĩa kiểu cho images
     return (

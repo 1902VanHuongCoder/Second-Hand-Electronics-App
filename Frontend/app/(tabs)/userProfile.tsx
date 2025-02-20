@@ -4,7 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Icon from "react-native-vector-icons/FontAwesome";
 import { Link } from 'expo-router';
-export default function profile() {
+export default function UserProfile() {
     return (
         <View className='bg-white w-full min-h-screen'>
             <View className='bg-[#9661D9] w-full h-[200px] flex justify-center items-center'>

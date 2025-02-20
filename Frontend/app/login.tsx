@@ -81,7 +81,7 @@ export default function LoginScreen() {
         <Text className='my-5 text-lg'>Hoặc</Text>
         <Link href="/signup" className='underline'>Đăng ký</Link>
       </View>
-      <Image className='absolute top-0 w-screen  w-[130%] z-5' source={require('../assets/images/Vector 1.png')} style={{ alignSelf: 'center' }} />
+      <Image className='absolute top-0 w-[130%] z-5' source={require('../assets/images/Vector 1.png')} style={{ alignSelf: 'center' }} />
       <Image className='absolute bottom-0 w-[130%] z-5' source={require('../assets/images/Vector 2.png')} style={{ alignSelf: 'center' }} />
       <Text className='underline text-lg'>Đăng ký</Text>
       {/* <View className='w-screen h-full bg-[rgba(255,255,255,.1)] absolute top-0 left-0'></View> */}

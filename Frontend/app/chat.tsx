@@ -7,7 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 interface Media {
     uri: string;
 }
-export default function Message() {
+export default function Chat() {
     const [text, onChangeText] = React.useState("");
     return (
         <View className="w-full h-full bg-white p-4 flex flex-col flex-1">

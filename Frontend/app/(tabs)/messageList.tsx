@@ -2,7 +2,7 @@ import { Text, View, TouchableHighlight, TextInput, Image } from 'react-native'
 import React, { Component } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-export default function ListChats() {
+export default function MessageList() {
     const [text, onChangeText] = React.useState("");
     return (
         <View className='bg-white w-full h-full p-4'>

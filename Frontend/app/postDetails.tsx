@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Image
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Carousel from '@/components/Carousel';
+import { Link } from 'expo-router';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -61,7 +62,7 @@ export default function PostDetailsScreen() {
               style={styles.button} 
             >
               <Ionicons name="chatbubble-ellipses-outline" size={24} color="white" />
-              <Text style={styles.buttonText}>NHẮN TIN</Text>
+             <Link href="/chat"><Text style={styles.buttonText}>NHẮN TIN</Text></Link> 
             </LinearGradient>
           </Pressable>
           <Pressable style={styles.buttonWrapper}>

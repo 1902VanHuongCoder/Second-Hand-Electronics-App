@@ -4,7 +4,7 @@ import { FlatGrid } from 'react-native-super-grid';
 import { LinearGradient } from "expo-linear-gradient";
 import { Link } from 'expo-router';
 
-export default function PushNews() {
+export default function PublishPost() {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const choosePrices = [
         { day: '1 Ngày', price: '28.000 đ' },
