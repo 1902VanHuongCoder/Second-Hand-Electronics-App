@@ -7,7 +7,7 @@ import {
   TextInput,
   StyleSheet,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
@@ -15,25 +15,30 @@ import { Link } from "expo-router";
 import AppBarForHome from "@/components/AppBarForHome";
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
+import Notification from "@/components/Notification";
+import { NotificationContext } from "@/context/NotificationContext";
 export default function HomePage() {
+
+  const { notifications, showNotification} = useContext(NotificationContext);
+
   const [text, onChangeText] = React.useState("");
   const [reportVisible, setReportVisible] = useState(false); // State để theo dõi trạng thái hiển thị menu báo cáo
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null); // Chỉ định kiểu cho selectedProductId
   const [selectedReason, setSelectedReason] = useState<string | null>(null); // State để lưu lý do đã chọn
   const [products, setProducts] = useState<any[]>([]);
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                const response = await axios.get('http://10.0.2.2:5000/api/home');
-                // setProducts(response.data);
-            } catch (error) {
-                console.error('Error fetching products:', error);
-            }
-        };
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get('http://10.0.2.2:5000/api/home');
+        // setProducts(response.data);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
 
-        fetchProducts();
-    }, []);
+    fetchProducts();
+  }, []);
 
 
   const reportReasons = [
@@ -55,8 +60,7 @@ export default function HomePage() {
   };
 
   return (
-    // <SafeAreaView className="flex-1">
-    <View className="p-4" style={{ flex: 1 }}>
+    <View className="p-4 relative" style={{ flex: 1 }}>
       <View className="flex-row justify-between items-center border-b-2 pb-6 pt-2 border-[#D9D9D9]">
         <TextInput
           className="border-2 border-[#D9D9D9] w-2/3 px-2 py-4 text-[#000] rounded-lg font-semibold"
@@ -69,54 +73,9 @@ export default function HomePage() {
             Tìm kiếm
           </Text>
         </TouchableHighlight>
-
-
-        {/* </View>
-       
-        
-    
-      <LinearGradient
-        colors={['#523471', '#9C62D7']}
-        start={{ x: 1, y: 0 }}
-        end={{ x: 0, y: 0 }}
-        style={{ padding: 12, borderRadius: 10, marginTop: 20 }}
-        className="flex-row items-center"
-      >
-        <View className="w-[50%]">
-          <Text className="uppercase font-bold text-white text-[18px]">
-            2Hand Market
-          </Text>
-          <Text className="text-[14px] text-white font-medium font-Roboto">
-            Buôn bán các thiết bị hiện tại và uy tính.
-          </Text>
-        </View>
-        <Image
-          style={{ width: 150, height: 150 }}
-          source={require("../assets/images/image 2.png")}
-        />
-      </LinearGradient>
-      <View className="flex-row gap-4 mt-6 items-center justify-center">
-        <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
-          <View className="flex-row items-center justify-center gap-2">
-            <Ionicons name="logo-slack" className="text-[]" size={22} color="#9661D9" />
-            <Text className="font-bold text-[18px] text-[#9661D9] font-Roboto">All</Text>
-          </View>
+        <TouchableHighlight onPress={() => showNotification('Đăng nhập thành công', 'success')}>
+                      <Icon name="ellipsis-v" size={18} color="#9661D9" />
         </TouchableHighlight>
-        <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
-          <View className="flex-row items-center justify-center gap-2">
-            <Icon name="mobile" size={24} color="#9661D9" />
-            <Text className="font-bold text-[18px] text-[#9661D9] font-Roboto">
-              Điện thoại
-            </Text>
-          </View>
-        </TouchableHighlight>
-        <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
-          <View className="flex-row items-center justify-center gap-2">
-            <Icon name="laptop" size={22} color="#9661D9" />
-            <Text className="font-bold text-[18px] text-[#9661D9] font-Roboto">Laptop</Text>
-          </View>
-        </TouchableHighlight> */}
-
       </View>
       <ScrollView className="">
         <LinearGradient
@@ -236,59 +195,17 @@ export default function HomePage() {
           </View>
         ))}
       </ScrollView>
+      <Notification message={notifications.message} type={notifications.type} visible={notifications.visible} /> 
     </View>
-    // </SafeAreaView>
   );
-// import React, { useEffect, useState } from 'react';
-// import { View, Text, ScrollView, TouchableHighlight, StyleSheet } from 'react-native';
-// import axios from 'axios';
-
-// export default function HomePage() {
-//     const [products, setProducts] = useState([]);
-
-//     useEffect(() => {
-//         const fetchProducts = async () => {
-//             try {
-//                 const response = await axios.get('http://10.0.2.2:5000/api/home');
-//                 setProducts(response.data);
-//             } catch (error) {
-//                 console.error('Error fetching products:', error);
-//             }
-//         };
-
-//         fetchProducts();
-//     }, []);
-
-//     return (
-//         <ScrollView style={styles.container}>
-//             {products.length > 0 ? (
-//                 products.map(({ laptop, product, ram, screen }) => (
-//                     <TouchableHighlight key={laptop._id} style={styles.card}>
-//                         <View style={styles.cardContent}>
-//                             <Text style={styles.title}>Laptop: {laptop.title}</Text>
-//                             <Text style={styles.battery}>Battery: {laptop.battery}</Text>
-//                             <Text style={styles.ram}>RAM: {ram ? ram.ramCapacity : 'N/A'}</Text>
-//                             <Text style={styles.screen}>Screen: {screen ? screen.screenSize : 'N/A'}</Text>
-//                             <Text style={styles.productTitle}>Product: {product.title}</Text>
-//                             <Text style={styles.description}>Description: {product.description}</Text>
-//                             <Text style={styles.price}>Price: {product.price} VND</Text>
-//                         </View>
-//                     </TouchableHighlight>
-//                 ))
-//             ) : (
-//                 <Text style={styles.loading}>Loading products...</Text>
-//             )}
-//         </ScrollView>
-//     );
 
 }
-const styles = StyleSheet.create({ container: {
-  // flex: 1,
-  padding: 20,
-  // fontFamily: "Monomakh",
-  // backgroundColor: 'red'
-},})
 
+const styles = StyleSheet.create({
+  container: {
+    padding: 20,
+  },
+})
 
 //npm install react-native-linear-gradient sử dụng này để gradient background
 //npm install react-native-vector-icons cài icon

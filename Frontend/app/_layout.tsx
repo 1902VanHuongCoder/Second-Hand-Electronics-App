@@ -14,7 +14,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { store } from '../store/store';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
-
+import { NotificationProvider } from '../context/NotificationContext';
 
 // Prevent splash screen from auto-hiding before loading assets
 SplashScreen.preventAutoHideAsync();
@@ -39,35 +39,30 @@ export default function RootLayout() {
   if (!loaded) {
     return null;
   }
-
-
-  // useEffect(() => {
-  //   if (!isAuthenticated) {
-  //     router.replace("/login");
-  //   }
-  // }, [isAuthenticated])
-
-
+  
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Provider store={store}>
+        <NotificationProvider>
           <Stack>
-            <Stack.Screen name="index" options={{ headerShown: false }}  />
-            <Stack.Screen name="profileSettings" options={{ headerShown: true, title: 'Cài đặt tài khoản', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff', headerTitleAlign: 'center' }}  />
-            <Stack.Screen name="login" options={{ headerShown: false }}  />
-            <Stack.Screen name="signup" options={{ headerShown: false }}  />
-            <Stack.Screen name="publishPost" options={{ title: 'Đẩy tin', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff', headerTitleAlign: 'center' }}  />
-            <Stack.Screen name="postDetails" options={{ title: 'Chi tiết bài đăng', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff', headerTitleAlign: 'center'}} />
-            <Stack.Screen name="payment" options={{ title: 'Thanh toán', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff', headerTitleAlign: 'center'}} />
-            <Stack.Screen name="searchResults" options={{ title: 'Kết quả tìm kiếm', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff', headerTitleAlign: 'center'}} />
-            <Stack.Screen name="chat" options={{ title: 'Trò chuyện', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff', headerTitleAlign: 'center'}} />
-            <Stack.Screen name="hiddenPosts" options={{ title: 'Ẩn bài đăng', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff', headerTitleAlign: 'center'}} />
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="profileSettings" options={{ headerShown: true, title: 'Cài đặt tài khoản', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff', headerTitleAlign: 'center' }} />
+            <Stack.Screen name="login" options={{ headerShown: false }} />
+            <Stack.Screen name="signup" options={{ headerShown: false }} />
+            <Stack.Screen name="publishPost" options={{ title: 'Đẩy tin', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff', headerTitleAlign: 'center' }} />
+            <Stack.Screen name="postDetails" options={{ title: 'Chi tiết bài đăng', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff', headerTitleAlign: 'center' }} />
+            <Stack.Screen name="payment" options={{ title: 'Thanh toán', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff', headerTitleAlign: 'center' }} />
+            <Stack.Screen name="searchResults" options={{ title: 'Kết quả tìm kiếm', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff', headerTitleAlign: 'center' }} />
+            <Stack.Screen name="chat" options={{ title: 'Trò chuyện', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff', headerTitleAlign: 'center' }} />
+            <Stack.Screen name="hiddenPosts" options={{ title: 'Ẩn bài đăng', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff', headerTitleAlign: 'center' }} />
 
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="_sitemap" options={{ title: 'Sitemap' }} />
             <Stack.Screen name="+not-found" options={{ title: 'Not Found' }} />
           </Stack>
+        </NotificationProvider>
       </Provider>
+
       <StatusBar style="auto" />
     </ThemeProvider>
   );

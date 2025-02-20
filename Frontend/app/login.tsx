@@ -67,7 +67,7 @@ export default function LoginScreen() {
         {loading ? (
           <ActivityIndicator size="large" color="#0000ff" className="mt-5" />
         ) : (
-          <Pressable onPress={handleLogin}>
+          // <Pressable onPress={handleLogin}>
 
           <LinearGradient
             colors={['rgba(156,98,215,1)', 'rgba(82,52,113,1)']}
@@ -76,12 +76,12 @@ export default function LoginScreen() {
             style={styles.button}
             className='mt-5 shadow-sm'
           >
-            {/* <Link href="/(tabs)"> */}
+            <Link href="/(tabs)">
             <Text className='text-white font-bold'>ĐĂNG NHẬP</Text>
-            {/* </Link> */}
+            </Link>
 
           </LinearGradient>
-          </Pressable>
+          // </Pressable>
         )}
 
         <Text className='my-5 text-lg'>Hoặc</Text>
