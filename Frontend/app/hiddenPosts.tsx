@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/FontAwesome";
 
-export default function PushNews() {
+export default function HiddenPosts() {
     const options = [
         { id: '1', label: 'Không muốn bán nữa' },
         { id: '2', label: 'Đã bán qua trang chợ tốt' },

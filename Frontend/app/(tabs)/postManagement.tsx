@@ -45,7 +45,7 @@ export default function PostManagement() {
                             <TouchableHighlight className='border-2 w-1/2 rounded-md p-3 border-[#9661D9]'>
                                 <View className='flex-row items-center justify-center gap-2'>
                                     <Icon name='arrow-circle-up' size={22} color={'#9661D9'} />
-                                  <Link href="/pushNews"> <Text className='font-bold text-[#9661D9] text-[16px]'>Đẩy tin</Text></Link> 
+                                  <Link href="/publishPost"> <Text className='font-bold text-[#9661D9] text-[16px]'>Đẩy tin</Text></Link> 
                                 </View>
                             </TouchableHighlight>   
                             <TouchableHighlight className='rounded-md h-full w-1/2'>

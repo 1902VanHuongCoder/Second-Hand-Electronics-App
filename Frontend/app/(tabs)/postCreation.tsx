@@ -9,7 +9,7 @@ import Icon from "react-native-vector-icons/FontAwesome";
 interface Media {
     uri: string;
 }
-export default function PostNews() {
+export default function PostCreation() {
     const [selectedValue, setSelectedValue] = useState("Điện thoại");
     const [images, setImages] = useState<Media[]>([]); // Định nghĩa kiểu cho images
     const [videos, setVideos] = useState<Media[]>([]); // Định nghĩa kiểu cho videos
