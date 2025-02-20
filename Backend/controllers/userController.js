@@ -111,7 +111,13 @@ exports.updateUser = async (req, res) => {
     res.json({
       success: true,
       message: 'Cập nhật thông tin thành công',
-      data: user,
+      user: {
+        phone: user.phone,
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        address: user.address
+      }
     });
   } catch (error) {
     console.error('Lỗi cập nhật thông tin:', error);

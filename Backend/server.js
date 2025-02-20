@@ -12,6 +12,10 @@ const categoryRoutes = require('./routes/categoryRoutes');
 const conditionRoutes = require('./routes/conditionRoutes'); 
 const brandRoutes = require('./routes/brandRoutes'); 
 const versionRoutes = require('./routes/versionRoutes'); 
+const laptopRoutes = require('./routes/laptopRoutes');
+const productRoutes = require('./routes/productRoutes');
+const screenRoutes = require('./routes/screenRoutes');
+const homeRoutes = require('./routes/homeRoutes');
 // Load env vars trước khi làm bất cứ điều gì khác
 
 dotenv.config();
@@ -84,6 +88,18 @@ app.use('/api', brandRoutes);
 
 // Sử dụng các route Version
 app.use('/api', versionRoutes);
+
+// Sử dụng các route Laptop
+app.use('/api/laptops', laptopRoutes);
+
+// Sử dụng các route Product
+app.use('/api/products', productRoutes);
+
+// Sử dụng các route Screen
+app.use('/api/screens', screenRoutes);
+
+// Sử dụng các route Home
+app.use('/api/home', homeRoutes);
 
 // Kết nối database
 const startServer = async () => {

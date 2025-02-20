@@ -16,7 +16,7 @@ export default function Index() {
 
         <SafeAreaView>
             <View className='bg-white w-full min-h-screen'>
-                <SignUpScreen />
+                <HomePage />
             </View>
 
         </SafeAreaView>

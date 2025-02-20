@@ -1,9 +1,39 @@
 import { Text, View, TouchableHighlight, Image, TextInput } from 'react-native'
-import React, { Component } from 'react'
+import React, { Component, useEffect, useState } from 'react'
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Icon from "react-native-vector-icons/FontAwesome";
-export default function profile() {
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch } from '../../store/store';
+import { updateUser } from '../../store/authSlice';
+import { RootState } from '../../store/store';
+import { StyleSheet } from 'react-native';
+
+export default function Profile() {
+    const dispatch = useDispatch<AppDispatch>();
+    const { user } = useSelector((state: RootState) => state.auth);
+    const [name, setName] = useState(user?.name || '');
+    const [email, setEmail] = useState(user?.email || '');
+    const [phone, setPhone] = useState(user?.phone || '');
+    const [address, setAddress] = useState(user?.address || '');
+
+    const handleUpdate = () => {
+        if (user) {
+            dispatch(updateUser({ id: user.id, name, email, phone, address }));
+        } else {
+            console.error("User is null");
+        }
+    };
+
+    useEffect(() => {
+        if (user) {
+            setName(user.name);
+            setEmail(user.email);
+            setPhone(user.phone);
+            setAddress(user.address);
+        }
+    }, [user]);
+
     return (
         <SafeAreaView className='bg-white w-full min-h-screen'>
             <View className='bg-[#9661D9] w-full h-[200px] flex justify-center items-center'>
@@ -57,19 +87,37 @@ export default function profile() {
                     </View>
                 </View>
                 <View className='mt-6'>
-                    <TouchableHighlight className="rounded-lg">
-                        <LinearGradient
-                            colors={[ '#523471', '#9C62D7']}
-                            start={{ x: 1, y: 0 }} 
-                            end={{ x: 0, y: 0 }}
-                            style={{ padding: 10, borderRadius: 8 }}
-                        >
-                            <View className="flex-row items-center justify-center gap-2">
-                                <Text className="font-bold text-[18px] text-[#fff]">Cập nhật thông tin</Text>
-                            </View>
-                        </LinearGradient>
+                    <Text className='font-extrabold uppercase text-[16px] text-[#333] w-full'>Cập nhật thông tin cá nhân</Text>
+                    <TextInput
+                        value={name}
+                        onChangeText={setName}
+                        placeholder="Tên"
+                        className='border-2 border-[#D9D9D9] p-2 rounded-lg w-full'
+                    />
+                    <TextInput
+                        value={email}
+                        onChangeText={setEmail}
+                        placeholder="Email"
+                        className='border-2 border-[#D9D9D9] p-2 rounded-lg w-full'
+                    />
+                    <TextInput
+                        value={phone}
+                        onChangeText={setPhone}
+                        placeholder="Điện thoại"
+                        className='border-2 border-[#D9D9D9] p-2 rounded-lg w-full'
+                    />
+                    <TextInput
+                        value={address}
+                        onChangeText={setAddress}
+                        placeholder="Địa chỉ"
+                        className='border-2 border-[#D9D9D9] p-2 rounded-lg w-full'
+                    />
+                    <TouchableHighlight onPress={handleUpdate} className="rounded-lg mt-4">
+                        <View className="bg-[#523471] p-2 rounded-lg">
+                            <Text className="font-bold text-[18px] text-[#fff]">Cập nhật thông tin</Text>
+                        </View>
                     </TouchableHighlight>
-                </View >
+                </View>
                 <View className='mt-8'>
                     <TouchableHighlight className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
                         <View className="flex-row items-center justify-center gap-2">
@@ -82,3 +130,43 @@ export default function profile() {
         </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        padding: 16,
+        backgroundColor: '#fff',
+        flex: 1,
+    },
+    header: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    infoContainer: {
+        marginBottom: 15,
+    },
+    label: {
+        fontSize: 16,
+        fontWeight: '600',
+        marginBottom: 5,
+    },
+    input: {
+        borderWidth: 1,
+        borderColor: '#D9D9D9',
+        borderRadius: 5,
+        padding: 10,
+        fontSize: 16,
+    },
+    button: {
+        backgroundColor: '#523471',
+        padding: 12,
+        borderRadius: 5,
+        alignItems: 'center',
+    },
+    buttonText: {
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+});
