@@ -7,59 +7,34 @@ import {
   TextInput,
   StyleSheet,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { Link } from "expo-router";
 import AppBarForHome from "@/components/AppBarForHome";
 import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
 export default function HomePage() {
   const [text, onChangeText] = React.useState("");
   const [reportVisible, setReportVisible] = useState(false); // State để theo dõi trạng thái hiển thị menu báo cáo
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null); // Chỉ định kiểu cho selectedProductId
   const [selectedReason, setSelectedReason] = useState<string | null>(null); // State để lưu lý do đã chọn
-  const products = [
-    {
-      id: "1",
-      name: "Laptop Acer Aspire 3 Spin A3SP14-31PT-387Z",
-      configuration: "I3-N305/8GB/512GB/14.0 FHD+/CẢM ỨNG/WIN11/XÁM",
-      price: "9.000.000 đ",
-      address: "Ba Đình - Hà Nội",
-      postingDate: "23:34:23 12/02/2024",
-      image:
-        "../assets/images/z6316149378615_f6d6f665171bf597c35f86bf13ca61b2.jpg",
-      avatar:
-        "../assets/images/z6186705977978_00edd678a64db50dba5ef61a50391611.jpg",
-      nameUser: "Hoàng Anh Lê",
-    },
-    {
-      id: "2",
-      name: "Laptop Acer Aspire 3 Spin A3SP14-31PT-387Z",
-      configuration: "I3-N305/8GB/512GB/14.0 FHD+/CẢM ỨNG/WIN11/XÁM",
-      price: "9.000.000 đ",
-      address: "Ba Đình - Hà Nội",
-      postingDate: "23:34:23 12/02/2024",
-      image:
-        "../assets/images/z6316149378615_f6d6f665171bf597c35f86bf13ca61b2.jpg",
-      avatar:
-        "../assets/images/z6186705977978_00edd678a64db50dba5ef61a50391611.jpg",
-      nameUser: "Hoàng Anh",
-    },
-    {
-      id: "3",
-      name: "Laptop Acer Aspire 3 Spin A3SP14-31PT-387Z",
-      configuration: "I3-N305/8GB/512GB/14.0 FHD+/CẢM ỨNG/WIN11/XÁM",
-      price: "9.000.000 đ",
-      address: "Ba Đình - Hà Nội",
-      postingDate: "23:34:23 12/02/2024",
-      image:
-        "../assets/images/z6316149378615_f6d6f665171bf597c35f86bf13ca61b2.jpg",
-      avatar:
-        "../assets/images/z6186705977978_00edd678a64db50dba5ef61a50391611.jpg",
-      nameUser: "Hoàng Anh",
-    },
-  ];
+  const [products, setProducts] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const response = await axios.get('http://10.0.2.2:5000/api/home');
+                // setProducts(response.data);
+            } catch (error) {
+                console.error('Error fetching products:', error);
+            }
+        };
+
+        fetchProducts();
+    }, []);
+
 
   const reportReasons = [
     "Nội dung không phù hợp",
@@ -264,6 +239,47 @@ export default function HomePage() {
     </View>
     // </SafeAreaView>
   );
+// import React, { useEffect, useState } from 'react';
+// import { View, Text, ScrollView, TouchableHighlight, StyleSheet } from 'react-native';
+// import axios from 'axios';
+
+// export default function HomePage() {
+//     const [products, setProducts] = useState([]);
+
+//     useEffect(() => {
+//         const fetchProducts = async () => {
+//             try {
+//                 const response = await axios.get('http://10.0.2.2:5000/api/home');
+//                 setProducts(response.data);
+//             } catch (error) {
+//                 console.error('Error fetching products:', error);
+//             }
+//         };
+
+//         fetchProducts();
+//     }, []);
+
+//     return (
+//         <ScrollView style={styles.container}>
+//             {products.length > 0 ? (
+//                 products.map(({ laptop, product, ram, screen }) => (
+//                     <TouchableHighlight key={laptop._id} style={styles.card}>
+//                         <View style={styles.cardContent}>
+//                             <Text style={styles.title}>Laptop: {laptop.title}</Text>
+//                             <Text style={styles.battery}>Battery: {laptop.battery}</Text>
+//                             <Text style={styles.ram}>RAM: {ram ? ram.ramCapacity : 'N/A'}</Text>
+//                             <Text style={styles.screen}>Screen: {screen ? screen.screenSize : 'N/A'}</Text>
+//                             <Text style={styles.productTitle}>Product: {product.title}</Text>
+//                             <Text style={styles.description}>Description: {product.description}</Text>
+//                             <Text style={styles.price}>Price: {product.price} VND</Text>
+//                         </View>
+//                     </TouchableHighlight>
+//                 ))
+//             ) : (
+//                 <Text style={styles.loading}>Loading products...</Text>
+//             )}
+//         </ScrollView>
+//     );
 
 }
 const styles = StyleSheet.create({ container: {
@@ -273,5 +289,67 @@ const styles = StyleSheet.create({ container: {
   // backgroundColor: 'red'
 },})
 
+
 //npm install react-native-linear-gradient sử dụng này để gradient background
 //npm install react-native-vector-icons cài icon
+
+// const styles = StyleSheet.create({
+//     container: {
+//         padding: 16,
+//     },
+//     card: {
+//         backgroundColor: '#fff',
+//         borderRadius: 8,
+//         padding: 16,
+//         marginBottom: 16,
+//         shadowColor: '#000',
+//         shadowOffset: {
+//             width: 0,
+//             height: 2,
+//         },
+//         shadowOpacity: 0.1,
+//         shadowRadius: 4,
+//         elevation: 2,
+//     },
+//     cardContent: {
+//         flexDirection: 'column',
+//     },
+//     title: {
+//         fontWeight: 'bold',
+//         fontSize: 18,
+//     },
+//     battery: {
+//         fontSize: 14,
+//         color: '#666',
+//     },
+//     ram: {
+//         fontSize: 14,
+//         color: '#666',
+//     },
+//     screen: {
+//         fontSize: 14,
+//         color: '#666',
+//     },
+//     productTitle: {
+//         fontWeight: 'bold',
+//         fontSize: 16,
+//         marginTop: 8,
+//     },
+//     description: {
+//         fontSize: 14,
+//         color: '#333',
+//     },
+//     price: {
+//         fontWeight: 'bold',
+//         fontSize: 16,
+//         color: '#9661D9',
+//         marginTop: 4,
+//     },
+//     loading: {
+//         textAlign: 'center',
+//         marginTop: 20,
+//         fontSize: 16,
+//         color: '#999',
+//     },
+// });
+

@@ -6,6 +6,10 @@ import axios from 'axios';
 interface User {
   id: string;
   name: string;
+  email: string;
+  phone: string;
+  address: string;
+  token?: string; // Add token as an optional property
 }
 
 interface AuthState {
@@ -28,11 +32,11 @@ export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async ({ phone, password }: { phone: string; password: string }, { rejectWithValue }) => {
     try {
-      const response = await axios.post<{ token: string; user: User }>('https://your-api.com/login', { phone, password });
+      const response = await axios.post<{ token: string; user: User }>('http://10.0.2.2:5000/api/login', { phone, password });
       await AsyncStorage.setItem('token', response.data.token);
-      return response.data;
+      return response.data.user; // Trả về thông tin người dùng
     } catch (error) {
-      return rejectWithValue((error as any).response?.data || 'Đăng nhập thất bại');
+      return rejectWithValue((error as any).response?.data.message || 'Đăng nhập thất bại');
     }
   }
 );
@@ -41,11 +45,27 @@ export const signupUser = createAsyncThunk(
   'auth/signupUser',
   async ({ phone, password }: { phone: string; password: string }, { rejectWithValue }) => {
     try {
-      const response = await axios.post<{ token: string; user: User }>('https://your-api.com/signup', { phone, password });
-      await AsyncStorage.setItem('token', response.data.token);
+      const response = await axios.post<{ token: string; user: User }>('http://10.0.2.2:5000/api/signup', { phone, password });
       return response.data;
     } catch (error) {
-      return rejectWithValue((error as any).response?.data || 'Đăng ký thất bại');
+      return rejectWithValue((error as any).response?.data.message || 'Đăng ký thất bại');
+    }
+  }
+);
+
+// Async action for updating user information
+export const updateUser = createAsyncThunk<User, User>(
+  'auth/updateUser',
+  async (userData, { rejectWithValue }) => {
+    try {
+      const response = await axios.put<User>(`http://10.0.2.2:5000/api/update`, userData, {
+        headers: {
+          'Authorization': `Bearer ${userData.token}`, // Ensure token is included if it exists
+        },
+      });
+      return response.data; // Return data from server
+    } catch (error) {
+      return rejectWithValue((error as any).response?.data.message || 'Cập nhật thất bại');
     }
   }
 );
@@ -66,10 +86,9 @@ const authSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(loginUser.fulfilled, (state, action: PayloadAction<{ user: User; token: string }>) => {
+      .addCase(loginUser.fulfilled, (state, action: PayloadAction<User>) => {
         state.loading = false;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
+        state.user = action.payload; // Cập nhật thông tin người dùng
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
@@ -87,11 +106,21 @@ const authSlice = createSlice({
       .addCase(signupUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      })
+      .addCase(updateUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateUser.fulfilled, (state, action: PayloadAction<User>) => {
+        state.loading = false;
+        state.user = action.payload; // Cập nhật thông tin người dùng
+      })
+      .addCase(updateUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       });
   },
-}, 
-
-);
+});
 
 export const { logout } = authSlice.actions;
 export default authSlice.reducer;

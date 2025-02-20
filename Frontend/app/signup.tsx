@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, Text, ActivityIndicator, StyleSheet, Pressable, Image, TouchableOpacity } from 'react-native';
+import { View, TextInput, Text, ActivityIndicator, StyleSheet, Pressable, Image, TouchableOpacity, Alert } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { signupUser } from '../store/authSlice';
 import { AppDispatch, RootState } from '../store/store';
@@ -12,11 +12,12 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState('');
   const [validateInput, setValidateInput] = useState({ phoneError: '', passwordError: '' });
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const dispatch = useDispatch<AppDispatch>();
   const { loading, error, user } = useSelector((state: RootState) => state.auth);
 
-  const handleSignup = () => {
+  const handleSignup = async () => {
     let valid = true;
     if (phone === '') {
       setValidateInput((prev) => ({ ...prev, phoneError: 'Vui lòng nhập số điện thoại' }));
@@ -32,7 +33,17 @@ export default function SignUpScreen() {
     }
 
     if (valid) {
-      dispatch(signupUser({ phone, password }));
+      setIsLoading(true);
+      const resultAction = await dispatch(signupUser({ phone, password }));
+      
+      if (resultAction.type === 'auth/signupUser/fulfilled') {
+        alert( "Đăng ký thành công");
+        setPhone('');
+        setPassword('');
+      } else {
+        alert(resultAction.payload);
+      }
+      setIsLoading(false);
     }
   };
 
@@ -47,6 +58,7 @@ export default function SignUpScreen() {
         value={phone}
         onChangeText={setPhone}
         keyboardType="phone-pad"
+        editable={!loading}
       />
       {validateInput.phoneError !== '' && <Text className='w-full py-3 text-red-500'>{validateInput.phoneError}</Text>}
 
@@ -59,6 +71,7 @@ export default function SignUpScreen() {
           onChangeText={setPassword}
           secureTextEntry={!passwordVisible}
           style={styles.passwordInput}
+          editable={!loading}
         />
         <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)} style={styles.eyeIcon}>
           <Ionicons name={passwordVisible ? 'eye-off' : 'eye'} size={24} color="gray" />

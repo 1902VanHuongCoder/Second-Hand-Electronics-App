@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import LoginScreen from './login';
 import HomePage from './homePage';
-import Profile from './(tabs)/profile';
+import Profile from './(tabs)/userProfile';
 import SignUpScreen from './signup';
 
 const Tab = createBottomTabNavigator();

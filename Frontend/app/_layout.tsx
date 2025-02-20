@@ -1,4 +1,6 @@
 import React from 'react';
+import { Provider } from 'react-redux';
+import { AuthProvider } from '../context/AuthContext';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter } from 'expo-router';
@@ -9,8 +11,11 @@ import 'react-native-reanimated';
 import { StyleSheet } from 'react-native';
 import "../global.css";
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { Provider } from 'react-redux';
 import { store } from '../store/store';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
+
+
 // Prevent splash screen from auto-hiding before loading assets
 SplashScreen.preventAutoHideAsync();
 
@@ -34,6 +39,14 @@ export default function RootLayout() {
   if (!loaded) {
     return null;
   }
+
+
+  // useEffect(() => {
+  //   if (!isAuthenticated) {
+  //     router.replace("/login");
+  //   }
+  // }, [isAuthenticated])
+
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
