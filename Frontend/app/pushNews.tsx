@@ -2,6 +2,7 @@ import { Text, View, Image, TouchableHighlight } from 'react-native'
 import React, { useState } from 'react'
 import { FlatGrid } from 'react-native-super-grid';
 import { LinearGradient } from "expo-linear-gradient";
+import { Link } from 'expo-router';
 
 export default function PushNews() {
     const [selectedIndex, setSelectedIndex] = useState(0);
@@ -67,7 +68,7 @@ export default function PushNews() {
                         style={{ paddingTop: 12, paddingBottom: 12, paddingStart: 30, paddingEnd: 30, borderRadius: 14 }}
                     >
                         <View className="flex-row items-center justify-center gap-2">
-                            <Text className="font-bold text-[18px] text-[#fff]">Thanh toán</Text>
+                                <Link href="/payment"><Text className="font-bold text-[18px] text-[#fff]">Thanh toán</Text></Link>
                         </View>
                     </LinearGradient>
                 </TouchableHighlight>

@@ -38,7 +38,6 @@ export default function TabLayout() {
           ios: {
             // Use a transparent background on iOS to show the blur effect
             position: 'absolute',
-            backgroundColor: 'rgba(240, 0, 0, 0.9)', // Semi-transparent background
             borderTopWidth: 0, // Remove top border
             height: 70, // Increase height
             paddingBottom: 10, // Add padding to the bottom
@@ -51,6 +50,7 @@ export default function TabLayout() {
             paddingBottom: 10,
             paddingTop: 10,
             paddingHorizontal: 10,
+            // borderTopWidth: 0, // Remove top border
           },
           default: {},
         }),
@@ -82,7 +82,7 @@ export default function TabLayout() {
           tabBarIconStyle: { marginBottom: 10, height: 70, backgroundColor: '#ffffff', width: 70, borderRadius: 40, color: '#9661D9', borderColor: '#9661D9', borderWidth: 4, transform: [{ translateY: -30 }] },
           tabBarIcon: ({ color }) => <Ionicons size={40} name="add-outline" color={color} />,
           tabBarStyle: { 
-            // backgroundColor: 'blue', // Đổi màu nền của tab này
+            backgroundColor: 'blue', // Đổi màu nền của tab này
             paddingHorizontal: 10, // Thêm padding cho tab này
             height: 70, // Thay đổi chiều cao của tab này
             paddingTop: 10, // Thêm padding cho tab này
@@ -111,7 +111,6 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    // backgroundColor: '',
     height: 70,
     paddingBottom: 10,
     paddingTop: 10,

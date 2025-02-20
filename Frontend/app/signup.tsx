@@ -37,7 +37,8 @@ export default function SignUpScreen() {
   };
 
   return (
-    <View className='relative bg-white flex h-screen justify-center items-center px-10'>
+    <View className='relative bg-white h-screen items-center px-10'>
+      <View className='relative z-20 flex justify-center items-center w-full p-5 h-screen'>
       <Text className='text-4xl font-bold w-full '>ĐĂNG KÝ</Text>
       <Text className='mt-8 w-full text-left text-lg'>Số điện thoại</Text>
       <TextInput
@@ -50,7 +51,7 @@ export default function SignUpScreen() {
       {validateInput.phoneError !== '' && <Text className='w-full py-3 text-red-500'>{validateInput.phoneError}</Text>}
 
       <Text className='mt-5 w-full text-left text-lg'>Mật khẩu</Text>
-      <View style={styles.passwordContainer}>
+      <View style={styles.passwordContainer} className='mb-5'>
         <TextInput
           className="outline-none border-2 text-lg border-gray-400 rounded-md px-2 py-3 w-full bg-white mt-2 placeholder-opacity-50 placeholder-gray-400"
           placeholder="Password"
@@ -82,12 +83,15 @@ export default function SignUpScreen() {
         </Pressable>
       )}
 
-      <Image className='absolute top-0 w-screen -z-10' source={require('@/assets/images/Vector 1.png')} style={{ alignSelf: 'center' }} />
-      <Image className='absolute bottom-10 w-screen -z-10' source={require('@/assets/images/Vector 2.png')} style={{ alignSelf: 'center' }} />
       <Text className='my-5 text-lg'>Hoặc</Text>
       <Link href="/login">
         <Text className='underline text-lg'>Đăng nhập</Text>
       </Link>
+      </View>
+
+      <Image className='absolute top-0 w-screen  w-[130%] z-5' source={require('@/assets/images/Vector 1.png')} style={{ alignSelf: 'center' }} />
+      <Image className='absolute bottom-0 w-[130%] z-5' source={require('@/assets/images/Vector 2.png')} style={{ alignSelf: 'center' }} />
+      
     </View>
   );
 }

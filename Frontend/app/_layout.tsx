@@ -39,8 +39,11 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Provider store={store}>
           <Stack>
-            <Stack.Screen name="login" options={{ title: 'Đăng nhập', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff' }}  />
-            <Stack.Screen name="signup" options={{ title: 'Đăng ký', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff' }}  />
+            <Stack.Screen name="login" options={{ headerShown: false }}  />
+            <Stack.Screen name="pushNews" options={{ title: 'Đẩy tin', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff', headerTitleAlign: 'center' }}  />
+            <Stack.Screen name="signup" options={{ headerShown: false }}  />
+            <Stack.Screen name="payment" options={{ title: 'Thanh toán', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff', headerTitleAlign: 'center'}} />
+            <Stack.Screen name="index" options={{ headerShown: false }}  />
             <Stack.Screen name="postDetails" options={{ title: 'Chi tiết bài đăng', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff', headerTitleAlign: 'center'}} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="_sitemap" options={{ title: 'Sitemap' }} />

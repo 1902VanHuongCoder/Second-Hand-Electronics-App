@@ -3,6 +3,7 @@ import React, { Component } from 'react'
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Icon from "react-native-vector-icons/FontAwesome";
+import { Link } from 'expo-router';
 export default function profile() {
     return (
         <View className='bg-white w-full min-h-screen'>
@@ -71,12 +72,14 @@ export default function profile() {
                     </TouchableHighlight>
                 </View >
                 <View>
-                    <TouchableHighlight className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
+                    <Link href="/login">    
+                    <View className="border-2 border-[#333] w-full py-3 rounded-lg flex items-center justify-center">
                         <View className="flex-row items-center justify-center gap-2">
                             <Icon name="sign-out" size={22} color="#333" />
                             <Text className="font-bold text-[18px] text-[#333]">Đăng xuất</Text>
                         </View>
-                    </TouchableHighlight>
+                    </View>
+                    </Link>
                 </View>
             </View>
         </View>

@@ -2,6 +2,7 @@ import { Text, View, Image, TouchableHighlight } from "react-native";
 import React, { useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/FontAwesome";
+import { Link } from "expo-router";
 export default function PushNews() {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const choosePayMents = [
@@ -73,9 +74,9 @@ export default function PushNews() {
                         }}
                     >
                         <View className="flex-row items-center justify-center gap-2">
-                            <Text className="font-bold text-[18px] text-[#fff]">
+                            <Link href="/payment"><Text className="font-bold text-[18px] text-[#fff]">
                                 Thanh toán
-                            </Text>
+                            </Text></Link> 
                         </View>
                     </LinearGradient>
                 </TouchableHighlight>
