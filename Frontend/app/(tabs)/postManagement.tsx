@@ -3,6 +3,7 @@ import React, { Component } from 'react'
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { Link } from 'expo-router';
 
 export default function PostManagement() {
     const products = [
@@ -28,7 +29,7 @@ export default function PostManagement() {
         },
     ];
     return (
-        <SafeAreaView className="bg-white w-full h-full" style={{ flex: 1 }}>
+        <View className='w-full h-full bg-white'>
             <ScrollView>
                 {products.map(product => (
                     <View key={product.id} className='flex-col gap-4 border-b-2 border-[#D9D9D9] pb-6'>
@@ -44,9 +45,9 @@ export default function PostManagement() {
                             <TouchableHighlight className='border-2 w-1/2 rounded-md p-3 border-[#9661D9]'>
                                 <View className='flex-row items-center justify-center gap-2'>
                                     <Icon name='arrow-circle-up' size={22} color={'#9661D9'} />
-                                    <Text className='font-bold text-[#9661D9] text-[16px]'>Đẩy tin</Text>
+                                  <Link href="/publishPost"> <Text className='font-bold text-[#9661D9] text-[16px]'>Đẩy tin</Text></Link> 
                                 </View>
-                            </TouchableHighlight>
+                            </TouchableHighlight>   
                             <TouchableHighlight className='rounded-md h-full w-1/2'>
                                 <LinearGradient
                                     colors={['#523471', '#9C62D7']}
@@ -64,6 +65,6 @@ export default function PostManagement() {
                     </View>
                 ))}
             </ScrollView>
-        </SafeAreaView>
+        </View>
     );
 }

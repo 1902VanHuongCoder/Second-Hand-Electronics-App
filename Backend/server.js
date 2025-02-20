@@ -16,6 +16,7 @@ const laptopRoutes = require('./routes/laptopRoutes');
 const productRoutes = require('./routes/productRoutes');
 const screenRoutes = require('./routes/screenRoutes');
 const homeRoutes = require('./routes/homeRoutes');
+const phoneRoutes = require('./routes/phoneRoutes');
 // Load env vars trước khi làm bất cứ điều gì khác
 
 dotenv.config();
@@ -100,6 +101,8 @@ app.use('/api/screens', screenRoutes);
 
 // Sử dụng các route Home
 app.use('/api/home', homeRoutes);
+
+app.use('/api/phones', phoneRoutes);
 
 // Kết nối database
 const startServer = async () => {

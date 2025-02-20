@@ -8,8 +8,9 @@ import { AppDispatch } from '../../store/store';
 import { updateUser } from '../../store/authSlice';
 import { RootState } from '../../store/store';
 import { StyleSheet } from 'react-native';
+import { Link } from 'expo-router';
 
-export default function Profile() {
+export default function UserProfile() {
     const dispatch = useDispatch<AppDispatch>();
     const { user } = useSelector((state: RootState) => state.auth);
     const [name, setName] = useState(user?.name || '');
@@ -35,18 +36,18 @@ export default function Profile() {
     }, [user]);
 
     return (
-        <SafeAreaView className='bg-white w-full min-h-screen'>
+        <View className='bg-white w-full min-h-screen'>
             <View className='bg-[#9661D9] w-full h-[200px] flex justify-center items-center'>
                 <View className='relative'>
-                    <Image className='rounded-full' style={{ width: 70, height: 70 }} source={require('../../assets/images/z6186705977978_00edd678a64db50dba5ef61a50391611.jpg')} />
+                    <Image className='rounded-full border-4 border-[#fff]' style={{ width: 80, height: 80 }} source={require('../../assets/images/z6186705977978_00edd678a64db50dba5ef61a50391611.jpg')} />
                     <View className='absolute bottom-0 -right-1 bg-white p-2 rounded-full'>
                         <Icon name='camera' size={14} color={'#333'} />
                     </View>
                 </View>
-                <Text className='mt-2 font-bold text-white text-[20px]'>Lê Hữu Hoàng Anh</Text>
+                <Text className='mt-2 font-bold text-white text-[20px]'>{name}</Text>
                 <View className='flex-row gap-2 items-center'>
                     <Icon name="map-marker" size={18} color="#fff" />
-                    <Text className='text-white text-[14px] font-semibold'>Tân Phú - Long Mỹ - Hậu Giang</Text>
+                    <Text className='text-white text-[14px] font-semibold'>{address}</Text>
                 </View>
             </View>
             <View className='p-4'>
@@ -69,23 +70,24 @@ export default function Profile() {
                     <View className='mt-4 flex-row gap-4 items-center justify-between'>
                         <Text className='font-bold text-[16px]'>Email: </Text>
                         <View className='border-2 border-[#D9D9D9] p-2 rounded-lg w-2/3'>
-                            <Text className='p-2 text-[14px] font-medium'>lehuuhoanganhhg2003@gmail.com</Text>
+                            <Text className='p-2 text-[14px] font-medium'>{email}</Text>
                         </View>
                     </View>
                     <View className='mt-4 flex-row gap-4 items-center justify-between w-full'>
                         <Text className='font-bold text-[16px]'>Điện thoại: </Text>
                         <View className='border-2 border-[#D9D9D9] p-2 rounded-lg w-2/3'>
-                            <Text className='p-2 text-[14px] font-medium'>033.333.3333</Text>
+                            <Text className='p-2 text-[14px] font-medium'>{phone}</Text>
                         </View>
                     </View>
                     <View className='mt-4 flex-row gap-4 items-center justify-between w-full'>
                         <Text className='font-bold text-[16px]'>Địa chỉ: </Text>
                         <View className='border-2 border-[#D9D9D9] p-2 w-2/3 rounded-lg flex-row justify-between items-center'>
-                            <Text className='p-2 text-[14px] font-medium'>Tân Phú - Long Mỹ - Hậu Giang</Text>
+                            <Text className='p-2 text-[14px] font-medium'>{address}</Text>
                             <Icon name="map-marker" size={18} color="#DC143C" />
                         </View>
                     </View>
                 </View>
+
                 <View className='mt-6'>
                     <Text className='font-extrabold uppercase text-[16px] text-[#333] w-full'>Cập nhật thông tin cá nhân</Text>
                     <TextInput
@@ -127,7 +129,7 @@ export default function Profile() {
                     </TouchableHighlight>
                 </View>
             </View>
-        </SafeAreaView>
+        </View>
     );
 }
 

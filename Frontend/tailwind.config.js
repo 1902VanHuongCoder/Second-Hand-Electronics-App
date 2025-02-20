@@ -7,6 +7,8 @@ module.exports = {
     extend: {
       fontFamily: {
         Knewave: ['Knewave', 'cursive'],
+        Monomakh: ["Monomakh", 'serif'],
+        Roboto: ['Roboto', 'sans-serif'],
       },
     },
   },
