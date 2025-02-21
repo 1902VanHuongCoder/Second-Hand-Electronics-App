@@ -3,7 +3,14 @@ const Laptop = require('../models/Laptop');
 const Phone = require('../models/Phone');
 const Ram = require('../models/Ram');
 const Screen = require('../models/Screen');
+const Cpu = require('../models/Cpu');
+const Gpu = require('../models/Gpu');
 const User = require('../models/User');
+const Version = require('../models/Version');
+const Brand = require('../models/Brand');
+const Storage = require('../models/Storage');
+const StorageType = require('../models/StorageType');
+
 // Lấy tất cả sản phẩm cho trang chủ
 exports.getHomeProducts = async (req, res) => {
     try {
@@ -20,6 +27,13 @@ exports.getHomeProducts = async (req, res) => {
 
                 const ram = await Ram.findById(laptop.ramId);
                 const user = await User.findById(product.userId);
+                const screen = await Screen.findById(laptop.screenId);
+                const cpu = await Cpu.findById(laptop.cpuId);
+                const version = await Version.findById(product.versionId);
+                const brand = version ? await Brand.findById(version.brandId) : null;
+                const gpu = await Gpu.findById(laptop.gpuId);
+                const storage = await Storage.findById(laptop.storageId);
+                const storageType = storage ? await StorageType.findById(storage.storageTypeId) : null;
 
                 return {
                     id: product._id,
@@ -29,7 +43,14 @@ exports.getHomeProducts = async (req, res) => {
                     address: product.location,
                     postingDate: product.createdAt,
                     nameUser: user ? user.name : null,
-                    type: 'laptop' // Thêm loại sản phẩm
+                    brandName: brand ? brand.brandName : null,
+                    ramCapacity: ram ? ram.capacity : null,
+                    cpuName: cpu ? cpu.name : null,
+                    screenSize: screen ? screen.screenSize : null,
+                    gpuName: gpu ? gpu.name : null,
+                    storageCapacity: storage ? storage.storageCapacity : null,
+                    storageType: storageType ? storageType.storageName : null,
+                    type: 'laptop'
                 };
             })
         );
@@ -42,6 +63,8 @@ exports.getHomeProducts = async (req, res) => {
 
                 const ram = await Ram.findById(phone.ramId);
                 const user = await User.findById(product.userId);
+                const version = await Version.findById(product.versionId);
+                const brand = version ? await Brand.findById(version.brandId) : null;
 
                 return {
                     id: product._id,
@@ -51,7 +74,9 @@ exports.getHomeProducts = async (req, res) => {
                     address: product.location,
                     postingDate: product.createdAt,
                     nameUser: user ? user.name : null,
-                    type: 'phone' // Thêm loại sản phẩm
+                    brandName: brand ? brand.brandName : null,
+                    ramCapacity: ram ? ram.capacity : null,
+                    type: 'phone'
                 };
             })
         );
@@ -61,7 +86,6 @@ exports.getHomeProducts = async (req, res) => {
 
         res.status(200).json(allProducts);
     } catch (error) {
-        console.log(error.message)
         res.status(500).json({ message: error.message });
     }
 }; 

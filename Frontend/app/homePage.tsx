@@ -10,6 +10,7 @@ import {
 import React, { useEffect, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/FontAwesome";
+
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { Link } from "expo-router";
 import AppBarForHome from "@/components/AppBarForHome";
@@ -25,6 +26,14 @@ interface Product {
   address: string;
   postingDate: string;
   nameUser: string | null;
+  brandName: string; // Lấy brandName từ brand
+  type: 'laptop' | 'phone'; // Cập nhật để bao gồm cả loại điện thoại
+  ramCapacity?: string | null; // Thêm ramCapacity
+  cpuName?: string | null; // Thêm cpuName
+  gpuName?: string | null; // Thêm gpuName
+  screenSize?: string | null; // Thêm screenSize
+  storageCapacity?: string | null; // Thêm storageCapacity
+  storageType?: string | null; // Thêm storageType
 }
 
 // Định nghĩa kiểu cho người dùng
@@ -152,7 +161,7 @@ export default function HomePage() {
           >
             <View className="flex-col gap-4">
               <View className="flex-row gap-2 w-full">
-                <Link href="/postDetails">
+                <Link href={`/postDetails?id=${product.id}`}>
                   <Image
                     style={{ width: 170, height: 170 }}
                     source={require("../assets/images/z6316149378615_f6d6f665171bf597c35f86bf13ca61b2.jpg")}
@@ -160,7 +169,7 @@ export default function HomePage() {
                 </Link>
                 <View className="w-[50%] flex-col gap-1">
                   <View className="flex-row">
-                    <Link href="/postDetails">
+                    <Link href={`/postDetails?id=${product.id}`}>
                       <Text className="font-bold text-[16px]">{product.title}</Text>
                     </Link>
                     <TouchableHighlight onPress={() => handleReportPress(product.id)}>
