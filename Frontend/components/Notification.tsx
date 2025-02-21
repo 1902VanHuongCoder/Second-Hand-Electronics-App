@@ -14,7 +14,7 @@ const Notification: React.FC<NotificationProps> = ({ message, type, visible}) =>
         if (visible) {
             // Khi thông báo hiển thị, trượt vào
             Animated.timing(translateY, {
-                toValue: 0, // Vị trí cuối cùng
+                toValue: 70, // Vị trí cuối cùng
                 duration: 300, // Thời gian trượt
                 easing: Easing.out(Easing.ease),
                 useNativeDriver: true,
@@ -22,7 +22,7 @@ const Notification: React.FC<NotificationProps> = ({ message, type, visible}) =>
         } else {
             // Khi thông báo ẩn, trượt ra ngoài
             Animated.timing(translateY, {
-                toValue: -100, // Vị trí ra ngoài
+                toValue: -150, // Vị trí ra ngoài
                 duration: 300,
                 easing: Easing.out(Easing.ease),
                 useNativeDriver: true,
@@ -33,6 +33,7 @@ const Notification: React.FC<NotificationProps> = ({ message, type, visible}) =>
     const iconName = type === 'success' ? 'checkmark-circle-outline' : 'close-circle-outline';
 
     return (
+        <View className='absolute left-0 w-screen h-full -z-1'>
         <Animated.View style={[styles.notificationContainer, { backgroundColor, transform: [{ translateY }] }]}>
             <View style={styles.circleSmall}></View>
             <View style={styles.circleBig}>
@@ -45,18 +46,17 @@ const Notification: React.FC<NotificationProps> = ({ message, type, visible}) =>
             {/* <TouchableOpacity style={styles.iconAbsolute}>
                 <Ionicons name="close-outline" size={32} color="#FFF" />
             </TouchableOpacity> */}
-        </Animated.View>
+        </Animated.View> </View>
     );
 };
 
 const styles = StyleSheet.create({
     notificationContainer: {
         position: 'absolute',
-        top: '15%',
-        left: '4%',
-        margin: "auto",
-        width: '100%',
+        top: '-5%',
+        width: '90%',
         backgroundColor: '#F52E56',
+        marginHorizontal: '5%',
         borderRadius: 15,
         padding: 15,
         display: 'flex',
