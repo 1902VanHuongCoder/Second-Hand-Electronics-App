@@ -53,7 +53,7 @@ export default function SignUpScreen() {
       <Text className='text-4xl font-bold w-full '>ĐĂNG KÝ</Text>
       <Text className='mt-8 w-full text-left text-lg'>Số điện thoại</Text>
       <TextInput
-        className="outline-none border-2 text-lg border-gray-400 rounded-md px-2 py-3 w-full bg-white mt-2 placeholder-opacity-50 placeholder-gray-400"
+        className="outline-none font-semibold border-2 text-lg border-gray-400 rounded-md px-2 py-3 w-full bg-white mt-2 placeholder-opacity-50 placeholder-gray-400"
         placeholder="0xx-xxx-xxxx"
         value={phone}
         onChangeText={setPhone}
@@ -65,7 +65,7 @@ export default function SignUpScreen() {
       <Text className='mt-5 w-full text-left text-lg'>Mật khẩu</Text>
       <View style={styles.passwordContainer} className='mb-5'>
         <TextInput
-          className="outline-none border-2 text-lg border-gray-400 rounded-md px-2 py-3 w-full bg-white mt-2 placeholder-opacity-50 placeholder-gray-400"
+          className="outline-none font-semibold border-2 text-lg border-gray-400 rounded-md px-2 py-3 w-full bg-white mt-2 placeholder-opacity-50 placeholder-gray-400"
           placeholder="Password"
           value={password}
           onChangeText={setPassword}
@@ -98,7 +98,7 @@ export default function SignUpScreen() {
 
       <Text className='my-5 text-lg'>Hoặc</Text>
       <Link href="/login">
-        <Text className='underline text-lg'>Đăng nhập</Text>
+        <Text className='underline  text-lg text-[#9661D9] font-semibold'>Đăng nhập</Text>
       </Link>
       </View>
 
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
   },
   button: {
     paddingHorizontal: 50,
-    borderRadius: 5,
-    paddingVertical: 10,
+    borderRadius: 8,
+    paddingVertical: 14,
   },
 });
