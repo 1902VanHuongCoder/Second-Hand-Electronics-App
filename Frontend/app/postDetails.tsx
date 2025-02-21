@@ -18,8 +18,9 @@ interface Product {
   postingDate: string;
   battery: string;
   nameUser: string | null;
+  versionName: String | null;
   brandName: string; // Lấy brandName từ brand
-  type: 'laptop' | 'phone'; // Cập nhật để bao gồm cả loại điện thoại
+  type: 'laptop' | 'phone'; // 
   ramCapacity?: string | null; // Thêm ramCapacity
   cpuName?: string | null; // Thêm cpuName
   gpuName?: string | null; // Thêm gpuName

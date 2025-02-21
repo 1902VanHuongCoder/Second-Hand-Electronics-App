@@ -37,11 +37,11 @@ exports.getProductById = async (req, res) => {
 // Thêm sản phẩm mới
 exports.createProduct = async (req, res) => {
     const productData = {
-        categoryId: new mongoose.Types.ObjectId(req.body.categoryId), // Sử dụng new
-        userId: new mongoose.Types.ObjectId(req.body.userId), // Sử dụng new
-        versionId: new mongoose.Types.ObjectId(req.body.versionId), // Sử dụng new
-        conditionId: new mongoose.Types.ObjectId(req.body.conditionId), // Sử dụng new
-        storageId: new mongoose.Types.ObjectId(req.body.storageId), // Sử dụng new
+        categoryId: new mongoose.Types.ObjectId(req.body.categoryId), 
+        userId: new mongoose.Types.ObjectId(req.body.userId), 
+        versionId: new mongoose.Types.ObjectId(req.body.versionId), 
+        conditionId: new mongoose.Types.ObjectId(req.body.conditionId), 
+        storageId: new mongoose.Types.ObjectId(req.body.storageId), 
         title: req.body.title,
         description: req.body.description,
         price: req.body.price,
@@ -114,6 +114,7 @@ exports.getProductDetails = async (req, res) => {
                     postingDate: product.createdAt,
                     battery: laptop ? laptop.battery : null,
                     nameUser: user ? user.name : null,
+                    versionName: version ? version.versionName : null,
                     brandName: brand ? brand.brandName : null,
                     ramCapacity: ram ? ram.ramCapacity : null,
                     cpuName: cpu ? cpu.cpuName : null,
@@ -139,6 +140,7 @@ exports.getProductDetails = async (req, res) => {
                     address: product.location,
                     postingDate: product.createdAt,
                     nameUser: user ? user.name : null,
+                    versionName: version ? version.versionName : null,
                     brandName: brand ? brand.brandName : null,
                     ramCapacity: ram ? ram.ramCapacity : null,
                     battery: phone ? phone.battery : null,
