@@ -36,6 +36,8 @@ export default function Profile() {
     }, [user]);
 
 
+    console.log(user);
+
     return (
         <View className='bg-white w-full min-h-screen'>
             <View className='bg-[#9661D9] w-full h-[200px] flex justify-center items-center'>
@@ -45,10 +47,10 @@ export default function Profile() {
                         <Icon name='camera' size={14} color={'#333'} />
                     </View>
                 </View>
-                <Text className='mt-2 font-bold text-white text-[20px]'>Lê Hữu Hoàng Anh</Text>
+                <Text className='mt-2 font-bold text-white text-[20px]'>{user?.name ? user.name : 'Chưa cập nhật'}</Text>
                 <View className='flex-row gap-2 items-center'>
                     <Icon name="map-marker" size={18} color="#fff" />
-                    <Text className='text-white text-[14px] font-semibold'>Tân Phú - Long Mỹ - Hậu Giang</Text>
+                    <Text className='text-white text-[14px] font-semibold'>{user?.address ? user.name : 'Chưa cập nhật'}</Text>
                 </View>
             </View>
             <View className='p-4'>
@@ -71,19 +73,19 @@ export default function Profile() {
                     <View className='mt-4 flex-row gap-4 items-center justify-between'>
                         <Text className='font-bold text-[16px]'>Email: </Text>
                         <View className='border-2 border-[#D9D9D9] p-2 rounded-lg w-2/3'>
-                            <Text className='p-2 text-[14px] font-medium'>lehuuhoanganhhg2003@gmail.com</Text>
+                            <Text className='p-2 text-[14px] font-medium'>{user?.email ? user.name : 'Chưa cập nhật'}</Text>
                         </View>
                     </View>
                     <View className='mt-4 flex-row gap-4 items-center justify-between w-full'>
                         <Text className='font-bold text-[16px]'>Điện thoại: </Text>
                         <View className='border-2 border-[#D9D9D9] p-2 rounded-lg w-2/3'>
-                            <Text className='p-2 text-[14px] font-medium'>033.333.3333</Text>
+                            <Text className='p-2 text-[14px] font-medium'>{user?.phone ? user.phone : 'Chưa cập nhật'}</Text>
                         </View>
                     </View>
                     <View className='mt-4 flex-row gap-4 items-center justify-between w-full'>
                         <Text className='font-bold text-[16px]'>Địa chỉ: </Text>
                         <View className='border-2 border-[#D9D9D9] p-2 w-2/3 rounded-lg flex-row justify-between items-center'>
-                            <Text className='p-2 text-[14px] font-medium'>Tân Phú - Long Mỹ - Hậu Giang</Text>
+                            <Text className='p-2 text-[14px] font-medium'>{user?.address ? user.address : 'Chưa cập nhật'}</Text>
                             <Icon name="map-marker" size={18} color="#DC143C" />
                         </View>
                     </View>
@@ -122,19 +124,20 @@ export default function Profile() {
                         </TouchableHighlight>
                     </View>
                 </ScrollView> */}
-                <View className='mb-4 mt-6'>
-                    <TouchableHighlight className="rounded-lg">
+                <View className='mb-4 mt-6 w-full'>
+                    <Link href="/profileSettings" className="rounded-lg">
                         <LinearGradient
                             colors={['#523471', '#9C62D7']}
                             start={{ x: 1, y: 0 }}
                             end={{ x: 0, y: 0 }}
                             style={{ padding: 10, borderRadius: 8 }}
                         >
-                            <View className="flex-row items-center justify-center gap-2">
-                                <Text className="font-bold text-[18px] text-[#fff]">Cập nhật thông tin</Text>
+                            <View className="flex-row items-center justify-center gap-2 w-full">
+                                <Text className="font-bold text-[18px] text-[#fff] w-full text-center">Cập nhật thông tin</Text>
                             </View>
+                          
                         </LinearGradient>
-                    </TouchableHighlight>
+                    </Link>
                 </View>
                 <View>
                     <Link href="/login">
