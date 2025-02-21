@@ -195,7 +195,6 @@ export default function HomePage() {
           </View>
         ))}
       </ScrollView>
-      <Notification message={notifications.message} type={notifications.type} visible={notifications.visible} /> 
     </View>
   );
 

@@ -18,6 +18,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import Notification from "@/components/Notification";
 import { NotificationContext } from "@/context/NotificationContext";
+
 export default function LoginScreen() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -32,6 +33,7 @@ export default function LoginScreen() {
   ) as { loading: boolean; error: string; user: any };
   const { notifications, showNotification } = useContext(NotificationContext);
   const router = useRouter();
+
   const handleLogin = async () => {
     if (password === "") {
       setValidateInput({
@@ -125,7 +127,7 @@ export default function LoginScreen() {
         )}
         <Text className="my-5 text-lg">Hoặc</Text>
         <Link href="/signup" className="underline text-lg text-[#9661D9] font-semibold">
-          Đăng ký
+          <Text>Đăng ký</Text>
         </Link>
       </View>
       <Image
@@ -138,8 +140,6 @@ export default function LoginScreen() {
         source={require("../assets/images/Vector 2.png")}
         style={{ alignSelf: "center" }}
       />
-      <Text className="underline text-lg">Đăng ký</Text>
-      {/* <View className='w-screen h-full bg-[rgba(255,255,255,.1)] absolute top-0 left-0'></View> */}
     </View>
   );
 }
