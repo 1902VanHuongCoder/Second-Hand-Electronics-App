@@ -88,7 +88,7 @@ export default function Profile() {
                         </View>
                     </View>
                 </View>
-                <ScrollView>
+                {/* <ScrollView>
                     <View className='mt-6'>
                         <Text className='font-extrabold uppercase text-[16px] text-[#333] w-full'>Cập nhật thông tin cá nhân</Text>
                         <TextInput
@@ -121,7 +121,7 @@ export default function Profile() {
                             </View>
                         </TouchableHighlight>
                     </View>
-                </ScrollView>
+                </ScrollView> */}
                 <View className='mb-4 mt-6'>
                     <TouchableHighlight className="rounded-lg">
                         <LinearGradient
