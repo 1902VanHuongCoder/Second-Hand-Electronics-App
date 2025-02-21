@@ -9,13 +9,12 @@ interface NotificationProps {
 }
 
 const Notification: React.FC<NotificationProps> = ({ message, type, visible}) => {
-    const translateY = useRef(new Animated.Value(100)).current;
-
+    const translateY = useRef(new Animated.Value(-100)).current;
     useEffect(() => {
         if (visible) {
             // Khi thông báo hiển thị, trượt vào
             Animated.timing(translateY, {
-                toValue: 0, // Vị trí cuối cùng
+                toValue: 23, // Vị trí cuối cùng
                 duration: 300, // Thời gian trượt
                 easing: Easing.out(Easing.ease),
                 useNativeDriver: true,
@@ -23,7 +22,7 @@ const Notification: React.FC<NotificationProps> = ({ message, type, visible}) =>
         } else {
             // Khi thông báo ẩn, trượt ra ngoài
             Animated.timing(translateY, {
-                toValue: 100, // Vị trí ra ngoài
+                toValue: -100, // Vị trí ra ngoài
                 duration: 300,
                 easing: Easing.out(Easing.ease),
                 useNativeDriver: true,
@@ -43,9 +42,9 @@ const Notification: React.FC<NotificationProps> = ({ message, type, visible}) =>
                 <Text style={styles.textType} className='font-extrabold text-white'>{type.toUpperCase()}!</Text>
                 <Text className='text-white font-medium text-[16px]'>{message}</Text>
             </View>
-            <TouchableOpacity style={styles.iconAbsolute}>
+            {/* <TouchableOpacity style={styles.iconAbsolute}>
                 <Ionicons name="close-outline" size={32} color="#FFF" />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
         </Animated.View>
     );
 };

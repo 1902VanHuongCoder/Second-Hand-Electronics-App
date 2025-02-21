@@ -15,16 +15,22 @@ export default function LoginScreen() {
   const dispatch = useDispatch<AppDispatch>();
   const { loading, error, user } = useSelector((state: RootState) => state.auth) as { loading: boolean, error: string, user: any };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (password === '') {
       setValidateInput({ ...validateInput, passwordError: 'Vui lòng nhập mật khẩu' });
+      return;
     }
     if (phone === '') {
       setValidateInput({ ...validateInput, phoneError: 'Vui lòng nhập số điện thoại' });
+      return;
     }
 
-    alert("Đăng nhập thành công");
-    dispatch(loginUser({ phone, password }));
+    const resultAction = await dispatch(loginUser({ phone, password }));
+    if (loginUser.fulfilled.match(resultAction)) {
+      alert("Đăng nhập thành công");
+    } else {
+      alert(resultAction.payload);
+    }
   };
 
   return (
@@ -61,7 +67,7 @@ export default function LoginScreen() {
         {loading ? (
           <ActivityIndicator size="large" color="#0000ff" className="mt-5" />
         ) : (
-          // <Pressable>
+          // <Pressable onPress={handleLogin}>
 
           <LinearGradient
             colors={['rgba(156,98,215,1)', 'rgba(82,52,113,1)']}

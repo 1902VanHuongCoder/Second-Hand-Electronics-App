@@ -6,16 +6,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AppBarForHome from '@/components/AppBarForHome';
 
 
-const index = () => {
+export default function Index() {
+    // const { userToken } = useAuth();
+
+
     return (
+
         <SafeAreaView>
             <View className='bg-white w-full h-full'>
                 <AppBarForHome />
                 <HomePage />
                 {/* <LoginScreen /> */}
             </View>
+
         </SafeAreaView>
     );
-};
-
-export default index;
+}
