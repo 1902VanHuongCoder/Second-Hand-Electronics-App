@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { View, TextInput, Text, ActivityIndicator, StyleSheet, Pressable, Image, TouchableOpacity, Alert } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { signupUser } from '../store/authSlice';
 import { AppDispatch, RootState } from '../store/store';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { NotificationContext } from '@/context/NotificationContext';
+import Notification from '@/components/Notification';
 
 export default function SignUpScreen() {
   const [phone, setPhone] = useState('');
@@ -14,8 +16,12 @@ export default function SignUpScreen() {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  const { notifications, showNotification } = useContext(NotificationContext);
+
+
   const dispatch = useDispatch<AppDispatch>();
   const { loading, error, user } = useSelector((state: RootState) => state.auth);
+  const router = useRouter();
 
   const handleSignup = async () => {
     let valid = true;
@@ -35,9 +41,12 @@ export default function SignUpScreen() {
     if (valid) {
       setIsLoading(true);
       const resultAction = await dispatch(signupUser({ phone, password }));
-      
+
       if (resultAction.type === 'auth/signupUser/fulfilled') {
-        alert( "Đăng ký thành công");
+        showNotification("Đăng ký thành công", "success");
+        setTimeout(() => {
+          router.push("/login");
+        }, 3000);
         setPhone('');
         setPassword('');
       } else {
@@ -49,62 +58,67 @@ export default function SignUpScreen() {
 
   return (
     <View className='relative bg-white h-screen items-center px-10'>
-      <View className='relative z-20 flex justify-center items-center w-full p-5 h-screen'>
-      <Text className='text-4xl font-bold w-full '>ĐĂNG KÝ</Text>
-      <Text className='mt-8 w-full text-left text-lg'>Số điện thoại</Text>
-      <TextInput
-        className="outline-none border-2 text-lg border-gray-400 rounded-md px-2 py-3 w-full bg-white mt-2 placeholder-opacity-50 placeholder-gray-400"
-        placeholder="0xx-xxx-xxxx"
-        value={phone}
-        onChangeText={setPhone}
-        keyboardType="phone-pad"
-        editable={!loading}
+      <Notification
+        message={notifications.message}
+        type={notifications.type}
+        visible={notifications.visible}
       />
-      {validateInput.phoneError !== '' && <Text className='w-full py-3 text-red-500'>{validateInput.phoneError}</Text>}
-
-      <Text className='mt-5 w-full text-left text-lg'>Mật khẩu</Text>
-      <View style={styles.passwordContainer} className='mb-5'>
+      <View className='relative z-20 flex justify-center items-center w-full p-5 h-screen'>
+        <Text className='text-4xl font-bold w-full '>ĐĂNG KÝ</Text>
+        <Text className='mt-8 w-full text-left text-lg'>Số điện thoại</Text>
         <TextInput
           className="outline-none border-2 text-lg border-gray-400 rounded-md px-2 py-3 w-full bg-white mt-2 placeholder-opacity-50 placeholder-gray-400"
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry={!passwordVisible}
-          style={styles.passwordInput}
+          placeholder="0xx-xxx-xxxx"
+          value={phone}
+          onChangeText={setPhone}
+          keyboardType="phone-pad"
           editable={!loading}
         />
-        <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)} style={styles.eyeIcon}>
-          <Ionicons name={passwordVisible ? 'eye-off' : 'eye'} size={24} color="gray" />
-        </TouchableOpacity>
+        {validateInput.phoneError !== '' && <Text className='w-full py-3 text-red-500'>{validateInput.phoneError}</Text>}
+
+        <Text className='mt-5 w-full text-left text-lg'>Mật khẩu</Text>
+        <View style={styles.passwordContainer} className='mb-5'>
+          <TextInput
+            className="outline-none border-2 text-lg border-gray-400 rounded-md px-2 py-3 w-full bg-white mt-2 placeholder-opacity-50 placeholder-gray-400"
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!passwordVisible}
+            style={styles.passwordInput}
+            editable={!loading}
+          />
+          <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)} style={styles.eyeIcon}>
+            <Ionicons name={passwordVisible ? 'eye-off' : 'eye'} size={24} color="gray" />
+          </TouchableOpacity>
+        </View>
+        {validateInput.passwordError !== '' && <Text className='w-full py-3 text-red-500'>{validateInput.passwordError}</Text>}
+
+        {error && <Text className='w-full py-3 text-red-500'>{error} </Text>}
+        {loading ? (
+          <ActivityIndicator size="large" color="#0000ff" />
+        ) : (
+          <Pressable onPress={handleSignup}>
+            <LinearGradient
+              colors={['rgba(156,98,215,1)', 'rgba(82,52,113,1)']}
+              start={[0, 0]}
+              end={[1, 0]}
+              style={styles.button}
+              className='mt-5 shadow-sm'
+            >
+              <Text className='text-white font-bold'>ĐĂNG KÝ</Text>
+            </LinearGradient>
+          </Pressable>
+        )}
+
+        <Text className='my-5 text-lg'>Hoặc</Text>
+        <Link href="/login">
+          <Text className='underline text-lg'>Đăng nhập</Text>
+        </Link>
       </View>
-      {validateInput.passwordError !== '' && <Text className='w-full py-3 text-red-500'>{validateInput.passwordError}</Text>}
 
-      {error && <Text className='w-full py-3 text-red-500'>{error} </Text>}
-      {loading ? (
-        <ActivityIndicator size="large" color="#0000ff" />
-      ) : (
-        <Pressable onPress={handleSignup}>
-          <LinearGradient
-            colors={['rgba(156,98,215,1)', 'rgba(82,52,113,1)']}
-            start={[0, 0]}
-            end={[1, 0]}
-            style={styles.button}
-            className='mt-5 shadow-sm'
-          >
-            <Text className='text-white font-bold'>ĐĂNG KÝ</Text>
-          </LinearGradient>
-        </Pressable>
-      )}
-
-      <Text className='my-5 text-lg'>Hoặc</Text>
-      <Link href="/login">
-        <Text className='underline text-lg'>Đăng nhập</Text>
-      </Link>
-      </View>
-
-      <Image className='absolute top-0 w-screen  w-[130%] z-5' source={require('@/assets/images/Vector 1.png')} style={{ alignSelf: 'center' }} />
+      <Image className='absolute top-0  w-[130%] z-5' source={require('@/assets/images/Vector 1.png')} style={{ alignSelf: 'center' }} />
       <Image className='absolute bottom-0 w-[130%] z-5' source={require('@/assets/images/Vector 2.png')} style={{ alignSelf: 'center' }} />
-      
+
     </View>
   );
 }
@@ -120,8 +134,8 @@ const styles = StyleSheet.create({
   eyeIcon: {
     marginLeft: 10,
     position: 'absolute',
-    right: 12, 
-    top: 20, 
+    right: 12,
+    top: 20,
   },
   button: {
     paddingHorizontal: 50,

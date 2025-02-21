@@ -7,7 +7,9 @@ import {
   TextInput,
   StyleSheet,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+
+import React, { useContext, useEffect, useState } from "react";
+
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/FontAwesome";
 
@@ -16,6 +18,9 @@ import { Link } from "expo-router";
 import AppBarForHome from "@/components/AppBarForHome";
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
+import Notification from "@/components/Notification";
+import { NotificationContext } from "@/context/NotificationContext";
+
 
 // Định nghĩa kiểu cho sản phẩm
 interface Product {
@@ -42,17 +47,25 @@ interface User {
   name: string; // Thêm các thuộc tính cần thiết khác
 }
 
+
+
 export default function HomePage() {
+
+  const { notifications, showNotification} = useContext(NotificationContext);
+
   const [text, onChangeText] = React.useState("");
   const [reportVisible, setReportVisible] = useState(false); // State để theo dõi trạng thái hiển thị menu báo cáo
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null); // Chỉ định kiểu cho selectedProductId
   const [selectedReason, setSelectedReason] = useState<string | null>(null); // State để lưu lý do đã chọn
+
   const [products, setProducts] = useState<Product[]>([]);
   // const [users, setUsers] = useState<{ [key: string]: User }>({}); // Sử dụng kiểu User cho các giá trị
+
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
+
         const response = await axios.get<Product[]>('http://10.0.2.2:5000/api/home');
         setProducts(response.data);
 
@@ -70,6 +83,7 @@ export default function HomePage() {
         // }, {});
 
         // setUsers(usersData); // Cập nhật state với thông tin người dùng
+
       } catch (error) {
         console.error('Error fetching products:', error);
       }
@@ -97,7 +111,9 @@ export default function HomePage() {
   };
 
   return (
-    <View className="p-4" style={{ flex: 1 }}>
+
+    <View className="p-4 relative" style={{ flex: 1 }}>
+
       <View className="flex-row justify-between items-center border-b-2 pb-6 pt-2 border-[#D9D9D9]">
         <TextInput
           className="border-2 border-[#D9D9D9] w-2/3 px-2 py-4 text-[#000] rounded-lg font-semibold"
@@ -110,6 +126,11 @@ export default function HomePage() {
             Tìm kiếm
           </Text>
         </TouchableHighlight>
+
+        <TouchableHighlight onPress={() => showNotification('Đăng nhập thành công', 'success')}>
+                      <Icon name="ellipsis-v" size={18} color="#9661D9" />
+        </TouchableHighlight>
+
       </View>
       <ScrollView className="">
         <LinearGradient
@@ -228,9 +249,77 @@ export default function HomePage() {
       </ScrollView>
     </View>
   );
+
+
 }
 
-const styles = StyleSheet.create({ container: {
-  padding: 20,
-},})
+const styles = StyleSheet.create({
+  container: {
+    padding: 20,
+  },
+})
+
+//npm install react-native-linear-gradient sử dụng này để gradient background
+//npm install react-native-vector-icons cài icon
+
+// const styles = StyleSheet.create({
+//     container: {
+//         padding: 16,
+//     },
+//     card: {
+//         backgroundColor: '#fff',
+//         borderRadius: 8,
+//         padding: 16,
+//         marginBottom: 16,
+//         shadowColor: '#000',
+//         shadowOffset: {
+//             width: 0,
+//             height: 2,
+//         },
+//         shadowOpacity: 0.1,
+//         shadowRadius: 4,
+//         elevation: 2,
+//     },
+//     cardContent: {
+//         flexDirection: 'column',
+//     },
+//     title: {
+//         fontWeight: 'bold',
+//         fontSize: 18,
+//     },
+//     battery: {
+//         fontSize: 14,
+//         color: '#666',
+//     },
+//     ram: {
+//         fontSize: 14,
+//         color: '#666',
+//     },
+//     screen: {
+//         fontSize: 14,
+//         color: '#666',
+//     },
+//     productTitle: {
+//         fontWeight: 'bold',
+//         fontSize: 16,
+//         marginTop: 8,
+//     },
+//     description: {
+//         fontSize: 14,
+//         color: '#333',
+//     },
+//     price: {
+//         fontWeight: 'bold',
+//         fontSize: 16,
+//         color: '#9661D9',
+//         marginTop: 4,
+//     },
+//     loading: {
+//         textAlign: 'center',
+//         marginTop: 20,
+//         fontSize: 16,
+//         color: '#999',
+//     },
+// });
+
 

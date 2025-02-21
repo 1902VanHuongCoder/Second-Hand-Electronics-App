@@ -17,6 +17,7 @@ const productRoutes = require('./routes/productRoutes');
 const screenRoutes = require('./routes/screenRoutes');
 const homeRoutes = require('./routes/homeRoutes');
 const phoneRoutes = require('./routes/phoneRoutes');
+const postManagementRoutes = require('./routes/postManagementRoutes');
 // Load env vars trước khi làm bất cứ điều gì khác
 
 dotenv.config();
@@ -104,15 +105,29 @@ app.use('/api/home', homeRoutes);
 
 app.use('/api/phones', phoneRoutes);
 
+app.use('/api/post-management', postManagementRoutes);
+
 // Kết nối database
 const startServer = async () => {
   try {
     await connectDB();
     
     const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
+    
+    const server = app.listen(PORT, () => {
       console.log(`Server đang chạy tại port ${PORT}`);
+    }).on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        console.log(`Port ${PORT} đã được sử dụng, thử port ${PORT + 1}`);
+        server.close();
+        app.listen(PORT + 1, () => {
+          console.log(`Server đang chạy tại port ${PORT + 1}`);
+        });
+      } else {
+        console.error('Lỗi khởi động server:', err);
+      }
     });
+
   } catch (error) {
     console.error('Không thể khởi động server:', error);
     process.exit(1);

@@ -1,4 +1,4 @@
-import { Text, View, TouchableHighlight, Image, TextInput } from 'react-native'
+import { Text, View, TouchableHighlight, Image, TextInput, ScrollView } from 'react-native'
 import React, { Component, useEffect, useState } from 'react'
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -35,6 +35,11 @@ export default function UserProfile() {
         }
     }, [user]);
 
+
+
+    console.log(user);
+
+
     return (
         <View className='bg-white w-full min-h-screen'>
             <View className='bg-[#9661D9] w-full h-[200px] flex justify-center items-center'>
@@ -44,10 +49,12 @@ export default function UserProfile() {
                         <Icon name='camera' size={14} color={'#333'} />
                     </View>
                 </View>
-                <Text className='mt-2 font-bold text-white text-[20px]'>{name}</Text>
+
+                <Text className='mt-2 font-bold text-white text-[20px]'>{user?.name ? user.name : 'Chưa cập nhật'}</Text>
                 <View className='flex-row gap-2 items-center'>
                     <Icon name="map-marker" size={18} color="#fff" />
-                    <Text className='text-white text-[14px] font-semibold'>{address}</Text>
+                    <Text className='text-white text-[14px] font-semibold'>{user?.address ? user.address : 'Chưa cập nhật'}</Text>
+
                 </View>
             </View>
             <View className='p-4'>
@@ -70,67 +77,93 @@ export default function UserProfile() {
                     <View className='mt-4 flex-row gap-4 items-center justify-between'>
                         <Text className='font-bold text-[16px]'>Email: </Text>
                         <View className='border-2 border-[#D9D9D9] p-2 rounded-lg w-2/3'>
-                            <Text className='p-2 text-[14px] font-medium'>{email}</Text>
+
+                            <Text className='p-2 text-[14px] font-medium'>{user?.email ? user.email : 'Chưa cập nhật'}</Text>
+
                         </View>
                     </View>
                     <View className='mt-4 flex-row gap-4 items-center justify-between w-full'>
                         <Text className='font-bold text-[16px]'>Điện thoại: </Text>
                         <View className='border-2 border-[#D9D9D9] p-2 rounded-lg w-2/3'>
-                            <Text className='p-2 text-[14px] font-medium'>{phone}</Text>
+
+                            <Text className='p-2 text-[14px] font-medium'>{user?.phone ? user.phone : 'Chưa cập nhật'}</Text>
+
                         </View>
                     </View>
                     <View className='mt-4 flex-row gap-4 items-center justify-between w-full'>
                         <Text className='font-bold text-[16px]'>Địa chỉ: </Text>
                         <View className='border-2 border-[#D9D9D9] p-2 w-2/3 rounded-lg flex-row justify-between items-center'>
-                            <Text className='p-2 text-[14px] font-medium'>{address}</Text>
+
+                            <Text className='p-2 text-[14px] font-medium'>{user?.address ? user.address : 'Chưa cập nhật'}</Text>
+
                             <Icon name="map-marker" size={18} color="#DC143C" />
                         </View>
                     </View>
                 </View>
 
-                <View className='mt-6'>
-                    <Text className='font-extrabold uppercase text-[16px] text-[#333] w-full'>Cập nhật thông tin cá nhân</Text>
-                    <TextInput
-                        value={name}
-                        onChangeText={setName}
-                        placeholder="Tên"
-                        className='border-2 border-[#D9D9D9] p-2 rounded-lg w-full'
-                    />
-                    <TextInput
-                        value={email}
-                        onChangeText={setEmail}
-                        placeholder="Email"
-                        className='border-2 border-[#D9D9D9] p-2 rounded-lg w-full'
-                    />
-                    <TextInput
-                        value={phone}
-                        onChangeText={setPhone}
-                        placeholder="Điện thoại"
-                        className='border-2 border-[#D9D9D9] p-2 rounded-lg w-full'
-                    />
-                    <TextInput
-                        value={address}
-                        onChangeText={setAddress}
-                        placeholder="Địa chỉ"
-                        className='border-2 border-[#D9D9D9] p-2 rounded-lg w-full'
-                    />
-                    <TouchableHighlight onPress={handleUpdate} className="rounded-lg mt-4">
-                        <View className="bg-[#523471] p-2 rounded-lg">
-                            <Text className="font-bold text-[18px] text-[#fff]">Cập nhật thông tin</Text>
-                        </View>
-                    </TouchableHighlight>
+                {/* <ScrollView>
+                    <View className='mt-6'>
+                        <Text className='font-extrabold uppercase text-[16px] text-[#333] w-full'>Cập nhật thông tin cá nhân</Text>
+                        <TextInput
+                            value={name}
+                            onChangeText={setName}
+                            placeholder="Tên"
+                            className='border-2 border-[#D9D9D9] p-2 rounded-lg w-full'
+                        />
+                        <TextInput
+                            value={email}
+                            onChangeText={setEmail}
+                            placeholder="Email"
+                            className='border-2 border-[#D9D9D9] p-2 rounded-lg w-full'
+                        />
+                        <TextInput
+                            value={phone}
+                            onChangeText={setPhone}
+                            placeholder="Điện thoại"
+                            className='border-2 border-[#D9D9D9] p-2 rounded-lg w-full'
+                        />
+                        <TextInput
+                            value={address}
+                            onChangeText={setAddress}
+                            placeholder="Địa chỉ"
+                            className='border-2 border-[#D9D9D9] p-2 rounded-lg w-full'
+                        />
+                        <TouchableHighlight onPress={handleUpdate} className="rounded-lg mt-4">
+                            <View className="bg-[#523471] p-2 rounded-lg">
+                                <Text className="font-bold text-[18px] text-[#fff]">Cập nhật thông tin</Text>
+                            </View>
+                        </TouchableHighlight>
+                    </View>
+                </ScrollView> */}
+                <View className='mb-4 mt-6 w-full'>
+                    <Link href="/profileSettings" className="rounded-lg">
+                        <LinearGradient
+                            colors={['#523471', '#9C62D7']}
+                            start={{ x: 1, y: 0 }}
+                            end={{ x: 0, y: 0 }}
+                            style={{ padding: 10, borderRadius: 8 }}
+                        >
+                            <View className="flex-row items-center justify-center gap-2 w-full">
+                                <Text className="font-bold text-[18px] text-[#fff] w-full text-center">Cập nhật thông tin</Text>
+                            </View>
+                          
+                        </LinearGradient>
+                    </Link>
                 </View>
-                <View className='mt-8'>
-                    <TouchableHighlight className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
-                        <View className="flex-row items-center justify-center gap-2">
-                            <Icon name="sign-out" size={22} color="#333" />
-                            <Text className="font-bold text-[18px] text-[#333]">Đăng xuất</Text>
+                <View>
+                    <Link href="/login">
+                        <View className="border-2 border-[#333] w-full py-3 rounded-lg flex items-center justify-center">
+                            <View className="flex-row items-center justify-center gap-2">
+                                <Icon name="sign-out" size={22} color="#333" />
+                                <Text className="font-bold text-[18px] text-[#333]">Đăng xuất</Text>
+                            </View>
                         </View>
-                    </TouchableHighlight>
+                    </Link>
+
                 </View>
             </View>
-        </View>
-    );
+        </View >
+    )
 }
 
 const styles = StyleSheet.create({
