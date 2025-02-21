@@ -1,4 +1,4 @@
-import { Text, View, TouchableHighlight, Image, TextInput } from 'react-native'
+import { Text, View, TouchableHighlight, Image, TextInput, ScrollView } from 'react-native'
 import React, { Component, useEffect, useState } from 'react'
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -88,64 +88,66 @@ export default function Profile() {
                         </View>
                     </View>
                 </View>
-                <View className='mt-6'>
-                    <Text className='font-extrabold uppercase text-[16px] text-[#333] w-full'>Cập nhật thông tin cá nhân</Text>
-                    <TextInput
-                        value={name}
-                        onChangeText={setName}
-                        placeholder="Tên"
-                        className='border-2 border-[#D9D9D9] p-2 rounded-lg w-full'
-                    />
-                    <TextInput
-                        value={email}
-                        onChangeText={setEmail}
-                        placeholder="Email"
-                        className='border-2 border-[#D9D9D9] p-2 rounded-lg w-full'
-                    />
-                    <TextInput
-                        value={phone}
-                        onChangeText={setPhone}
-                        placeholder="Điện thoại"
-                        className='border-2 border-[#D9D9D9] p-2 rounded-lg w-full'
-                    />
-                    <TextInput
-                        value={address}
-                        onChangeText={setAddress}
-                        placeholder="Địa chỉ"
-                        className='border-2 border-[#D9D9D9] p-2 rounded-lg w-full'
-                    />
-                    <TouchableHighlight onPress={handleUpdate} className="rounded-lg mt-4">
-                        <View className="bg-[#523471] p-2 rounded-lg">
-                            <Text className="font-bold text-[18px] text-[#fff]">Cập nhật thông tin</Text>
-                        </View>
-                    </TouchableHighlight>
-                    <View className='mb-4 mt-6'>
-                        <TouchableHighlight className="rounded-lg">
-                            <LinearGradient
-                                colors={['#523471', '#9C62D7']}
-                                start={{ x: 1, y: 0 }}
-                                end={{ x: 0, y: 0 }}
-                                style={{ padding: 10, borderRadius: 8 }}
-                            >
-                                <View className="flex-row items-center justify-center gap-2">
-                                    <Text className="font-bold text-[18px] text-[#fff]">Cập nhật thông tin</Text>
-                                </View>
-                            </LinearGradient>
+                <ScrollView>
+                    <View className='mt-6'>
+                        <Text className='font-extrabold uppercase text-[16px] text-[#333] w-full'>Cập nhật thông tin cá nhân</Text>
+                        <TextInput
+                            value={name}
+                            onChangeText={setName}
+                            placeholder="Tên"
+                            className='border-2 border-[#D9D9D9] p-2 rounded-lg w-full'
+                        />
+                        <TextInput
+                            value={email}
+                            onChangeText={setEmail}
+                            placeholder="Email"
+                            className='border-2 border-[#D9D9D9] p-2 rounded-lg w-full'
+                        />
+                        <TextInput
+                            value={phone}
+                            onChangeText={setPhone}
+                            placeholder="Điện thoại"
+                            className='border-2 border-[#D9D9D9] p-2 rounded-lg w-full'
+                        />
+                        <TextInput
+                            value={address}
+                            onChangeText={setAddress}
+                            placeholder="Địa chỉ"
+                            className='border-2 border-[#D9D9D9] p-2 rounded-lg w-full'
+                        />
+                        <TouchableHighlight onPress={handleUpdate} className="rounded-lg mt-4">
+                            <View className="bg-[#523471] p-2 rounded-lg">
+                                <Text className="font-bold text-[18px] text-[#fff]">Cập nhật thông tin</Text>
+                            </View>
                         </TouchableHighlight>
                     </View>
-                    <View>
-                        <Link href="/login">
-                            <View className="border-2 border-[#333] w-full py-3 rounded-lg flex items-center justify-center">
-                                <View className="flex-row items-center justify-center gap-2">
-                                    <Icon name="sign-out" size={22} color="#333" />
-                                    <Text className="font-bold text-[18px] text-[#333]">Đăng xuất</Text>
-                                </View>
+                </ScrollView>
+                <View className='mb-4 mt-6'>
+                    <TouchableHighlight className="rounded-lg">
+                        <LinearGradient
+                            colors={['#523471', '#9C62D7']}
+                            start={{ x: 1, y: 0 }}
+                            end={{ x: 0, y: 0 }}
+                            style={{ padding: 10, borderRadius: 8 }}
+                        >
+                            <View className="flex-row items-center justify-center gap-2">
+                                <Text className="font-bold text-[18px] text-[#fff]">Cập nhật thông tin</Text>
                             </View>
-                        </Link>
-                    </View>
+                        </LinearGradient>
+                    </TouchableHighlight>
+                </View>
+                <View>
+                    <Link href="/login">
+                        <View className="border-2 border-[#333] w-full py-3 rounded-lg flex items-center justify-center">
+                            <View className="flex-row items-center justify-center gap-2">
+                                <Icon name="sign-out" size={22} color="#333" />
+                                <Text className="font-bold text-[18px] text-[#333]">Đăng xuất</Text>
+                            </View>
+                        </View>
+                    </Link>
                 </View>
             </View>
-        </View>
+        </View >
     )
 }
 

@@ -102,7 +102,7 @@ export default function SignUpScreen() {
       </Link>
       </View>
 
-      <Image className='absolute top-0 w-screen  w-[130%] z-5' source={require('@/assets/images/Vector 1.png')} style={{ alignSelf: 'center' }} />
+      <Image className='absolute top-0  w-[130%] z-5' source={require('@/assets/images/Vector 1.png')} style={{ alignSelf: 'center' }} />
       <Image className='absolute bottom-0 w-[130%] z-5' source={require('@/assets/images/Vector 2.png')} style={{ alignSelf: 'center' }} />
       
     </View>
