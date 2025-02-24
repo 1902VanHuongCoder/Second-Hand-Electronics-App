@@ -7,9 +7,12 @@ import {
   TextInput,
   StyleSheet,
 } from "react-native";
+
 import React, { useContext, useEffect, useState } from "react";
+
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/FontAwesome";
+
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { Link } from "expo-router";
 import AppBarForHome from "@/components/AppBarForHome";
@@ -17,6 +20,35 @@ import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import Notification from "@/components/Notification";
 import { NotificationContext } from "@/context/NotificationContext";
+
+
+// Định nghĩa kiểu cho sản phẩm
+interface Product {
+  id: string;
+  title: string;
+  configuration: string;
+  price: number;
+  address: string;
+  postingDate: string;
+  nameUser: string | null;
+  brandName: string; // Lấy brandName từ brand
+  type: 'laptop' | 'phone'; // Cập nhật để bao gồm cả loại điện thoại
+  ramCapacity?: string | null; // Thêm ramCapacity
+  cpuName?: string | null; // Thêm cpuName
+  gpuName?: string | null; // Thêm gpuName
+  screenSize?: string | null; // Thêm screenSize
+  storageCapacity?: string | null; // Thêm storageCapacity
+  storageType?: string | null; // Thêm storageType
+}
+
+// Định nghĩa kiểu cho người dùng
+interface User {
+  _id: string;
+  name: string; // Thêm các thuộc tính cần thiết khác
+}
+
+
+
 export default function HomePage() {
 
   const { notifications, showNotification} = useContext(NotificationContext);
@@ -25,13 +57,33 @@ export default function HomePage() {
   const [reportVisible, setReportVisible] = useState(false); // State để theo dõi trạng thái hiển thị menu báo cáo
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null); // Chỉ định kiểu cho selectedProductId
   const [selectedReason, setSelectedReason] = useState<string | null>(null); // State để lưu lý do đã chọn
-  const [products, setProducts] = useState<any[]>([]);
+
+  const [products, setProducts] = useState<Product[]>([]);
+  // const [users, setUsers] = useState<{ [key: string]: User }>({}); // Sử dụng kiểu User cho các giá trị
+
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get('http://10.0.2.2:5000/api/home');
-        // setProducts(response.data);
+
+        const response = await axios.get<Product[]>('http://10.0.2.2:5000/api/home');
+        setProducts(response.data);
+
+        // Lấy thông tin người dùng cho từng sản phẩm
+        // const userIds = response.data.map(product => product.userId);
+        // const uniqueUserIds = [...new Set(userIds)]; // Lấy danh sách userId duy nhất
+
+        // const userResponses = await Promise.all(
+        //   uniqueUserIds.map(userId => axios.get<User>(`http://10.0.2.2:5000/api/users/${userId}`))
+        // );
+
+        // const usersData = userResponses.reduce<{ [key: string]: User }>((acc, userResponse) => {
+        //   acc[userResponse.data._id] = userResponse.data; // Lưu thông tin người dùng theo userId
+        //   return acc;
+        // }, {});
+
+        // setUsers(usersData); // Cập nhật state với thông tin người dùng
+
       } catch (error) {
         console.error('Error fetching products:', error);
       }
@@ -39,7 +91,6 @@ export default function HomePage() {
 
     fetchProducts();
   }, []);
-
 
   const reportReasons = [
     "Nội dung không phù hợp",
@@ -60,7 +111,9 @@ export default function HomePage() {
   };
 
   return (
+
     <View className="p-4 relative" style={{ flex: 1 }}>
+
       <View className="flex-row justify-between items-center border-b-2 pb-6 pt-2 border-[#D9D9D9]">
         <TextInput
           className="border-2 border-[#D9D9D9] w-2/3 px-2 py-4 text-[#000] rounded-lg font-semibold"
@@ -73,9 +126,11 @@ export default function HomePage() {
             Tìm kiếm
           </Text>
         </TouchableHighlight>
+
         <TouchableHighlight onPress={() => showNotification('Đăng nhập thành công', 'success')}>
                       <Icon name="ellipsis-v" size={18} color="#9661D9" />
         </TouchableHighlight>
+
       </View>
       <ScrollView className="">
         <LinearGradient
@@ -127,20 +182,17 @@ export default function HomePage() {
           >
             <View className="flex-col gap-4">
               <View className="flex-row gap-2 w-full">
-                <Link href="/postDetails">
+                <Link href={`/postDetails?id=${product.id}`}>
                   <Image
                     style={{ width: 170, height: 170 }}
                     source={require("../assets/images/z6316149378615_f6d6f665171bf597c35f86bf13ca61b2.jpg")}
-                  /> </Link>
+                  />
+                </Link>
                 <View className="w-[50%] flex-col gap-1">
-
-                  {/* <View className="flex-row gap-1">
-                    <Text className="font-bold text-[16px] font-Monomakh">
-                      {product.name}
-                    </Text> */}
-
                   <View className="flex-row">
-                    <Link href="/postDetails"><Text className="font-bold text-[16px]">{product.name}</Text></Link>
+                    <Link href={`/postDetails?id=${product.id}`}>
+                      <Text className="font-bold text-[16px]">{product.title}</Text>
+                    </Link>
                     <TouchableHighlight onPress={() => handleReportPress(product.id)}>
                       <Icon name="ellipsis-v" size={18} color="#9661D9" />
                     </TouchableHighlight>
@@ -158,7 +210,7 @@ export default function HomePage() {
                   <View className="flex-row gap-2 items-center">
                     <Icon name="clock-o" size={20} color="#9661D9" />
                     <Text className="font-bold text-[14px]">
-                      {product.postingDate}
+                      {new Date(product.postingDate).toLocaleDateString()}
                     </Text>
                   </View>
                 </View>
@@ -197,6 +249,7 @@ export default function HomePage() {
       </ScrollView>
     </View>
   );
+
 
 }
 
@@ -268,4 +321,5 @@ const styles = StyleSheet.create({
 //         color: '#999',
 //     },
 // });
+
 

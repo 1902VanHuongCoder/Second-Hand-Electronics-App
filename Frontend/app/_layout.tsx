@@ -1,12 +1,15 @@
+
 import React from 'react';
 import { Provider } from 'react-redux';
 import { AuthProvider } from '../context/AuthContext';
+
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+
 import 'react-native-reanimated';
 import { StyleSheet } from 'react-native';
 import "../global.css";
@@ -16,11 +19,14 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { NotificationProvider } from '../context/NotificationContext';
 
+
 // Prevent splash screen from auto-hiding before loading assets
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+
   const router = useRouter();
+
   const colorScheme = useColorScheme();
 
   const [loaded] = useFonts({
@@ -39,7 +45,9 @@ export default function RootLayout() {
   if (!loaded) {
     return null;
   }
+
   
+
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Provider store={store}>

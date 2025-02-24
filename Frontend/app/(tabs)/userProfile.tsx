@@ -10,7 +10,7 @@ import { RootState } from '../../store/store';
 import { StyleSheet } from 'react-native';
 import { Link } from 'expo-router';
 
-export default function Profile() {
+export default function UserProfile() {
     const dispatch = useDispatch<AppDispatch>();
     const { user } = useSelector((state: RootState) => state.auth);
     const [name, setName] = useState(user?.name || '');
@@ -36,7 +36,9 @@ export default function Profile() {
     }, [user]);
 
 
+
     console.log(user);
+
 
     return (
         <View className='bg-white w-full min-h-screen'>
@@ -47,10 +49,12 @@ export default function Profile() {
                         <Icon name='camera' size={14} color={'#333'} />
                     </View>
                 </View>
+
                 <Text className='mt-2 font-bold text-white text-[20px]'>{user?.name ? user.name : 'Chưa cập nhật'}</Text>
                 <View className='flex-row gap-2 items-center'>
                     <Icon name="map-marker" size={18} color="#fff" />
-                    <Text className='text-white text-[14px] font-semibold'>{user?.address ? user.name : 'Chưa cập nhật'}</Text>
+                    <Text className='text-white text-[14px] font-semibold'>{user?.address ? user.address : 'Chưa cập nhật'}</Text>
+
                 </View>
             </View>
             <View className='p-4'>
@@ -73,23 +77,30 @@ export default function Profile() {
                     <View className='mt-4 flex-row gap-4 items-center justify-between'>
                         <Text className='font-bold text-[16px]'>Email: </Text>
                         <View className='border-2 border-[#D9D9D9] p-2 rounded-lg w-2/3'>
-                            <Text className='p-2 text-[14px] font-medium'>{user?.email ? user.name : 'Chưa cập nhật'}</Text>
+
+                            <Text className='p-2 text-[14px] font-medium'>{user?.email ? user.email : 'Chưa cập nhật'}</Text>
+
                         </View>
                     </View>
                     <View className='mt-4 flex-row gap-4 items-center justify-between w-full'>
                         <Text className='font-bold text-[16px]'>Điện thoại: </Text>
                         <View className='border-2 border-[#D9D9D9] p-2 rounded-lg w-2/3'>
+
                             <Text className='p-2 text-[14px] font-medium'>{user?.phone ? user.phone : 'Chưa cập nhật'}</Text>
+
                         </View>
                     </View>
                     <View className='mt-4 flex-row gap-4 items-center justify-between w-full'>
                         <Text className='font-bold text-[16px]'>Địa chỉ: </Text>
                         <View className='border-2 border-[#D9D9D9] p-2 w-2/3 rounded-lg flex-row justify-between items-center'>
+
                             <Text className='p-2 text-[14px] font-medium'>{user?.address ? user.address : 'Chưa cập nhật'}</Text>
+
                             <Icon name="map-marker" size={18} color="#DC143C" />
                         </View>
                     </View>
                 </View>
+
                 {/* <ScrollView>
                     <View className='mt-6'>
                         <Text className='font-extrabold uppercase text-[16px] text-[#333] w-full'>Cập nhật thông tin cá nhân</Text>
@@ -148,6 +159,7 @@ export default function Profile() {
                             </View>
                         </View>
                     </Link>
+
                 </View>
             </View>
         </View >
