@@ -51,7 +51,7 @@ interface User {
 
 export default function HomePage() {
 
-  const { notifications, showNotification} = useContext(NotificationContext);
+  const { notifications, showNotification } = useContext(NotificationContext);
 
   const [text, onChangeText] = React.useState("");
   const [reportVisible, setReportVisible] = useState(false); // State để theo dõi trạng thái hiển thị menu báo cáo
@@ -110,6 +110,10 @@ export default function HomePage() {
     alert(`Bạn đã chọn lý do: ${reason}`); // Thực hiện hành động báo cáo ở đây
   };
 
+  const formatCurrency = (value : String) => {
+    return value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+
   return (
 
     <View className="p-4 relative" style={{ flex: 1 }}>
@@ -126,11 +130,6 @@ export default function HomePage() {
             Tìm kiếm
           </Text>
         </TouchableHighlight>
-
-        <TouchableHighlight onPress={() => showNotification('Đăng nhập thành công', 'success')}>
-                      <Icon name="ellipsis-v" size={18} color="#9661D9" />
-        </TouchableHighlight>
-
       </View>
       <ScrollView className="">
         <LinearGradient
@@ -189,7 +188,7 @@ export default function HomePage() {
                   />
                 </Link>
                 <View className="w-[50%] flex-col gap-1">
-                  <View className="flex-row">
+                  <View className="flex-row justify-between items-center">
                     <Link href={`/postDetails?id=${product.id}`}>
                       <Text className="font-bold text-[16px]">{product.title}</Text>
                     </Link>
@@ -199,7 +198,7 @@ export default function HomePage() {
                   </View>
                   <Text className="text-[12px]">{product.configuration}</Text>
                   <Text className="font-bold text-[#9661D9] text-[16px]">
-                    {product.price}
+                    {formatCurrency(product.price.toString())} đ
                   </Text>
                   <View className="flex-row gap-2 items-center">
                     <Icon name="map-marker" size={20} color="#9661D9" />
@@ -249,8 +248,6 @@ export default function HomePage() {
       </ScrollView>
     </View>
   );
-
-
 }
 
 const styles = StyleSheet.create({
@@ -321,5 +318,3 @@ const styles = StyleSheet.create({
 //         color: '#999',
 //     },
 // });
-
-
