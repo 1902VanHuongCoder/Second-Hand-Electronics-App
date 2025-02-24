@@ -1,12 +1,15 @@
 import { Text, View, ScrollView, TextInput, TouchableHighlight, Button, Image } from 'react-native'
+
 import React, { useState, useEffect, useMemo } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Picker } from '@react-native-picker/picker';
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/FontAwesome";
 import axios from 'axios';
+import { useAuthCheck } from '../../store/checkLogin';
 
 // Định nghĩa kiểu cho ảnh và video
+
 interface Media {
     uri: string;
 }
@@ -70,6 +73,7 @@ interface ApiResponse<T> {
 
 export default function PostCreation() {
     // States cho các trường select
+    const checkAuth = useAuthCheck();
     const [selectedCategory, setSelectedCategory] = useState("");
     const [selectedBrand, setSelectedBrand] = useState("");
     const [selectedCpu, setSelectedCpu] = useState("");
@@ -111,6 +115,69 @@ export default function PostCreation() {
         { label: "3 tháng", value: "3 tháng" },
         { label: "6 tháng", value: "6 tháng" },
         { label: "12 tháng", value: "12 tháng" }
+
+//     const checkAuth = useAuthCheck();
+//     const [selectedValue, setSelectedValue] = useState("Điện thoại");
+//     const [images, setImages] = useState<Media[]>([]); // Định nghĩa kiểu cho images
+//     const [videos, setVideos] = useState<Media[]>([]); // Định nghĩa kiểu cho videos
+//     const colors = [
+//         { id: '1', label: 'Đen', value: 'Đen' },
+//         { id: '2', label: 'Đỏ', value: 'Đỏ' },
+//         { id: '3', label: 'Cam', value: 'Cam' },
+//         { id: '4', label: 'Xanh dương', value: 'Xanh dương' },
+//         { id: '5', label: 'Xanh lá', value: 'Xanh lá' },
+//         { id: '6', label: 'Vàng', value: 'Vàng' },
+//         { id: '7', label: 'Tím', value: 'Tím' },
+//         { id: '8', label: 'Trắng', value: 'Trắng' },
+//         { id: '9', label: 'Xám', value: 'Xám' },
+//         { id: '10', label: 'Nâu', value: 'Nâu' },
+//         { id: '11', label: 'Hồng', value: 'Hồng' },
+//         { id: '12', label: 'Xanh ngọc', value: 'Xanh ngọc' },
+//         { id: '13', label: 'Xanh da trời', value: 'Xanh da trời' },
+//         { id: '14', label: 'Vàng chanh', value: 'Vàng chanh' },
+//         { id: '15', label: 'Đỏ tươi', value: 'Đỏ tươi' },
+//         { id: '16', label: 'Xanh lá cây', value: 'Xanh lá cây' },
+//         { id: '17', label: 'Xanh lục', value: 'Xanh lục' },
+//         { id: '18', label: 'Xanh dương nhạt', value: 'Xanh dương nhạt' },
+//         { id: '19', label: 'Xanh dương đậm', value: 'Xanh dương đậm' },
+//         { id: '20', label: 'Đỏ nhạt', value: 'Đỏ nhạt' },
+//     ];
+//     const brands = [
+//         { id: '1', label: 'Apple', value: 'Apple' },
+//         { id: '2', label: 'Samsung', value: 'Samsung' },
+//         { id: '3', label: 'Xiaomi', value: 'Xiaomi' },
+//         { id: '4', label: 'Oppo', value: 'Oppo' },
+//         { id: '5', label: 'Vivo', value: 'Vivo' },
+//         { id: '6', label: 'Nokia', value: 'Nokia' },
+//         { id: '7', label: 'Sony', value: 'Sony' },
+//         { id: '8', label: 'Huawei', value: 'Huawei' },
+//         { id: '9', label: 'LG', value: 'Lg' },
+//         { id: '10', label: 'OnePlus', value: 'Oneplus' },
+//         { id: '11', label: 'Realme', value: 'Realme' },
+//         { id: '12', label: 'Google', value: 'Google' },
+//     ];
+//     const storageOptions = [
+//         { id: '1', label: '< 8 GB', value: '< 8 GB' },
+//         { id: '2', label: '8 GB', value: '8 GB' },
+//         { id: '3', label: '16 GB', value: '16 GB' },
+//         { id: '4', label: '32 GB', value: '32 GB' },
+//         { id: '5', label: '64 GB', value: '64 GB' },
+//         { id: '6', label: '128 GB', value: '128 GB' },
+//         { id: '7', label: '256 GB', value: '256 GB' },
+//         { id: '8', label: '512 GB', value: '512 GB' },
+//         { id: '9', label: '1 TB', value: '1 TB' },
+//     ];
+//     const laptopBrands = [
+//         { id: '1', label: 'Apple', value: 'Apple' },
+//         { id: '2', label: 'Dell', value: 'Dell' },
+//         { id: '3', label: 'HP', value: 'HP' },
+//         { id: '4', label: 'Lenovo', value: 'Lenovo' },
+//         { id: '5', label: 'Asus', value: 'Asus' },
+//         { id: '6', label: 'Acer', value: 'Acer' },
+//         { id: '7', label: 'Microsoft', value: 'Microsoft' },
+//         { id: '8', label: 'Razer', value: 'Razer' },
+//         { id: '9', label: 'Samsung', value: 'Samsung' },
+//         { id: '10', label: 'Toshiba', value: 'Toshiba' },
     ];
 
     const originOptions = [
@@ -296,6 +363,9 @@ export default function PostCreation() {
         console.log('Available Versions:', filteredVersions);
     };
 
+//     useEffect(() => {
+//         checkAuth()
+//     }, []);
     return (
         <View className='w-full h-full bg-white p-4'>
             <ScrollView>
@@ -324,7 +394,7 @@ export default function PostCreation() {
                             <Text className='text-[#9661D9] font-semibold self-end'>Hình ảnh hợp lệ</Text>
                             <Icon name='camera' size={40} color='#9661D9' />
                             <TouchableHighlight
-                                onPress={() => {}}
+                                onPress={() => { }}
                                 underlayColor="#DDDDDD"
                                 style={{ padding: 10, alignItems: 'center' }}
                             >
@@ -345,7 +415,7 @@ export default function PostCreation() {
                         <View className='border-2 border-[#D9D9D9] rounded-lg p-3 flex-col items-center'>
                             <Icon className='mt-4' name='video-camera' size={40} color='#9661D9' />
                             <TouchableHighlight
-                                onPress={() => {}}
+                                onPress={() => { }}
                                 underlayColor="#DDDDDD"
                                 style={{ padding: 10, alignItems: 'center' }}
                             >
