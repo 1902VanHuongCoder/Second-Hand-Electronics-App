@@ -7,20 +7,14 @@ import {
   TextInput,
   StyleSheet,
 } from "react-native";
-
 import React, { useContext, useEffect, useState } from "react";
-
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/FontAwesome";
-
-import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { Link } from "expo-router";
-import AppBarForHome from "@/components/AppBarForHome";
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
-import Notification from "@/components/Notification";
 import { NotificationContext } from "@/context/NotificationContext";
-
+import { useAuthCheck } from '../store/checkLogin';
 
 // Định nghĩa kiểu cho sản phẩm
 interface Product {
@@ -47,20 +41,19 @@ interface User {
   name: string; // Thêm các thuộc tính cần thiết khác
 }
 
-
-
 export default function HomePage() {
-
   const { notifications, showNotification } = useContext(NotificationContext);
-
   const [text, onChangeText] = React.useState("");
   const [reportVisible, setReportVisible] = useState(false); // State để theo dõi trạng thái hiển thị menu báo cáo
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null); // Chỉ định kiểu cho selectedProductId
   const [selectedReason, setSelectedReason] = useState<string | null>(null); // State để lưu lý do đã chọn
-
+  const checkAuth = useAuthCheck();
   const [products, setProducts] = useState<Product[]>([]);
   // const [users, setUsers] = useState<{ [key: string]: User }>({}); // Sử dụng kiểu User cho các giá trị
 
+  const checkLogin = () => {
+    checkAuth();
+  }
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -110,14 +103,12 @@ export default function HomePage() {
     alert(`Bạn đã chọn lý do: ${reason}`); // Thực hiện hành động báo cáo ở đây
   };
 
-  const formatCurrency = (value : String) => {
+  const formatCurrency = (value: String) => {
     return value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   }
 
   return (
-
     <View className="p-4 relative" style={{ flex: 1 }}>
-
       <View className="flex-row justify-between items-center border-b-2 pb-6 pt-2 border-[#D9D9D9]">
         <TextInput
           className="border-2 border-[#D9D9D9] w-2/3 px-2 py-4 text-[#000] rounded-lg font-semibold"
@@ -192,7 +183,7 @@ export default function HomePage() {
                     <Link href={`/postDetails?id=${product.id}`}>
                       <Text className="font-bold text-[16px]">{product.title}</Text>
                     </Link>
-                    <TouchableHighlight onPress={() => handleReportPress(product.id)}>
+                    <TouchableHighlight onPress={checkLogin}>
                       <Icon name="ellipsis-v" size={18} color="#9661D9" />
                     </TouchableHighlight>
                   </View>
@@ -228,9 +219,9 @@ export default function HomePage() {
                     </Text>
                   </View>
                 </View>
-                <View>
-                  <Icon name="comments" size={30} color="#9661D9" />
-                </View>
+                <TouchableHighlight underlayColor='#fff' onPress={checkLogin}>
+                  <Ionicons name="chatbubbles-outline" size={30} color="#9661D9"/>
+                </TouchableHighlight>
               </View>
             </View>
             {reportVisible && selectedProductId === product.id && ( // Hiển thị menu báo cáo nếu điều kiện thỏa mãn

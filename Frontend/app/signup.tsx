@@ -60,7 +60,7 @@ export default function SignUpScreen() {
           keyboardType="phone-pad"
           editable={!loading}
         />
-        {validateInput.phoneError !== '' && <Text className='w-full py-3 text-red-500'>{validateInput.phoneError}</Text>}
+        {validateInput.phoneError !== '' && <Text className='w-full py-3 text-[#DC143C] font-semibold'>{validateInput.phoneError}</Text>}
 
         <Text className='mt-5 w-full text-left text-lg'>Mật khẩu</Text>
         <View style={styles.passwordContainer} className='mb-5'>
@@ -77,7 +77,7 @@ export default function SignUpScreen() {
             <Ionicons name={passwordVisible ? 'eye-off' : 'eye'} size={24} color="gray" />
           </TouchableOpacity>
         </View>
-        {validateInput.passwordError !== '' && <Text className='w-full py-3 text-red-500'>{validateInput.passwordError}</Text>}
+        {validateInput.passwordError !== '' && <Text className='w-full py-3 text-[#DC143C] font-semibold'>{validateInput.passwordError}</Text>}
 
         {error && <Text className='w-full py-3 text-red-500'>{error} </Text>}
         {loading ? (

@@ -7,7 +7,7 @@ import { Link, useRouter } from 'expo-router';
 import axios from 'axios';
 import { useLocalSearchParams } from 'expo-router';
 import { ParsedUrlQuery } from 'querystring';
-
+import { useAuthCheck } from '../store/checkLogin';
 // Định nghĩa kiểu cho sản phẩm
 interface Product {
   id: string;
@@ -34,7 +34,7 @@ const { width: viewportWidth } = Dimensions.get('window');
 export default function PostDetailsScreen() {
   const [product, setProduct] = useState<Product | null>(null); // Chuyển đổi kiểu router
   const { id } = useLocalSearchParams(); ; // Lấy ID từ query params
-  
+  const checkAuth = useAuthCheck();
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
@@ -104,7 +104,7 @@ export default function PostDetailsScreen() {
           </View>
         </View>
         <View style={styles.buttonContainer}>
-          <Pressable style={styles.buttonWrapper}>
+          <TouchableOpacity style={styles.buttonWrapper} onPress={checkAuth}>
             <LinearGradient
               colors={['rgba(156,98,215,1)', 'rgba(82,52,113,1)']}
               start={{ x: 0, y: 0 }}
@@ -112,10 +112,10 @@ export default function PostDetailsScreen() {
               style={styles.button} 
             >
               <Ionicons name="chatbubble-ellipses-outline" size={24} color="white" />
-             <Link href="/chat"><Text style={styles.buttonText}>NHẮN TIN</Text></Link> 
+             <Text style={styles.buttonText}>NHẮN TIN</Text>
             </LinearGradient>
-          </Pressable>
-          <Pressable style={styles.buttonWrapper}>
+          </TouchableOpacity>
+          <Pressable style={styles.buttonWrapper} onPress={checkAuth}>
             <LinearGradient
               colors={['rgba(156,98,215,1)', 'rgba(82,52,113,1)']}
               start={{ x: 0, y: 0 }}

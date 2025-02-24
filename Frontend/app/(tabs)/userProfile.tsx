@@ -10,6 +10,7 @@ import { StyleSheet } from 'react-native';
 import { Link } from 'expo-router';
 import { logout } from '../../store/authSlice';
 import { useRouter } from "expo-router";
+import { useAuthCheck } from '../../store/checkLogin';
 
 export default function UserProfile() {
     const dispatch = useDispatch<AppDispatch>();
@@ -19,6 +20,7 @@ export default function UserProfile() {
     const [phone, setPhone] = useState(user?.phone || '');
     const [address, setAddress] = useState(user?.address || '');
     const router = useRouter();
+    const checkAuth = useAuthCheck();
     const handleUpdate = () => {
         if (user) {
             dispatch(updateUser({ id: user.id, name, email, phone, address }));
@@ -33,6 +35,7 @@ export default function UserProfile() {
     }
 
     useEffect(() => {
+        checkAuth();
         if (user) {
             setName(user.name);
             setEmail(user.email);
@@ -58,13 +61,13 @@ export default function UserProfile() {
             </View>
             <View className='p-4'>
                 <View className='flex-row items-center justify-center gap-4'>
-                    <TouchableHighlight className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
+                    <TouchableHighlight onPress={checkAuth} className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
                         <View className="flex-row items-center justify-center gap-2">
                             <Icon name="book" size={22} color="#333" />
                             <Text className="font-bold text-[18px] text-[#333]">Bài đăng</Text>
                         </View>
                     </TouchableHighlight>
-                    <TouchableHighlight className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
+                    <TouchableHighlight onPress={checkAuth} className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
                         <View className="flex-row items-center justify-center gap-2">
                             <Icon name="comments" size={22} color="#333" />
                             <Text className="font-bold text-[18px] text-[#333]">Trò chuyện</Text>
@@ -108,7 +111,7 @@ export default function UserProfile() {
                     </Link>
                 </View>
                 <View>
-                    <TouchableHighlight onPress={logoutUser} className="border-2 border-[#333] w-full py-3 rounded-lg flex items-center justify-center">
+                    <TouchableHighlight underlayColor="#fff" onPress={logoutUser} className="border-2 border-[#333] w-full py-3 rounded-lg flex items-center justify-center">
                         <View className="flex-row items-center justify-center gap-2">
                             <Icon name="sign-out" size={22} color="#333" />
                             <Text className="font-bold text-[18px] text-[#333]">Đăng xuất</Text>

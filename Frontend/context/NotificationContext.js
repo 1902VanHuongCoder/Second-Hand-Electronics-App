@@ -18,7 +18,7 @@ const NotificationProvider = ({children}) => {
 
         setTimeout(() => {
             setNotifications((prev) => ({ ...prev, visible: false })); // Ẩn thông báo sau 3 giây
-          }, 3000);
+          }, 1500);
     };
     return (
     <NotificationContext.Provider value={{ notifications, showNotification }}> 
