@@ -1,13 +1,13 @@
 import { ScrollView, Text, TouchableHighlight, View, Image } from 'react-native'
 import React, { Component, useEffect, useState } from 'react'
 import { LinearGradient } from "expo-linear-gradient";
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Link } from 'expo-router';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
-
+import { useRouter } from "expo-router";
+import { useAuthCheck } from '../../store/checkLogin';
 interface Product {
     id: string;
     name: string;
@@ -22,10 +22,12 @@ interface Product {
 }
 
 export default function PostManagement() {
+    const checkAuth = useAuthCheck();
     const [products, setProducts] = useState<Product[]>([]);
     const { user } = useSelector((state: RootState) => state.auth);
-
+    const router = useRouter();
     useEffect(() => {
+        checkAuth();
         const fetchUserPosts = async () => {
             try {
                 if (user) {
@@ -36,8 +38,7 @@ export default function PostManagement() {
             } catch (error) {
                 console.error('Error fetching user posts:', error);
             }
-        };
-
+        }
         fetchUserPosts();
     }, [user]);
 
@@ -46,9 +47,9 @@ export default function PostManagement() {
             <ScrollView>
                 {products.map(product => (
                     <View key={product.id} className='flex-col gap-4 border-b-2 border-[#D9D9D9] pb-6'>
-                        <Image 
-                            style={{ width: '100%', height: 250 }} 
-                            source={ require("../../assets/images/dsc02537.jpg")} 
+                        <Image
+                            style={{ width: '100%', height: 250 }}
+                            source={require("../../assets/images/dsc02537.jpg")}
                         />
                         <View className='flex-col gap-1 px-4'>
                             <Text className='font-bold text-[20px]'>{product.name}</Text>
@@ -60,13 +61,18 @@ export default function PostManagement() {
                             <Text className='font-medium text-[14px]'>Lượt xem: <Text className='font-bold'>{product.views}</Text></Text>
                         </View>
                         <View className='px-6 flex-row w-full gap-4 mx-auto items-center justify-center'>
-                            <TouchableHighlight className='border-2 w-1/2 rounded-md p-3 border-[#9661D9]'>
+                            <TouchableHighlight className='border-2 w-[20%] rounded-md p-3 border-[#808080]'>
+                                <View className='flex-row items-center justify-center gap-2'>
+                                    <Icon name='pencil' size={22} color={'#808080'} />
+                                </View>
+                            </TouchableHighlight>
+                            <TouchableHighlight className='border-2 w-[40%] rounded-md p-3 border-[#9661D9]'>
                                 <View className='flex-row items-center justify-center gap-2'>
                                     <Icon name='arrow-circle-up' size={22} color={'#9661D9'} />
-                                  <Link href="/publishPost"> <Text className='font-bold text-[#9661D9] text-[16px]'>Đẩy tin</Text></Link> 
+                                    <Link href="/publishPost"> <Text className='font-bold text-[#9661D9] text-[16px]'>Đẩy tin</Text></Link>
                                 </View>
-                            </TouchableHighlight>   
-                            <TouchableHighlight className='rounded-md h-full w-1/2'>
+                            </TouchableHighlight>
+                            <TouchableHighlight className='rounded-md h-full w-[40%]'>
                                 <LinearGradient
                                     colors={['#523471', '#9C62D7']}
                                     start={{ x: 1, y: 0 }}

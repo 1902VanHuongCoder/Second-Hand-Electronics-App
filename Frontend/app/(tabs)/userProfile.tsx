@@ -1,7 +1,6 @@
-import { Text, View, TouchableHighlight, Image, TextInput, ScrollView } from 'react-native'
-import React, { Component, useEffect, useState } from 'react'
+import { Text, View, TouchableHighlight, Image } from 'react-native'
+import React, { useEffect, useState } from 'react'
 import { LinearGradient } from "expo-linear-gradient";
-import { SafeAreaView } from 'react-native-safe-area-context'
 import Icon from "react-native-vector-icons/FontAwesome";
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '../../store/store';
@@ -9,6 +8,9 @@ import { updateUser } from '../../store/authSlice';
 import { RootState } from '../../store/store';
 import { StyleSheet } from 'react-native';
 import { Link } from 'expo-router';
+import { logout } from '../../store/authSlice';
+import { useRouter } from "expo-router";
+import { useAuthCheck } from '../../store/checkLogin';
 
 export default function UserProfile() {
     const dispatch = useDispatch<AppDispatch>();
@@ -17,7 +19,8 @@ export default function UserProfile() {
     const [email, setEmail] = useState(user?.email || '');
     const [phone, setPhone] = useState(user?.phone || '');
     const [address, setAddress] = useState(user?.address || '');
-
+    const router = useRouter();
+    const checkAuth = useAuthCheck();
     const handleUpdate = () => {
         if (user) {
             dispatch(updateUser({ id: user.id, name, email, phone, address }));
@@ -26,7 +29,13 @@ export default function UserProfile() {
         }
     };
 
+    const logoutUser = () => {
+        dispatch(logout());
+        router.push('/login');
+    }
+
     useEffect(() => {
+        checkAuth();
         if (user) {
             setName(user.name);
             setEmail(user.email);
@@ -34,12 +43,7 @@ export default function UserProfile() {
             setAddress(user.address);
         }
     }, [user]);
-
-
-
     console.log(user);
-
-
     return (
         <View className='bg-white w-full min-h-screen'>
             <View className='bg-[#9661D9] w-full h-[200px] flex justify-center items-center'>
@@ -49,23 +53,21 @@ export default function UserProfile() {
                         <Icon name='camera' size={14} color={'#333'} />
                     </View>
                 </View>
-
                 <Text className='mt-2 font-bold text-white text-[20px]'>{user?.name ? user.name : 'Chưa cập nhật'}</Text>
                 <View className='flex-row gap-2 items-center'>
                     <Icon name="map-marker" size={18} color="#fff" />
                     <Text className='text-white text-[14px] font-semibold'>{user?.address ? user.address : 'Chưa cập nhật'}</Text>
-
                 </View>
             </View>
             <View className='p-4'>
                 <View className='flex-row items-center justify-center gap-4'>
-                    <TouchableHighlight className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
+                    <TouchableHighlight onPress={checkAuth} className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
                         <View className="flex-row items-center justify-center gap-2">
                             <Icon name="book" size={22} color="#333" />
                             <Text className="font-bold text-[18px] text-[#333]">Bài đăng</Text>
                         </View>
                     </TouchableHighlight>
-                    <TouchableHighlight className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
+                    <TouchableHighlight onPress={checkAuth} className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
                         <View className="flex-row items-center justify-center gap-2">
                             <Icon name="comments" size={22} color="#333" />
                             <Text className="font-bold text-[18px] text-[#333]">Trò chuyện</Text>
@@ -77,64 +79,23 @@ export default function UserProfile() {
                     <View className='mt-4 flex-row gap-4 items-center justify-between'>
                         <Text className='font-bold text-[16px]'>Email: </Text>
                         <View className='border-2 border-[#D9D9D9] p-2 rounded-lg w-2/3'>
-
                             <Text className='p-2 text-[14px] font-medium'>{user?.email ? user.email : 'Chưa cập nhật'}</Text>
-
                         </View>
                     </View>
                     <View className='mt-4 flex-row gap-4 items-center justify-between w-full'>
                         <Text className='font-bold text-[16px]'>Điện thoại: </Text>
                         <View className='border-2 border-[#D9D9D9] p-2 rounded-lg w-2/3'>
-
                             <Text className='p-2 text-[14px] font-medium'>{user?.phone ? user.phone : 'Chưa cập nhật'}</Text>
-
                         </View>
                     </View>
                     <View className='mt-4 flex-row gap-4 items-center justify-between w-full'>
                         <Text className='font-bold text-[16px]'>Địa chỉ: </Text>
                         <View className='border-2 border-[#D9D9D9] p-2 w-2/3 rounded-lg flex-row justify-between items-center'>
-
                             <Text className='p-2 text-[14px] font-medium'>{user?.address ? user.address : 'Chưa cập nhật'}</Text>
-
                             <Icon name="map-marker" size={18} color="#DC143C" />
                         </View>
                     </View>
                 </View>
-
-                {/* <ScrollView>
-                    <View className='mt-6'>
-                        <Text className='font-extrabold uppercase text-[16px] text-[#333] w-full'>Cập nhật thông tin cá nhân</Text>
-                        <TextInput
-                            value={name}
-                            onChangeText={setName}
-                            placeholder="Tên"
-                            className='border-2 border-[#D9D9D9] p-2 rounded-lg w-full'
-                        />
-                        <TextInput
-                            value={email}
-                            onChangeText={setEmail}
-                            placeholder="Email"
-                            className='border-2 border-[#D9D9D9] p-2 rounded-lg w-full'
-                        />
-                        <TextInput
-                            value={phone}
-                            onChangeText={setPhone}
-                            placeholder="Điện thoại"
-                            className='border-2 border-[#D9D9D9] p-2 rounded-lg w-full'
-                        />
-                        <TextInput
-                            value={address}
-                            onChangeText={setAddress}
-                            placeholder="Địa chỉ"
-                            className='border-2 border-[#D9D9D9] p-2 rounded-lg w-full'
-                        />
-                        <TouchableHighlight onPress={handleUpdate} className="rounded-lg mt-4">
-                            <View className="bg-[#523471] p-2 rounded-lg">
-                                <Text className="font-bold text-[18px] text-[#fff]">Cập nhật thông tin</Text>
-                            </View>
-                        </TouchableHighlight>
-                    </View>
-                </ScrollView> */}
                 <View className='mb-4 mt-6 w-full'>
                     <Link href="/profileSettings" className="rounded-lg">
                         <LinearGradient
@@ -146,20 +107,16 @@ export default function UserProfile() {
                             <View className="flex-row items-center justify-center gap-2 w-full">
                                 <Text className="font-bold text-[18px] text-[#fff] w-full text-center">Cập nhật thông tin</Text>
                             </View>
-                          
                         </LinearGradient>
                     </Link>
                 </View>
                 <View>
-                    <Link href="/login">
-                        <View className="border-2 border-[#333] w-full py-3 rounded-lg flex items-center justify-center">
-                            <View className="flex-row items-center justify-center gap-2">
-                                <Icon name="sign-out" size={22} color="#333" />
-                                <Text className="font-bold text-[18px] text-[#333]">Đăng xuất</Text>
-                            </View>
+                    <TouchableHighlight underlayColor="#fff" onPress={logoutUser} className="border-2 border-[#333] w-full py-3 rounded-lg flex items-center justify-center">
+                        <View className="flex-row items-center justify-center gap-2">
+                            <Icon name="sign-out" size={22} color="#333" />
+                            <Text className="font-bold text-[18px] text-[#333]">Đăng xuất</Text>
                         </View>
-                    </Link>
-
+                    </TouchableHighlight>
                 </View>
             </View>
         </View >

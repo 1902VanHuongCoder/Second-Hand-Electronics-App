@@ -1,15 +1,16 @@
 import { Text, View, ScrollView, TextInput, TouchableHighlight, Button, Image } from 'react-native'
-import React, { useState } from 'react'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import React, { useState, useEffect } from 'react'
 import { Picker } from '@react-native-picker/picker';
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/FontAwesome";
-
+import { useAuthCheck } from '../../store/checkLogin';
 // Định nghĩa kiểu cho ảnh và video
+
 interface Media {
     uri: string;
 }
 export default function PostCreation() {
+    const checkAuth = useAuthCheck();
     const [selectedValue, setSelectedValue] = useState("Điện thoại");
     const [images, setImages] = useState<Media[]>([]); // Định nghĩa kiểu cho images
     const [videos, setVideos] = useState<Media[]>([]); // Định nghĩa kiểu cho videos
@@ -106,6 +107,9 @@ export default function PostCreation() {
         { id: '5', label: '11.6 inch', value: '11.6 inch' },
     ];
 
+    useEffect(() => {
+        checkAuth()
+    }, []);
     return (
         <View className='w-full h-full bg-white p-4'>
             <ScrollView>
@@ -129,7 +133,7 @@ export default function PostCreation() {
                             <Text className='text-[#9661D9] font-semibold self-end'>Hình ảnh hợp lệ</Text>
                             <Icon name='camera' size={40} color='#9661D9' />
                             <TouchableHighlight
-                                onPress={() => {}}
+                                onPress={() => { }}
                                 underlayColor="#DDDDDD"
                                 style={{ padding: 10, alignItems: 'center' }}
                             >
@@ -150,7 +154,7 @@ export default function PostCreation() {
                         <View className='border-2 border-[#D9D9D9] rounded-lg p-3 flex-col items-center'>
                             <Icon className='mt-4' name='video-camera' size={40} color='#9661D9' />
                             <TouchableHighlight
-                                onPress={() => {}}
+                                onPress={() => { }}
                                 underlayColor="#DDDDDD"
                                 style={{ padding: 10, alignItems: 'center' }}
                             >
