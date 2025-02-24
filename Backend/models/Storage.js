@@ -8,7 +8,7 @@ const storageSchema = new mongoose.Schema({
   storageTypeId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'StorageType',
-    required: true,
+    required: false,
   },
 }, { timestamps: true });
 

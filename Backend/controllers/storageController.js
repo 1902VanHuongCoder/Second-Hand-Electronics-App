@@ -16,10 +16,22 @@ exports.addStorage = async (req, res) => {
 // Lấy danh sách Storage
 exports.getStorages = async (req, res) => {
   try {
-    const storages = await Storage.find().populate('storageTypeId');
-    res.status(200).json({ success: true, data: storages });
+    const storages = await Storage.find()
+      .populate('storageTypeId')
+      .lean(); // Sử dụng lean() để có thể chuyển đổi thành plain object
+
+    // Log để debug
+    console.log('Storages from DB:', storages);
+
+    res.status(200).json({ 
+      success: true, 
+      data: storages 
+    });
   } catch (error) {
     console.error('Lỗi lấy danh sách Storage:', error);
-    res.status(500).json({ success: false, message: 'Lỗi server' });
+    res.status(500).json({ 
+      success: false, 
+      message: 'Lỗi server' 
+    });
   }
 }; 

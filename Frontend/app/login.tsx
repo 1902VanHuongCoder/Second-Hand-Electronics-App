@@ -72,7 +72,9 @@ export default function LoginScreen() {
       showNotification("Đăng nhập thành công", "success");
       setTimeout(() => {
         router.push("/(tabs)");
-      }, 1500);
+
+      }, 500);
+<!--       }, 1500); -->
     } else {
       alert(resultAction.payload);
     }

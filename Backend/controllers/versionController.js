@@ -16,10 +16,21 @@ exports.addVersion = async (req, res) => {
 // Lấy danh sách Version
 exports.getVersions = async (req, res) => {
   try {
-    const versions = await Version.find().populate('brandId');
-    res.status(200).json({ success: true, data: versions });
+    const versions = await Version.find()
+      .populate('brandId')
+      .lean();
+
+    console.log('Versions from DB:', versions); // Debug log
+
+    res.status(200).json({ 
+      success: true, 
+      data: versions 
+    });
   } catch (error) {
     console.error('Lỗi lấy danh sách Version:', error);
-    res.status(500).json({ success: false, message: 'Lỗi server' });
+    res.status(500).json({ 
+      success: false, 
+      message: 'Lỗi server' 
+    });
   }
 }; 
