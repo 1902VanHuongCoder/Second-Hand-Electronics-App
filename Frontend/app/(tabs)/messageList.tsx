@@ -4,9 +4,10 @@ import { useAuthCheck } from '../../store/checkLogin';
 export default function MessageList() {
     const [text, onChangeText] = React.useState("");
     const checkAuth = useAuthCheck();
+    
     useEffect(() => {
         checkAuth()
-    }, []);
+    }, [checkAuth]);
     return (
         <View className='bg-white w-full h-full p-4'>
             <View className="flex-row justify-between items-center border-b-2 pb-4 border-[#D9D9D9] mb-4">

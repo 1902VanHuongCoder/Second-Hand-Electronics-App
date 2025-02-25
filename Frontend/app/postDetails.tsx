@@ -33,7 +33,7 @@ const { width: viewportWidth } = Dimensions.get('window');
 
 export default function PostDetailsScreen() {
   const [product, setProduct] = useState<Product | null>(null); // Chuyển đổi kiểu router
-  const { id } = useLocalSearchParams(); ; // Lấy ID từ query params
+  const { id } = useLocalSearchParams(); // Lấy ID từ query params
   const checkAuth = useAuthCheck();
   const [expanded, setExpanded] = useState(false);
 

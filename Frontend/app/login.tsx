@@ -38,29 +38,29 @@ export default function LoginScreen() {
     let hasError = false;
 
     if (phone === "") {
-        setValidateInput(prev => ({
-            ...prev,
-            phoneError: "Vui lòng nhập số điện thoại",
-        }));
-        hasError = true;
+      setValidateInput(prev => ({
+        ...prev,
+        phoneError: "Vui lòng nhập số điện thoại",
+      }));
+      hasError = true;
     } else {
-        setValidateInput(prev => ({
-            ...prev,
-            phoneError: "",
-        }));
+      setValidateInput(prev => ({
+        ...prev,
+        phoneError: "",
+      }));
     }
 
     if (password === "") {
-        setValidateInput(prev => ({
-            ...prev,
-            passwordError: "Vui lòng nhập mật khẩu",
-        }));
-        hasError = true;
+      setValidateInput(prev => ({
+        ...prev,
+        passwordError: "Vui lòng nhập mật khẩu",
+      }));
+      hasError = true;
     } else {
-        setValidateInput(prev => ({
-            ...prev,
-            passwordError: "",
-        }));
+      setValidateInput(prev => ({
+        ...prev,
+        passwordError: "",
+      }));
     }
 
     if (hasError) {
@@ -72,14 +72,9 @@ export default function LoginScreen() {
       showNotification("Đăng nhập thành công", "success");
       setTimeout(() => {
         router.push("/(tabs)");
-
       }, 500);
-<!--       }, 1500); -->
-    } else {
-      alert(resultAction.payload);
     }
-  };
-
+  }
   return (
     <View className="relative h-screen px-10 w-screen">
       <Notification

@@ -1,4 +1,5 @@
 import { useRouter } from "expo-router";
+import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from '../store/store';
 
@@ -11,6 +12,10 @@ export const useAuthCheck = () => {
             router.replace('/login');
         }
     };
+
+    useEffect(() => {
+        checkAuth(); 
+    }, [user]);
 
     return checkAuth;
 };
