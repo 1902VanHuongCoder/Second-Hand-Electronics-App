@@ -77,10 +77,9 @@ export default function ProfileSettings() {
   
         setAvatarUrl(response.data.url); 
         setImage(null);
-        Alert.alert("Upload Successful", "test");
+    
       } catch (error) {
         console.error("Upload Error:", error);
-        Alert.alert("Upload Failed", "Something went wrong.");
       } finally {
         setLoading(false);
       }

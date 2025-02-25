@@ -8,17 +8,15 @@ import { StyleSheet } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 
 export default function Profile() {
-    const { user } = useSelector((state: RootState) => state.auth);
-
-    console.log("User profile log", user); 
+    const { user } = useSelector((state: RootState) => state.auth); 
     return (    
         <View className='bg-white w-full min-h-screen'>
             <View className='bg-[#9661D9] w-full h-[200px] flex justify-center items-center'>
                 <View className='relative'>
-                    <Image className='rounded-full border-4 border-[#fff]' style={{ width: 80, height: 80 }} source={user?.avatarUrl ? user.avatarUrl : require('../../assets/images/z6186705977978_00edd678a64db50dba5ef61a50391611.jpg')} />
-                    <View className='absolute bottom-0 -right-1 bg-white p-2 rounded-full'>
+                    <Image className='rounded-full border-4 border-[#fff]' style={{ width: 80, height: 80 }} source={user?.avatarUrl ? { uri: user.avatarUrl } : require('../../assets/images/z6186705977978_00edd678a64db50dba5ef61a50391611.jpg')}/>
+                    {/* <View className='absolute bottom-0 -right-1 bg-white p-2 rounded-full'>
                         <Icon name='camera' size={14} color={'#333'} />
-                    </View>
+                    </View> */}
                 </View>
                 <Text className='mt-2 font-bold text-white text-[20px]'>{user?.name ? user.name : 'Chưa cập nhật'}</Text>
                 <View className='flex-row gap-2 items-center'>
@@ -26,7 +24,6 @@ export default function Profile() {
                     <Text className='text-white text-[14px] font-semibold'>{user?.address ? user.name : 'Chưa cập nhật'}</Text>
                 </View>
             </View>
-            <Image className='rounded-full border-4 border-[#fff]' style={{ width: 80, height: 80 }} source={user?.avatarUrl ? user.avatarUrl : require('../../assets/images/z6186705977978_00edd678a64db50dba5ef61a50391611.jpg')} />
             <View className='p-4'>
                 <View className='flex-row items-center justify-center gap-4'>
                     <TouchableHighlight className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
