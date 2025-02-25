@@ -14,7 +14,7 @@ const Notification: React.FC<NotificationProps> = ({ message, type, visible}) =>
         if (visible) {
             // Khi thông báo hiển thị, trượt vào
             Animated.timing(translateY, {
-                toValue: 70, // Vị trí cuối cùng
+                toValue: 150, // Vị trí cuối cùng
                 duration: 300, // Thời gian trượt
                 easing: Easing.out(Easing.ease),
                 useNativeDriver: true,
@@ -53,7 +53,7 @@ const Notification: React.FC<NotificationProps> = ({ message, type, visible}) =>
 const styles = StyleSheet.create({
     notificationContainer: {
         position: 'absolute',
-        top: '-5%',
+        top: '-15%',
         width: '90%',
         backgroundColor: '#F52E56',
         marginHorizontal: '5%',
