@@ -34,6 +34,7 @@ const { width: viewportWidth } = Dimensions.get('window');
 export default function PostDetailsScreen() {
   const [product, setProduct] = useState<Product | null>(null);
   const { id } = useLocalSearchParams();
+
   const checkAuth = useAuthCheck();
   const [expanded, setExpanded] = useState(false);
 

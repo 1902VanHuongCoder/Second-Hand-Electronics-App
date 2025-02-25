@@ -31,7 +31,7 @@ export default function UserProfile() {
 
     const logoutUser = () => {
         dispatch(logout());
-        router.push('/login');
+        router.replace('/login');
     }
 
     useEffect(() => {
@@ -42,7 +42,7 @@ export default function UserProfile() {
             setPhone(user.phone);
             setAddress(user.address);
         }
-    }, [user]);
+    }, [user, checkAuth]);
     console.log(user);
     return (
         <View className='bg-white w-full min-h-screen'>

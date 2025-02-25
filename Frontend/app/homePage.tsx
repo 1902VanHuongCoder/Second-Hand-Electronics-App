@@ -15,7 +15,6 @@ import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import { NotificationContext } from "@/context/NotificationContext";
 import { useAuthCheck } from '../store/checkLogin';
-
 // Định nghĩa kiểu cho sản phẩm
 interface Product {
   id: string;
@@ -50,7 +49,6 @@ export default function HomePage() {
   const checkAuth = useAuthCheck();
   const [products, setProducts] = useState<Product[]>([]);
   // const [users, setUsers] = useState<{ [key: string]: User }>({}); // Sử dụng kiểu User cho các giá trị
-
   const checkLogin = () => {
     checkAuth();
   }
@@ -94,6 +92,7 @@ export default function HomePage() {
   ];
 
   const handleReportPress = (productId: string) => {
+    checkLogin();
     setSelectedProductId(productId);
     setReportVisible(!reportVisible); // Chuyển đổi trạng thái hiển thị menu báo cáo
   };
@@ -183,7 +182,7 @@ export default function HomePage() {
                     <Link href={`/postDetails?id=${product.id}`}>
                       <Text className="font-bold text-[16px]">{product.title}</Text>
                     </Link>
-                    <TouchableHighlight onPress={checkLogin}>
+                    <TouchableHighlight onPress={() => handleReportPress(product.id)}>
                       <Icon name="ellipsis-v" size={18} color="#9661D9" />
                     </TouchableHighlight>
                   </View>

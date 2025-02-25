@@ -1,18 +1,50 @@
 import { Text, View, Image, TouchableHighlight } from 'react-native'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { FlatGrid } from 'react-native-super-grid';
 import { LinearGradient } from "expo-linear-gradient";
 import { Link } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
+import axios from 'axios';
 
+interface Product {
+    id: string;
+    title: string;
+    price: number;
+    images: String;
+}
 export default function PublishPost() {
+    const [product, setProduct] = useState<Product | null>(null);
+    const { id } = useLocalSearchParams();
     const [selectedIndex, setSelectedIndex] = useState(0);
+    const [totalPrice, setToTalPrice] = useState(0);
     const choosePrices = [
-        { day: '1 Ngày', price: '28.000 đ' },
-        { day: '2 Ngày', price: '56.000 đ' },
-        { day: '3 Ngày', price: '84.000 đ' },
-        { day: '5 Ngày', price: '140.000 đ' },
-        { day: '7 Ngày', price: '196.000 đ' },
+        { day: '1 Ngày', price: 28000 },
+        { day: '2 Ngày', price: 56000 },
+        { day: '3 Ngày', price: 84000 },
+        { day: '5 Ngày', price: 140000 },
+        { day: '7 Ngày', price: 196000 },
     ]
+
+    useEffect(() => {
+        const fetchProduct = async () => {
+            try {
+                const response = await axios.get(`http://10.0.2.2:5000/api/products/${id}`);
+                setProduct(response.data as Product);
+            } catch (error) {
+                console.error('Error fetching product details:', error);
+            }
+        };
+        fetchProduct();
+    }, [id]);
+
+    const handlePriceSelection = (index: number) => {
+        setSelectedIndex(index);
+        setToTalPrice(choosePrices[index].price);
+    }
+
+    const formatCurrency = (value: number) => {
+        return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
     return (
         <View className='w-full h-full bg-white p-4 flex-col'>
             <View className="flex-row gap-1 border-b-2 border-[#D9D9D9] pb-4">
@@ -22,8 +54,8 @@ export default function PublishPost() {
                     source={require("../assets/images/z6316149378615_f6d6f665171bf597c35f86bf13ca61b2.jpg")}
                 />
                 <View>
-                    <Text className="font-bold text-[18px]">IPhone 16 Pro Max</Text>
-                    <Text className="text-[#9661D9] text-[16px] font-bold">9.000.000 đ</Text>
+                    <Text className="font-bold text-[18px]">{product?.title}</Text>
+                    <Text className="text-[#9661D9] text-[16px] font-bold">{product?.price !== undefined ? formatCurrency(product.price) : 'Giá không xác định'} đ</Text>
                 </View>
             </View>
             <View className='mt-4 mb-4 border-b-2 border-[#D9D9D9]' style={{ flex: 1 }}>
@@ -36,7 +68,7 @@ export default function PublishPost() {
                         <TouchableHighlight
                             key={index}
                             underlayColor="#D9D9D9" // Chỉ định màu nền khi nhấn
-                            onPress={() => setSelectedIndex(index)}
+                            onPress={() => handlePriceSelection(index)}
                             style={{
                                 borderColor: selectedIndex === index ? '#9661D9' : '#808080',
                                 backgroundColor: selectedIndex === index ? '#F4E9FF' : '#EFEFEF',
@@ -49,7 +81,7 @@ export default function PublishPost() {
                         >
                             <View>
                                 <Text className='font-bold text-[16px] mb-1'>{item.day}</Text>
-                                <Text className='font-semibold text-[#9661D9]'>{item.price}</Text>
+                                <Text className='font-semibold text-[#9661D9]'>{formatCurrency(item.price)} đ</Text>
                             </View>
                         </TouchableHighlight>
                     )}
@@ -58,7 +90,7 @@ export default function PublishPost() {
             <View className='self-end flex-row gap-4 items-center'>
                 <View className='flex-col'>
                     <Text className='font-bold text-[16px] text-[#808080]'>Tổng tiền</Text>
-                    <Text className='font-bold text-[20px]'>28.000 đ</Text>
+                    <Text className='font-bold text-[20px]'>{formatCurrency(totalPrice)} đ</Text>
                 </View>
                 <TouchableHighlight className="rounded-lg">
                     <LinearGradient
@@ -68,7 +100,7 @@ export default function PublishPost() {
                         style={{ paddingTop: 12, paddingBottom: 12, paddingStart: 30, paddingEnd: 30, borderRadius: 14 }}
                     >
                         <View className="flex-row items-center justify-center gap-2">
-                                <Link href="/payment"><Text className="font-bold text-[18px] text-[#fff]">Thanh toán</Text></Link>
+                            <Link href="/payment"><Text className="font-bold text-[18px] text-[#fff]">Thanh toán</Text></Link>
                         </View>
                     </LinearGradient>
                 </TouchableHighlight>

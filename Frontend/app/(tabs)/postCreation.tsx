@@ -510,6 +510,10 @@ export default function PostCreation() {
         console.log('Available Versions:', filteredVersions);
     };
 
+    useEffect(() => {
+        checkAuth()
+    }, [checkAuth]);
+
     return (
         <View className='w-full h-full bg-white p-4'>
             <ScrollView>
