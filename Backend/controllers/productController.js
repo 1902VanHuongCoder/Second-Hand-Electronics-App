@@ -36,29 +36,37 @@ exports.getProductById = async (req, res) => {
 
 // Thêm sản phẩm mới
 exports.createProduct = async (req, res) => {
-    const productData = {
-        categoryId: new mongoose.Types.ObjectId(req.body.categoryId), 
-        userId: new mongoose.Types.ObjectId(req.body.userId), 
-        versionId: new mongoose.Types.ObjectId(req.body.versionId), 
-        conditionId: new mongoose.Types.ObjectId(req.body.conditionId), 
-        storageId: new mongoose.Types.ObjectId(req.body.storageId), 
-        title: req.body.title,
-        description: req.body.description,
-        price: req.body.price,
-        view: req.body.view || 0,
-        isSold: req.body.isSold || false,
-        warranty: req.body.warranty || '',
-        images: req.body.images || [],
-        videos: req.body.videos || [],
-        location: req.body.location || '',
-    };
-
-    const product = new Product(productData);
     try {
+        const productData = {
+            categoryId: new mongoose.Types.ObjectId(req.body.categoryId),
+            userId: new mongoose.Types.ObjectId(req.body.userId),
+            versionId: new mongoose.Types.ObjectId(req.body.versionId),
+            conditionId: new mongoose.Types.ObjectId(req.body.conditionId),
+            storageId: new mongoose.Types.ObjectId(req.body.storageId),
+            title: req.body.title,
+            description: req.body.description,
+            price: req.body.price,
+            view: req.body.view || 0,
+            isVip: req.body.isVip,
+            isSold: req.body.isSold || false,
+            warranty: req.body.warranty,
+            images: req.body.images || [],
+            videos: req.body.videos || [],
+            location: req.body.location
+        };
+
+        const product = new Product(productData);
         const savedProduct = await product.save();
-        res.status(201).json(savedProduct);
+
+        res.status(201).json({
+            success: true,
+            data: savedProduct
+        });
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
     }
 };
 
@@ -91,6 +99,14 @@ exports.getProductDetails = async (req, res) => {
         if (!product) return res.status(404).json({ message: 'Product not found' });
         category = product ? await Category.findById(product.categoryId) : null;
         console.log(category.categoryName)
+        let formattedAddress = '';
+        if (product.location) {
+            if (typeof product.location === 'object') {
+                formattedAddress = product.location.fullAddress || '';
+            } else {
+                formattedAddress = product.location;
+            }
+        }
         let detail = {};
         if (category.categoryName === 'Laptop') {
                 const laptop = await Laptop.findOne({ productId: product._id });
@@ -110,7 +126,7 @@ exports.getProductDetails = async (req, res) => {
                     title: product.title,
                     configuration: product.description,
                     price: product.price,
-                    address: product.location,
+                    address: formattedAddress,
                     postingDate: product.createdAt,
                     battery: laptop ? laptop.battery : null,
                     nameUser: user ? user.name : null,
@@ -131,13 +147,13 @@ exports.getProductDetails = async (req, res) => {
             const version = await Version.findById(product.versionId);
             const brand = version ? await Brand.findById(version.brandId) : null;
             const storage = await Storage.findById(product.storageId);
-                const storageType = storage ? await StorageType.findById(storage.storageTypeId) : null;
+            const storageType = storage ? await StorageType.findById(storage.storageTypeId) : null;
            detail = {
                     id: product._id,
                     title: product.title,
                     configuration: product.description,
                     price: product.price,
-                    address: product.location,
+                    address: formattedAddress,
                     postingDate: product.createdAt,
                     nameUser: user ? user.name : null,
                     versionName: version ? version.versionName : null,

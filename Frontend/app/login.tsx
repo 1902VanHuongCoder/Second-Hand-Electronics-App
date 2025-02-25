@@ -74,7 +74,6 @@ export default function LoginScreen() {
         router.push("/(tabs)");
 
       }, 500);
-<!--       }, 1500); -->
     } else {
       alert(resultAction.payload);
     }

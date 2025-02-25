@@ -1,4 +1,4 @@
-import { Text, View, ScrollView, TextInput, TouchableHighlight, Button, Image } from 'react-native'
+import { Text, View, ScrollView, TextInput, TouchableHighlight, Button, Image, Alert } from 'react-native'
 
 import React, { useState, useEffect, useMemo } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -7,6 +7,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/FontAwesome";
 import axios from 'axios';
 import { useAuthCheck } from '../../store/checkLogin';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store/store';
 
 // Định nghĩa kiểu cho ảnh và video
 
@@ -48,7 +50,7 @@ interface Screen {
 interface Storage {
     _id: string;
     storageCapacity: string;
-    storageTypeId: string;
+    storageTypeId: StorageType | string; // Có thể là object hoặc string ID
 }
 
 interface StorageType {
@@ -71,7 +73,41 @@ interface ApiResponse<T> {
     }
 }
 
+// Thêm interfaces cho địa chỉ từ API
+interface Province {
+    code: string;
+    name: string;
+    division_type: string;
+    codename: string;
+    phone_code: number;
+}
+
+interface District {
+    code: string;
+    name: string;
+    division_type: string;
+    codename: string;
+    province_code: string;
+}
+
+// Thêm interface cho Condition
+interface Condition {
+    _id: string;
+    condition: string;
+}
+
+// Thêm interface cho options xuất xứ
+interface OriginOption {
+    label: string;
+    value: string;
+}
+
+// Thêm import useSelector
+
 export default function PostCreation() {
+    // Lấy user từ Redux store
+    const { user } = useSelector((state: RootState) => state.auth);
+
     // States cho các trường select
     const checkAuth = useAuthCheck();
     const [selectedCategory, setSelectedCategory] = useState("");
@@ -82,6 +118,7 @@ export default function PostCreation() {
     const [selectedScreen, setSelectedScreen] = useState("");
     const [selectedStorage, setSelectedStorage] = useState("");
     const [selectedStorageType, setSelectedStorageType] = useState("");
+    const [conditions, setConditions] = useState<Condition[]>([]);
     const [selectedCondition, setSelectedCondition] = useState("");
     const [selectedWarranty, setSelectedWarranty] = useState("3 tháng");
     const [selectedOrigin, setSelectedOrigin] = useState("Việt Nam");
@@ -110,80 +147,28 @@ export default function PostCreation() {
     const [storageTypes, setStorageTypes] = useState<StorageType[]>([]);
     const [versions, setVersions] = useState<Version[]>([]);
 
+    // States cho địa chỉ
+    const [provinces, setProvinces] = useState<Province[]>([]);
+    const [districts, setDistricts] = useState<District[]>([]);
+    const [wards, setWards] = useState<Ward[]>([]);
+    const [selectedProvince, setSelectedProvince] = useState("");
+    const [selectedDistrict, setSelectedDistrict] = useState("");
+    const [selectedWard, setSelectedWard] = useState("");
+    const [detailAddress, setDetailAddress] = useState("");
+
     // Các options cố định
     const warrantyOptions = [
         { label: "3 tháng", value: "3 tháng" },
         { label: "6 tháng", value: "6 tháng" },
         { label: "12 tháng", value: "12 tháng" }
-
-//     const checkAuth = useAuthCheck();
-//     const [selectedValue, setSelectedValue] = useState("Điện thoại");
-//     const [images, setImages] = useState<Media[]>([]); // Định nghĩa kiểu cho images
-//     const [videos, setVideos] = useState<Media[]>([]); // Định nghĩa kiểu cho videos
-//     const colors = [
-//         { id: '1', label: 'Đen', value: 'Đen' },
-//         { id: '2', label: 'Đỏ', value: 'Đỏ' },
-//         { id: '3', label: 'Cam', value: 'Cam' },
-//         { id: '4', label: 'Xanh dương', value: 'Xanh dương' },
-//         { id: '5', label: 'Xanh lá', value: 'Xanh lá' },
-//         { id: '6', label: 'Vàng', value: 'Vàng' },
-//         { id: '7', label: 'Tím', value: 'Tím' },
-//         { id: '8', label: 'Trắng', value: 'Trắng' },
-//         { id: '9', label: 'Xám', value: 'Xám' },
-//         { id: '10', label: 'Nâu', value: 'Nâu' },
-//         { id: '11', label: 'Hồng', value: 'Hồng' },
-//         { id: '12', label: 'Xanh ngọc', value: 'Xanh ngọc' },
-//         { id: '13', label: 'Xanh da trời', value: 'Xanh da trời' },
-//         { id: '14', label: 'Vàng chanh', value: 'Vàng chanh' },
-//         { id: '15', label: 'Đỏ tươi', value: 'Đỏ tươi' },
-//         { id: '16', label: 'Xanh lá cây', value: 'Xanh lá cây' },
-//         { id: '17', label: 'Xanh lục', value: 'Xanh lục' },
-//         { id: '18', label: 'Xanh dương nhạt', value: 'Xanh dương nhạt' },
-//         { id: '19', label: 'Xanh dương đậm', value: 'Xanh dương đậm' },
-//         { id: '20', label: 'Đỏ nhạt', value: 'Đỏ nhạt' },
-//     ];
-//     const brands = [
-//         { id: '1', label: 'Apple', value: 'Apple' },
-//         { id: '2', label: 'Samsung', value: 'Samsung' },
-//         { id: '3', label: 'Xiaomi', value: 'Xiaomi' },
-//         { id: '4', label: 'Oppo', value: 'Oppo' },
-//         { id: '5', label: 'Vivo', value: 'Vivo' },
-//         { id: '6', label: 'Nokia', value: 'Nokia' },
-//         { id: '7', label: 'Sony', value: 'Sony' },
-//         { id: '8', label: 'Huawei', value: 'Huawei' },
-//         { id: '9', label: 'LG', value: 'Lg' },
-//         { id: '10', label: 'OnePlus', value: 'Oneplus' },
-//         { id: '11', label: 'Realme', value: 'Realme' },
-//         { id: '12', label: 'Google', value: 'Google' },
-//     ];
-//     const storageOptions = [
-//         { id: '1', label: '< 8 GB', value: '< 8 GB' },
-//         { id: '2', label: '8 GB', value: '8 GB' },
-//         { id: '3', label: '16 GB', value: '16 GB' },
-//         { id: '4', label: '32 GB', value: '32 GB' },
-//         { id: '5', label: '64 GB', value: '64 GB' },
-//         { id: '6', label: '128 GB', value: '128 GB' },
-//         { id: '7', label: '256 GB', value: '256 GB' },
-//         { id: '8', label: '512 GB', value: '512 GB' },
-//         { id: '9', label: '1 TB', value: '1 TB' },
-//     ];
-//     const laptopBrands = [
-//         { id: '1', label: 'Apple', value: 'Apple' },
-//         { id: '2', label: 'Dell', value: 'Dell' },
-//         { id: '3', label: 'HP', value: 'HP' },
-//         { id: '4', label: 'Lenovo', value: 'Lenovo' },
-//         { id: '5', label: 'Asus', value: 'Asus' },
-//         { id: '6', label: 'Acer', value: 'Acer' },
-//         { id: '7', label: 'Microsoft', value: 'Microsoft' },
-//         { id: '8', label: 'Razer', value: 'Razer' },
-//         { id: '9', label: 'Samsung', value: 'Samsung' },
-//         { id: '10', label: 'Toshiba', value: 'Toshiba' },
     ];
 
-    const originOptions = [
-        { label: "Việt Nam", value: "Việt Nam" },
-        { label: "Thái Lan", value: "Thái Lan" },
-        { label: "Mỹ", value: "Mỹ" }
+    // Thêm mảng các options xuất xứ
+    const originOptions: OriginOption[] = [
+        { label: "Chọn xuất xứ", value: "" },
+        { label: "Chính hãng", value: "Chính hãng" },
+        { label: "Xách tay", value: "Xách tay" },
+        { label: "Nhập khẩu", value: "Nhập khẩu" }
     ];
 
     const postTypeOptions = [
@@ -191,16 +176,18 @@ export default function PostCreation() {
         { label: "Đăng tin trả phí", value: "Đăng tin trả phí" }
     ];
 
-    const conditionOptions = [
-        { label: "Mới", value: "Mới" },
-        { label: "Đã sử dụng ( Chưa sửa chữa )", value: "Đã sử dụng ( Chưa sửa chữa )" },
-        { label: "Đã sử dụng ( Sửa nhiều lần )", value: "Đã sử dụng ( Sửa nhiều lần )" }
-    ];
-
-    const locationOptions = [
-        { label: "Tân Phú, Hậu Giang", value: "Tân Phú, Hậu Giang" },
-        { label: "Sóc Trăng", value: "Sóc Trăng" }
-    ];
+    // Thêm useEffect để fetch conditions
+    useEffect(() => {
+        const fetchConditions = async () => {
+            try {
+                const response = await axios.get('http://10.0.2.2:5000/api/conditions');
+                setConditions(response.data.data);
+            } catch (error) {
+                console.error('Lỗi khi lấy danh sách tình trạng:', error);
+            }
+        };
+        fetchConditions();
+    }, []);
 
     // Fetch data từ API
     useEffect(() => {
@@ -226,6 +213,27 @@ export default function PostCreation() {
         fetchData();
     }, []);
 
+    // Fetch storage và storageTypes khi component mount
+    useEffect(() => {
+        const fetchStorageData = async () => {
+            try {
+                const [storagesResponse, storageTypesResponse] = await Promise.all([
+                    axios.get('http://10.0.2.2:5000/api/storages'),
+                    axios.get('http://10.0.2.2:5000/api/storage-types')
+                ]);
+                
+                setStorages(storagesResponse.data.data);
+                setStorageTypes(storageTypesResponse.data.data);
+                console.log('Storages:', storagesResponse.data.data);
+                console.log('Storage Types:', storageTypesResponse.data.data);
+            } catch (error) {
+                console.error('Lỗi khi lấy dữ liệu storage:', error);
+            }
+        };
+
+        fetchStorageData();
+    }, []);
+
     // Lọc brands theo category
     const filteredBrands = brands.filter(brand => 
         brand.categoryId === selectedCategory
@@ -241,18 +249,21 @@ export default function PostCreation() {
 
     // Lọc storages dựa trên điều kiện
     const filteredStorages = useMemo(() => {
+        if (!selectedCategory) return [];
+        
         if (isLaptopCategory) {
-            // Nếu là laptop, chỉ hiển thị storage theo storageType đã chọn
-            return storages.filter(storage => 
-                storage.storageTypeId?._id === selectedStorageType
-            );
+            // Nếu là laptop, lọc theo storageType đã chọn
+            return storages.filter(storage => {
+                const storageTypeId = typeof storage.storageTypeId === 'object' 
+                    ? storage.storageTypeId._id 
+                    : storage.storageTypeId;
+                return storageTypeId === selectedStorageType;
+            });
         } else {
             // Nếu là điện thoại, chỉ hiển thị storage không có storageType
-            return storages.filter(storage => 
-                !storage.storageTypeId
-            );
+            return storages.filter(storage => !storage.storageTypeId);
         }
-    }, [isLaptopCategory, storages, selectedStorageType]);
+    }, [isLaptopCategory, storages, selectedStorageType, selectedCategory]);
 
     // Lọc versions theo brand đã chọn
     const filteredVersions = useMemo(() => {
@@ -261,38 +272,173 @@ export default function PostCreation() {
         );
     }, [versions, selectedBrand]);
 
-    // Xử lý submit form
+    // Fetch provinces khi component mount
+    useEffect(() => {
+        const fetchProvinces = async () => {
+            try {
+                const response = await axios.get('https://provinces.open-api.vn/api/p/');
+                setProvinces(response.data);
+            } catch (error) {
+                console.error('Lỗi khi lấy danh sách tỉnh/thành:', error);
+            }
+        };
+
+        fetchProvinces();
+    }, []);
+
+    // Cập nhật hàm fetch districts và thêm hàm fetch wards
+    const handleProvinceChange = async (provinceCode: string) => {
+        setSelectedProvince(provinceCode);
+        setSelectedDistrict(""); // Reset district
+        setSelectedWard(""); // Reset ward
+        setDetailAddress(""); // Reset detail address
+
+        if (provinceCode) {
+            try {
+                const response = await axios.get(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`);
+                setDistricts(response.data.districts);
+            } catch (error) {
+                console.error('Lỗi khi lấy danh sách quận/huyện:', error);
+                setDistricts([]);
+            }
+        } else {
+            setDistricts([]);
+            setWards([]);
+        }
+    };
+
+    const handleDistrictChange = async (districtCode: string) => {
+        setSelectedDistrict(districtCode);
+        setSelectedWard(""); // Reset ward
+        setDetailAddress(""); // Reset detail address
+
+        if (districtCode) {
+            try {
+                const response = await axios.get(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`);
+                setWards(response.data.wards);
+            } catch (error) {
+                console.error('Lỗi khi lấy danh sách phường/xã:', error);
+                setWards([]);
+            }
+        } else {
+            setWards([]);
+        }
+        updateFullAddress();
+    };
+
+    const handleWardChange = (wardCode: string) => {
+        setSelectedWard(wardCode);
+        updateFullAddress();
+    };
+
+    const handleDetailAddressChange = (text: string) => {
+        setDetailAddress(text);
+        updateFullAddress();
+    };
+
+    // Hàm cập nhật địa chỉ đầy đủ
+    const updateFullAddress = () => {
+        const provinceName = provinces.find(p => p.code === selectedProvince)?.name || '';
+        const districtName = districts.find(d => d.code === selectedDistrict)?.name || '';
+        const wardName = wards.find(w => w.code === selectedWard)?.name || '';
+        
+        let fullAddress = '';
+        
+        if (detailAddress) {
+            fullAddress += detailAddress;
+        }
+        if (wardName) {
+            fullAddress += fullAddress ? `, ${wardName}` : wardName;
+        }
+        if (districtName) {
+            fullAddress += fullAddress ? `, ${districtName}` : districtName;
+        }
+        if (provinceName) {
+            fullAddress += fullAddress ? `, ${provinceName}` : provinceName;
+        }
+        
+        setSelectedLocation(fullAddress);
+    };
+
     const handleSubmit = async () => {
+        if (!user) {
+            Alert.alert('Thông báo', 'Vui lòng đăng nhập để đăng tin');
+            return;
+        }
+
+        // Validate các trường bắt buộc
+        if (!selectedCategory || !selectedBrand || !selectedCondition || 
+            !selectedStorage || !selectedWarranty || !selectedOrigin || 
+            !title || !description || !price || !selectedPostType || 
+            !selectedRam) {
+            Alert.alert('Thông báo', 'Vui lòng nhập đầy đủ thông tin sản phẩm');
+            return;
+        }
+
         try {
-            const formData = {
+            const productData = {
                 categoryId: selectedCategory,
-                brandId: selectedBrand,
-                cpuId: selectedCpu,
-                gpuId: selectedGpu,
-                ramId: selectedRam,
-                screenId: selectedScreen,
+                userId: user.id,
+                versionId: selectedVersion,
+                conditionId: selectedCondition,
                 storageId: selectedStorage,
-                storageTypeId: selectedStorageType,
-                condition: selectedCondition,
-                warranty: selectedWarranty,
-                origin: selectedOrigin,
-                price: parseFloat(price),
                 title,
                 description,
-                battery,
-                postType: selectedPostType,
-                location: selectedLocation,
-                images,
-                videos
+                price: parseFloat(price),
+                view: 0,
+                isVip: selectedPostType === "Đăng tin trả phí",
+                isSold: false,
+                warranty: selectedWarranty,
+                images: [],
+                videos: [],
+                location: {
+                    provinceCode: selectedProvince,
+                    provinceName: provinces.find(p => p.code === selectedProvince)?.name,
+                    districtCode: selectedDistrict,
+                    districtName: districts.find(d => d.code === selectedDistrict)?.name,
+                    wardCode: selectedWard,
+                    wardName: wards.find(w => w.code === selectedWard)?.name,
+                    detailAddress: detailAddress,
+                    fullAddress: selectedLocation
+                }
             };
 
-            const response = await axios.post('http://10.0.2.2:5000/products', formData);
-            if (response.data.success) {
-                // Xử lý khi thành công
-                console.log('Đăng tin thành công');
+            // Gọi API tạo product
+            const productResponse = await axios.post('http://10.0.2.2:5000/api/products', productData);
+            const productId = productResponse.data.data._id;
+
+            // Tạo laptop hoặc phone details tùy theo category
+            const category = categories.find(cat => cat._id === selectedCategory);
+            if (category?.categoryName.toLowerCase() === 'laptop') {
+                const laptopData = {
+                    productId,
+                    cpuId: selectedCpu,
+                    gpuId: selectedGpu,
+                    ramId: selectedRam,
+                    screenId: selectedScreen,
+                    battery: battery || "0",
+                    origin: selectedOrigin
+                };
+                await axios.post('http://10.0.2.2:5000/api/laptops', laptopData);
+            } else {
+                const phoneData = {
+                    productId,
+                    ramId: selectedRam,
+                    battery: battery || "0",
+                    origin: selectedOrigin
+                };
+                console.log('Phone Data:', phoneData); // Thêm log để debug
+                const phoneResponse = await axios.post('http://10.0.2.2:5000/api/phones', phoneData);
+                console.log('Phone Response:', phoneResponse.data); // Thêm log để debug
             }
+
+            Alert.alert('Thành công', 'Đăng tin thành công');
+            // Thêm navigation sau khi đăng thành công
+            // router.push('/products');
+
         } catch (error) {
-            console.error('Lỗi khi đăng tin:', error);
+            console.error('Lỗi khi đăng tin:', error.response?.data || error.message);
+            Alert.alert('Lỗi', 'Có lỗi xảy ra khi đăng tin');
         }
     };
 
@@ -352,7 +498,8 @@ export default function PostCreation() {
     // Xử lý khi thay đổi loại ổ cứng
     const handleStorageTypeChange = (itemValue: string) => {
         setSelectedStorageType(itemValue);
-        setSelectedStorage(""); // Reset selected storage khi đổi loại ổ cứng
+        setSelectedStorage(""); // Reset selected storage
+        console.log('Selected Storage Type:', itemValue);
     };
 
     // Xử lý khi thay đổi brand
@@ -363,9 +510,6 @@ export default function PostCreation() {
         console.log('Available Versions:', filteredVersions);
     };
 
-//     useEffect(() => {
-//         checkAuth()
-//     }, []);
     return (
         <View className='w-full h-full bg-white p-4'>
             <ScrollView>
@@ -434,12 +578,16 @@ export default function PostCreation() {
                         <Text className='font-bold text-[16px]'>Tình trạng <Text className='text-[#DC143C]'>*</Text></Text>
                         <View className='border-2 border-[#D9D9D9] rounded-lg'>
                             <Picker
-                                className='font-semibold'
                                 selectedValue={selectedCondition}
                                 onValueChange={(itemValue) => setSelectedCondition(itemValue)}
                             >
-                                {conditionOptions.map((option, index) => (
-                                    <Picker.Item key={index} label={option.label} value={option.value} />
+                                <Picker.Item label="Chọn tình trạng" value="" />
+                                {conditions.map(condition => (
+                                    <Picker.Item
+                                        key={condition._id}
+                                        label={condition.condition}
+                                        value={condition._id}
+                                    />
                                 ))}
                             </Picker>
                         </View>
@@ -550,11 +698,11 @@ export default function PostCreation() {
                                         onValueChange={handleStorageTypeChange}
                                     >
                                         <Picker.Item label="Chọn loại ổ cứng" value="" />
-                                        {Array.isArray(storageTypes) && storageTypes.map(storageType => (
+                                        {storageTypes.map(type => (
                                             <Picker.Item 
-                                                key={storageType._id} 
-                                                label={storageType.storageName} 
-                                                value={storageType._id} 
+                                                key={type._id}
+                                                label={type.storageName}
+                                                value={type._id}
                                             />
                                         ))}
                                     </Picker>
@@ -596,11 +744,11 @@ export default function PostCreation() {
                                         } 
                                         value="" 
                                     />
-                                    {Array.isArray(filteredStorages) && filteredStorages.map(storage => (
+                                    {filteredStorages.map(storage => (
                                         <Picker.Item 
-                                            key={storage._id} 
-                                            label={storage.storageCapacity} 
-                                            value={storage._id} 
+                                            key={storage._id}
+                                            label={storage.storageCapacity}
+                                            value={storage._id}
                                         />
                                     ))}
                                 </Picker>
@@ -630,13 +778,16 @@ export default function PostCreation() {
                                 onValueChange={(itemValue) => setSelectedOrigin(itemValue)}
                             >
                                 {originOptions.map((option, index) => (
-                                    <Picker.Item key={index} label={option.label} value={option.value} />
+                                    <Picker.Item 
+                                        key={index} 
+                                        label={option.label} 
+                                        value={option.value} 
+                                    />
                                 ))}
                             </Picker>
                         </View>
                     </View>
-                    <View className='flex-col gap-2'>
-                        <Text className='font-bold text-[16px]'>Giá bán<Text className='text-[#DC143C]'>*</Text></Text>
+                    <View className='flex-col gap-2'>                        <Text className='font-bold text-[16px]'>Giá bán<Text className='text-[#DC143C]'>*</Text></Text>
                         <TextInput
                             className='border-2 border-[#D9D9D9] rounded-lg px-2 py-5 font-semibold'
                             placeholder='10.000 đ'
@@ -646,7 +797,7 @@ export default function PostCreation() {
                     </View>
                     <Text className='font-bold text-[16px] uppercase'>Tiêu đề tin đăng và mô tả chi tiết</Text>
                     <View className='flex-col gap-2'>
-                        <Text className='font-bold text-[16px]'>Tiêu đề<Text className='text-[#DC143C]'>*</Text></Text>
+                        <Text className='font-bold text-[16px]'>Tiêu đề<Text className='text-[#DC143C]'>*</Text></Text>               
                         <TextInput
                             className='border-2 border-[#D9D9D9] rounded-lg px-2 py-5 font-semibold'
                             placeholder='Nhập tiêu đề'
@@ -679,19 +830,85 @@ export default function PostCreation() {
                     </View>
                     <Text className='font-bold text-[16px] uppercase'>Thông tin người bán</Text>
                     <View className='flex-col gap-2'>
-                        <Text className='font-bold text-[16px]'>Địa chỉ<Text className='text-[#DC143C]'>*</Text></Text>
+                        <Text className='font-bold text-[16px]'>Tỉnh/Thành phố<Text className='text-[#DC143C]'>*</Text></Text>
                         <View className='border-2 border-[#D9D9D9] rounded-lg'>
                             <Picker
-                                className='font-semibold'
-                                selectedValue={selectedLocation}
-                                onValueChange={(itemValue) => setSelectedLocation(itemValue)}
+                                selectedValue={selectedProvince}
+                                onValueChange={handleProvinceChange}
                             >
-                                {locationOptions.map((option, index) => (
-                                    <Picker.Item key={index} label={option.label} value={option.value} />
+                                <Picker.Item label="Chọn Tỉnh/Thành phố" value="" />
+                                {provinces.map(province => (
+                                    <Picker.Item 
+                                        key={province.code}
+                                        label={province.name}
+                                        value={province.code}
+                                    />
                                 ))}
                             </Picker>
                         </View>
                     </View>
+
+                    {selectedProvince && (
+                        <View className='flex-col gap-2'>
+                            <Text className='font-bold text-[16px]'>Quận/Huyện<Text className='text-[#DC143C]'>*</Text></Text>
+                            <View className='border-2 border-[#D9D9D9] rounded-lg'>
+                                <Picker
+                                    selectedValue={selectedDistrict}
+                                    onValueChange={handleDistrictChange}
+                                >
+                                    <Picker.Item label="Chọn Quận/Huyện" value="" />
+                                    {districts.map(district => (
+                                        <Picker.Item 
+                                            key={district.code}
+                                            label={district.name}
+                                            value={district.code}
+                                        />
+                                    ))}
+                                </Picker>
+                            </View>
+                        </View>
+                    )}
+
+                    {selectedDistrict && (
+                        <View className='flex-col gap-2'>
+                            <Text className='font-bold text-[16px]'>Phường/Xã<Text className='text-[#DC143C]'>*</Text></Text>
+                            <View className='border-2 border-[#D9D9D9] rounded-lg'>
+                                <Picker
+                                    selectedValue={selectedWard}
+                                    onValueChange={handleWardChange}
+                                >
+                                    <Picker.Item label="Chọn Phường/Xã" value="" />
+                                    {wards.map(ward => (
+                                        <Picker.Item 
+                                            key={ward.code}
+                                            label={ward.name}
+                                            value={ward.code}
+                                        />
+                                    ))}
+                                </Picker>
+                            </View>
+                        </View>
+                    )}
+
+                    {selectedWard && (
+                        <View className='flex-col gap-2'>
+                            <Text className='font-bold text-[16px]'>Địa chỉ chi tiết<Text className='text-[#DC143C]'>*</Text></Text>
+                            <TextInput
+                                className='border-2 border-[#D9D9D9] rounded-lg px-2 py-3'
+                                placeholder='Nhập số nhà, tên đường...'
+                                value={detailAddress}
+                                onChangeText={handleDetailAddressChange}
+                            />
+                        </View>
+                    )}
+
+                    {selectedLocation && (
+                        <View className='mt-2'>
+                            <Text className='text-[#666666]'>
+                                Địa chỉ đầy đủ: {selectedLocation}
+                            </Text>
+                        </View>
+                    )}
                     <TouchableHighlight 
                         className="rounded-lg mt-4 self-end"
                         onPress={handleSubmit}
@@ -712,6 +929,4 @@ export default function PostCreation() {
         </View>
     )
 }
-
-//npm install @react-native-picker/picker cài thư viện này để sử dụng select option giống web
 //npm install react-native-image-picker

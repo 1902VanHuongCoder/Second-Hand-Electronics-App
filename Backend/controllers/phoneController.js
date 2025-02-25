@@ -24,11 +24,24 @@ exports.getPhoneById = async (req, res) => {
 
 // Thêm điện thoại mới
 exports.createPhone = async (req, res) => {
+    const { productId, ramId, battery, origin } = req.body;
+
+    // Kiểm tra xem productId và ramId có hợp lệ không
+    if (!mongoose.Types.ObjectId.isValid(productId) || !mongoose.Types.ObjectId.isValid(ramId)) {
+        console.log(ramId ) 
+        return res.status(400).json({ message: 'ID không hợp lệ' });
+    }
+
+    // Kiểm tra xem ramId có hợp lệ không
+    if (!mongoose.Types.ObjectId.isValid(ramId)) {
+        return res.status(400).json({ message: 'ramId không hợp lệ' });
+    }
+
     const phoneData = {
-        productId: new mongoose.Types.ObjectId(req.body.productId),
-        ramId: new mongoose.Types.ObjectId(req.body.ramId),
-        battery: req.body.battery,
-        origin: req.body.origin,
+        productId: new mongoose.Types.ObjectId(productId),
+        ramId: new mongoose.Types.ObjectId(ramId),
+        battery,
+        origin,
     };
 
     const phone = new Phone(phoneData);
