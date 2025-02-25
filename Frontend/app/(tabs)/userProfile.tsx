@@ -1,11 +1,11 @@
 import { Text, View, TouchableHighlight, Image } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { updateUser } from '../../store/authSlice';
+// import { updateUser } from '../../store/authSlice';
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/FontAwesome";
 
 import {  useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from '../../store/store';
+import {    RootState } from '../../store/store';
 
 import { StyleSheet } from 'react-native';
 import { AppDispatch } from '../../store/store';
@@ -64,7 +64,7 @@ export default function UserProfile() {
             </View>
             <View className='p-4'>
                 <View className='flex-row items-center justify-center gap-4'>
-                    <TouchableHighlight onPress={checkAuth} className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
+                    {/* <TouchableHighlight  className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center"> */}
                         <View className="flex-row items-center justify-center gap-2">
                             <TouchableHighlight onPress={checkAuth} className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
                                 <View className="flex-row items-center justify-center gap-2">
@@ -125,7 +125,7 @@ export default function UserProfile() {
                                 </View>
                             </TouchableHighlight>
                         </View>
-                    </TouchableHighlight>
+                    {/* </TouchableHighlight> */}
                 </View>
             </View >
         </View>
