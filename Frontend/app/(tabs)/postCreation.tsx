@@ -130,7 +130,7 @@ export default function PostCreation() {
     const [price, setPrice] = useState("");
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
-    const [battery, setBattery] = useState("");
+    const [battery, setBattery] = useState<string>('');
 
     // States cho media
     const [images, setImages] = useState<Media[]>([]);
@@ -726,6 +726,16 @@ export default function PostCreation() {
                                 ))}
                             </Picker>
                         </View>
+                    </View>
+                    <View className='flex-col gap-2'>
+                        <Text className='font-bold text-[16px]'>Dung lượng pin<Text className='text-[#DC143C]'>*</Text>
+                        </Text>
+                            <TextInput
+                                className='border-2 border-[#D9D9D9] rounded-lg px-2 py-5 font-semibold'
+                                placeholder='Nhập dung lượng pin'
+                                value={battery}
+                                onChangeText={setBattery}
+                            />
                     </View>
                     {selectedCategory && (
                         <View className='flex-col gap-2'>
