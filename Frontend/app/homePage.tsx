@@ -130,9 +130,10 @@ export default function HomePage() {
           className="flex-row items-center"
         >
           <View className="w-[50%]">
-            <Text className="uppercase font-extrabold text-white text-[18px]">
+          <Text className="uppercase font-extrabold text-white text-[18px]">
               2Hand Market
             </Text>
+        
             <Text className="text-[14px] text-white font-medium">
               Buôn bán các thiết bị hiện tại và uy tính.
             </Text>
@@ -236,6 +237,7 @@ export default function HomePage() {
           </View>
         ))}
       </ScrollView>
+      <Notification message={notifications.message} type={notifications.type} visible={notifications.visible} /> 
     </View>
   );
 }

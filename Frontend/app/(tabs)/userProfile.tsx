@@ -1,13 +1,19 @@
 import { Text, View, TouchableHighlight, Image } from 'react-native'
 import React, { useEffect, useState } from 'react'
+
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/FontAwesome";
-import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch } from '../../store/store';
-import { updateUser } from '../../store/authSlice';
+import {  useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
 import { StyleSheet } from 'react-native';
-import { Link } from 'expo-router';
+
+<!-- import { Link, useRouter } from 'expo-router';
+
+export default function Profile() {
+    const { user } = useSelector((state: RootState) => state.auth); 
+    return (     -->
+
+import { Link, useRouter } from 'expo-router';
 import { logout } from '../../store/authSlice';
 import { useRouter } from "expo-router";
 import { useAuthCheck } from '../../store/checkLogin';
@@ -48,10 +54,10 @@ export default function UserProfile() {
         <View className='bg-white w-full min-h-screen'>
             <View className='bg-[#9661D9] w-full h-[200px] flex justify-center items-center'>
                 <View className='relative'>
-                    <Image className='rounded-full border-4 border-[#fff]' style={{ width: 80, height: 80 }} source={require('../../assets/images/z6186705977978_00edd678a64db50dba5ef61a50391611.jpg')} />
-                    <View className='absolute bottom-0 -right-1 bg-white p-2 rounded-full'>
+                    <Image className='rounded-full border-4 border-[#fff]' style={{ width: 80, height: 80 }} source={user?.avatarUrl ? { uri: user.avatarUrl } : require('../../assets/images/z6186705977978_00edd678a64db50dba5ef61a50391611.jpg')}/>
+                    {/* <View className='absolute bottom-0 -right-1 bg-white p-2 rounded-full'>
                         <Icon name='camera' size={14} color={'#333'} />
-                    </View>
+                    </View> */}
                 </View>
                 <Text className='mt-2 font-bold text-white text-[20px]'>{user?.name ? user.name : 'Chưa cập nhật'}</Text>
                 <View className='flex-row gap-2 items-center'>
@@ -61,10 +67,16 @@ export default function UserProfile() {
             </View>
             <View className='p-4'>
                 <View className='flex-row items-center justify-center gap-4'>
+
+<!-- <TouchableHighlight className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
+                        <View  className="flex-row items-center justify-center gap-2">  -->
+
                     <TouchableHighlight onPress={checkAuth} className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
                         <View className="flex-row items-center justify-center gap-2">
+
                             <Icon name="book" size={22} color="#333" />
-                            <Text className="font-bold text-[18px] text-[#333]">Bài đăng</Text>
+                           <Text className="font-bold text-[18px] text-[#333]">Bài đăng</Text>
+                         
                         </View>
                     </TouchableHighlight>
                     <TouchableHighlight onPress={checkAuth} className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">

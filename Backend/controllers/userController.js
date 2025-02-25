@@ -77,7 +77,8 @@ exports.login = async (req, res) => {
         id: user._id,
         name: user.name, 
         email: user.email,
-        address: user.address 
+        address: user.address,
+        avatarUrl: user.avatarUrl 
       }
       
     });
@@ -94,9 +95,10 @@ exports.login = async (req, res) => {
 // Route cập nhật thông tin người dùng
 exports.updateUser = async (req, res) => {
   try {
-    const { id, name, email, phone, address } = req.body;
+    const { id, name, email, phone, address, avatarUrl } = req.body;
 
     const user = await User.findById(id);
+
     if (!user) {
       return res.status(404).json({ success: false, message: 'Người dùng không tồn tại' });
     }
@@ -105,6 +107,7 @@ exports.updateUser = async (req, res) => {
     user.email = email || user.email;
     user.phone = phone || user.phone;
     user.address = address || user.address;
+    user.avatarUrl = avatarUrl || user.avatarUrl;
 
     await user.save();
 
@@ -116,7 +119,8 @@ exports.updateUser = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        address: user.address
+        address: user.address,
+        avatarUrl: user.avatarUrl
       }
     });
   } catch (error) {

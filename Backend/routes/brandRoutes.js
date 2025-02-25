@@ -7,6 +7,6 @@ const router = express.Router();
 router.post('/brands', addBrand);
 
 // Route để lấy danh sách Brand
-router.get('/brands', getBrands);
+router.get('/brands', getBrands);  
 
 module.exports = router; 
