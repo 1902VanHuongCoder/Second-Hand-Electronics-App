@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import { NotificationContext } from "@/context/NotificationContext";
 import { useAuthCheck } from '../store/checkLogin';
+import Notification from '../components/Notification';
 // Định nghĩa kiểu cho sản phẩm
 interface Product {
   id: string;
