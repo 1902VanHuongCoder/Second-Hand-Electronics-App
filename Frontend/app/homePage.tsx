@@ -31,7 +31,7 @@ interface Product {
   gpuName?: string | null; // Thêm gpuName
   screenSize?: string | null; // Thêm screenSize
   storageCapacity?: string | null; // Thêm storageCapacity
-  storageType?: string | null; // Thêm storageType
+  storageType?: string | null; // Thêm storageType// Sẽ sử dụng fullAddress từ backend
 }
 
 // Định nghĩa kiểu cho người dùng

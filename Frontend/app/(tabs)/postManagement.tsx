@@ -19,6 +19,7 @@ interface Product {
     type: string;
     brandName: string;
     status: string;
+    address: string;
 }
 
 export default function PostManagement() {

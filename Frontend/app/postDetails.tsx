@@ -18,28 +18,28 @@ interface Product {
   postingDate: string;
   battery: string;
   nameUser: string | null;
-  versionName: String | null;
-  brandName: string; // Lấy brandName từ brand
-  type: 'laptop' | 'phone'; // 
-  ramCapacity?: string | null; // Thêm ramCapacity
-  cpuName?: string | null; // Thêm cpuName
-  gpuName?: string | null; // Thêm gpuName
-  screenSize?: string | null; // Thêm screenSize
-  storageCapacity?: string | null; // Thêm storageCapacity
-  storageType?: string | null; // Thêm storageType
+  versionName: string | null;
+  brandName: string;
+  type: 'laptop' | 'phone';
+  ramCapacity?: string | null;
+  cpuName?: string | null;
+  gpuName?: string | null;
+  screenSize?: string | null;
+  storageCapacity?: string | null;
+  storageType?: string | null;
 }
 
 const { width: viewportWidth } = Dimensions.get('window');
 
 export default function PostDetailsScreen() {
-  const [product, setProduct] = useState<Product | null>(null); // Chuyển đổi kiểu router
-  const { id } = useLocalSearchParams(); // Lấy ID từ query params
+  const [product, setProduct] = useState<Product | null>(null);
+  const { id } = useLocalSearchParams();
+
   const checkAuth = useAuthCheck();
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     const fetchProductDetails = async () => {
-
       try {
         const response = await axios.get(`http://10.0.2.2:5000/api/products/details/${id}`);
         setProduct(response.data as Product);
@@ -51,6 +51,16 @@ export default function PostDetailsScreen() {
 
     fetchProductDetails();
   }, [id]);
+
+  // const getDisplayAddress = (product: Product) => {
+  //   if (typeof product.location === 'object' && product.location?.fullAddress) {
+  //     return product.location.fullAddress;
+  //   }
+  //   if (typeof product.location === 'string') {
+  //     return product.location;
+  //   }
+  //   return product.address || 'Chưa có địa chỉ';
+  // };
 
   if (!product) {
     return <Text>Loading...</Text>; // Hiển thị loading khi đang lấy dữ liệu
@@ -65,10 +75,12 @@ export default function PostDetailsScreen() {
       />
       <View style={styles.content}>
         <Text style={styles.postName}>{product.title}</Text>
-        <Text style={styles.description}>{product.configuration}</Text>
+       
         <Text style={styles.price}>{product.price} VND</Text>
         <Text style={styles.location}>Địa chỉ: {product.address}</Text>
         <Text style={styles.location}>Ngày đăng: {new Date(product.postingDate).toLocaleDateString()}</Text>
+        <Text style={styles.location}>Phiên bản: {product.versionName || 'Chưa có phiên bản'}</Text>
+        <Text style={styles.location}>Thương hiệu: {product.brandName || 'Chưa có thương hiệu'}</Text>
         <Text style={styles.location} className='font-bold uppercase'>Mô tả chi tiết</Text>
         <TouchableOpacity onPress={() => setExpanded(!expanded)}>
           <Text style={styles.expandText}>
@@ -77,7 +89,7 @@ export default function PostDetailsScreen() {
         </TouchableOpacity>
         {expanded && (
           <Text style={styles.expandedText} className='text-justify'>
-            {}
+            { <Text style={styles.description}>{product.configuration}</Text>}
           </Text>
         )}
         <Text style={styles.specs} className='font-bold uppercase'>Thông số kỹ thuật</Text>

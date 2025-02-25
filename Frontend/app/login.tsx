@@ -73,6 +73,8 @@ export default function LoginScreen() {
       setTimeout(() => {
         router.push("/(tabs)");
       }, 500);
+    } else {
+      alert(resultAction.payload);
     }
   }
   return (

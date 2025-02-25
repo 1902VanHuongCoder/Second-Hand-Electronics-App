@@ -15,6 +15,16 @@ exports.getUserPosts = async (req, res) => {
             const version = await Version.findById(product.versionId);
             const brand = version ? await Brand.findById(version.brandId) : null;
 
+            // Xử lý địa chỉ an toàn hơn
+            let address = '';
+            if (product.location) {
+                if (typeof product.location === 'object') {
+                    address = product.location.fullAddress || '';
+                } else {
+                    address = product.location || '';
+                }
+            }
+
             return {
                 id: product._id,
                 name: product.title,
@@ -25,7 +35,9 @@ exports.getUserPosts = async (req, res) => {
                 image: product.images[0] || null,
                 type: category ? category.categoryName : null,
                 brandName: brand ? brand.brandName : null,
-                status: product.isSold ? 'Đã bán' : 'Đang bán'
+                status: product.isSold ? 'Đã bán' : 'Đang bán',
+                address: address, // Sử dụng địa chỉ đã được xử lý
+                location: product.location || null // Gửi toàn bộ object location nếu cần
             };
         }));
 
