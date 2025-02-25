@@ -3,18 +3,16 @@ import React, { useEffect, useState } from 'react'
 import { updateUser } from '../../store/authSlice';
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/FontAwesome";
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../../store/store';
+
+import {  useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../../store/store';
+
 import { StyleSheet } from 'react-native';
 import { AppDispatch } from '../../store/store';
-// < !-- import { Link, useRouter } from 'expo-router';
-
-// export default function Profile() {
-//     const { user } = useSelector((state: RootState) => state.auth);
-//     return (-->
 
 import { Link, useRouter } from 'expo-router';
-import { logout } from '../../store/authSlice';
+import { logout, updateUser } from '../../store/authSlice';
+
 import { useAuthCheck } from '../../store/checkLogin';
 
 export default function UserProfile() {
@@ -66,7 +64,7 @@ export default function UserProfile() {
             </View>
             <View className='p-4'>
                 <View className='flex-row items-center justify-center gap-4'>
-                    <TouchableHighlight className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
+                    <TouchableHighlight onPress={checkAuth} className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
                         <View className="flex-row items-center justify-center gap-2">
                             <TouchableHighlight onPress={checkAuth} className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
                                 <View className="flex-row items-center justify-center gap-2">

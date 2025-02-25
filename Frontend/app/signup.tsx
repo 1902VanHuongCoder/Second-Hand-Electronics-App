@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { View, TextInput, Text, ActivityIndicator, StyleSheet, Pressable, Image, TouchableOpacity, Alert } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { signupUser } from '../store/authSlice';
@@ -6,6 +6,7 @@ import { AppDispatch, RootState } from '../store/store';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { NotificationContext } from '@/context/NotificationContext';
 
 export default function SignUpScreen() {
   const [username, setUsername] = useState('');
@@ -47,11 +48,11 @@ export default function SignUpScreen() {
 
       if (resultAction.type === 'auth/signupUser/fulfilled') {
 
-<!--         showNotification("Đăng ký thành công", "success");
-        setTimeout(() => {
-          router.push("/login");
-        }, 3000);
-        setUsername(''); -->
+// <!--         showNotification("Đăng ký thành công", "success");
+//         setTimeout(() => {
+//           router.push("/login");
+//         }, 3000);
+//         setUsername(''); -->
 
         alert("Đăng ký thành công");
         setPhone('');
