@@ -35,18 +35,35 @@ export default function LoginScreen() {
   const router = useRouter();
 
   const handleLogin = async () => {
-    if (password === "") {
-      setValidateInput({
-        ...validateInput,
-        passwordError: "Vui lòng nhập mật khẩu",
-      });
-      return;
-    }
+    let hasError = false;
+
     if (phone === "") {
-      setValidateInput({
-        ...validateInput,
+      setValidateInput(prev => ({
+        ...prev,
         phoneError: "Vui lòng nhập số điện thoại",
-      });
+      }));
+      hasError = true;
+    } else {
+      setValidateInput(prev => ({
+        ...prev,
+        phoneError: "",
+      }));
+    }
+
+    if (password === "") {
+      setValidateInput(prev => ({
+        ...prev,
+        passwordError: "Vui lòng nhập mật khẩu",
+      }));
+      hasError = true;
+    } else {
+      setValidateInput(prev => ({
+        ...prev,
+        passwordError: "",
+      }));
+    }
+
+    if (hasError) {
       return;
     }
 
@@ -55,12 +72,11 @@ export default function LoginScreen() {
       showNotification("Đăng nhập thành công", "success");
       setTimeout(() => {
         router.push("/(tabs)");
-      }, 3000);
+      }, 500);
     } else {
       alert(resultAction.payload);
     }
-  };
-
+  }
   return (
     <View className="relative h-screen px-10 w-screen">
       <Notification

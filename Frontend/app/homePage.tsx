@@ -10,28 +10,71 @@ import {
 import React, { useContext, useEffect, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/FontAwesome";
-import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { Link } from "expo-router";
-import AppBarForHome from "@/components/AppBarForHome";
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
-import Notification from "@/components/Notification";
 import { NotificationContext } from "@/context/NotificationContext";
+import { useAuthCheck } from '../store/checkLogin';
+// Định nghĩa kiểu cho sản phẩm
+interface Product {
+  id: string;
+  title: string;
+  configuration: string;
+  price: number;
+  address: string;
+  postingDate: string;
+  nameUser: string | null;
+  brandName: string; // Lấy brandName từ brand
+  type: 'laptop' | 'phone'; // Cập nhật để bao gồm cả loại điện thoại
+  ramCapacity?: string | null; // Thêm ramCapacity
+  cpuName?: string | null; // Thêm cpuName
+  gpuName?: string | null; // Thêm gpuName
+  screenSize?: string | null; // Thêm screenSize
+  storageCapacity?: string | null; // Thêm storageCapacity
+  storageType?: string | null; // Thêm storageType// Sẽ sử dụng fullAddress từ backend
+}
+
+// Định nghĩa kiểu cho người dùng
+interface User {
+  _id: string;
+  name: string; // Thêm các thuộc tính cần thiết khác
+}
+
 export default function HomePage() {
-
-  const { notifications, showNotification} = useContext(NotificationContext);
-
+  const { notifications, showNotification } = useContext(NotificationContext);
   const [text, onChangeText] = React.useState("");
   const [reportVisible, setReportVisible] = useState(false); // State để theo dõi trạng thái hiển thị menu báo cáo
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null); // Chỉ định kiểu cho selectedProductId
   const [selectedReason, setSelectedReason] = useState<string | null>(null); // State để lưu lý do đã chọn
-  const [products, setProducts] = useState<any[]>([]);
+  const checkAuth = useAuthCheck();
+  const [products, setProducts] = useState<Product[]>([]);
+  // const [users, setUsers] = useState<{ [key: string]: User }>({}); // Sử dụng kiểu User cho các giá trị
+  const checkLogin = () => {
+    checkAuth();
+  }
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get('http://10.0.2.2:5000/api/home');
-        // setProducts(response.data);
+
+        const response = await axios.get<Product[]>('http://10.0.2.2:5000/api/home');
+        setProducts(response.data);
+
+        // Lấy thông tin người dùng cho từng sản phẩm
+        // const userIds = response.data.map(product => product.userId);
+        // const uniqueUserIds = [...new Set(userIds)]; // Lấy danh sách userId duy nhất
+
+        // const userResponses = await Promise.all(
+        //   uniqueUserIds.map(userId => axios.get<User>(`http://10.0.2.2:5000/api/users/${userId}`))
+        // );
+
+        // const usersData = userResponses.reduce<{ [key: string]: User }>((acc, userResponse) => {
+        //   acc[userResponse.data._id] = userResponse.data; // Lưu thông tin người dùng theo userId
+        //   return acc;
+        // }, {});
+
+        // setUsers(usersData); // Cập nhật state với thông tin người dùng
+
       } catch (error) {
         console.error('Error fetching products:', error);
       }
@@ -39,7 +82,6 @@ export default function HomePage() {
 
     fetchProducts();
   }, []);
-
 
   const reportReasons = [
     "Nội dung không phù hợp",
@@ -50,6 +92,7 @@ export default function HomePage() {
   ];
 
   const handleReportPress = (productId: string) => {
+    checkLogin();
     setSelectedProductId(productId);
     setReportVisible(!reportVisible); // Chuyển đổi trạng thái hiển thị menu báo cáo
   };
@@ -58,6 +101,10 @@ export default function HomePage() {
     setSelectedReason(reason);
     alert(`Bạn đã chọn lý do: ${reason}`); // Thực hiện hành động báo cáo ở đây
   };
+
+  const formatCurrency = (value: String) => {
+    return value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
 
   return (
     <View className="p-4 relative" style={{ flex: 1 }}>
@@ -72,9 +119,6 @@ export default function HomePage() {
           <Text className="text-[#fff] font-semibold text-[16px] text-center">
             Tìm kiếm
           </Text>
-        </TouchableHighlight>
-        <TouchableHighlight onPress={() => showNotification('Đăng nhập thành công', 'success')}>
-                      <Icon name="ellipsis-v" size={18} color="#9661D9" />
         </TouchableHighlight>
       </View>
       <ScrollView className="">
@@ -128,27 +172,24 @@ export default function HomePage() {
           >
             <View className="flex-col gap-4">
               <View className="flex-row gap-2 w-full">
-                <Link href="/postDetails">
+                <Link href={`/postDetails?id=${product.id}`}>
                   <Image
                     style={{ width: 170, height: 170 }}
                     source={require("../assets/images/z6316149378615_f6d6f665171bf597c35f86bf13ca61b2.jpg")}
-                  /> </Link>
+                  />
+                </Link>
                 <View className="w-[50%] flex-col gap-1">
-
-                  {/* <View className="flex-row gap-1">
-                    <Text className="font-bold text-[16px] font-Monomakh">
-                      {product.name}
-                    </Text> */}
-
-                  <View className="flex-row">
-                    <Link href="/postDetails"><Text className="font-bold text-[16px]">{product.name}</Text></Link>
+                  <View className="flex-row justify-between items-center">
+                    <Link href={`/postDetails?id=${product.id}`}>
+                      <Text className="font-bold text-[16px]">{product.title}</Text>
+                    </Link>
                     <TouchableHighlight onPress={() => handleReportPress(product.id)}>
                       <Icon name="ellipsis-v" size={18} color="#9661D9" />
                     </TouchableHighlight>
                   </View>
                   <Text className="text-[12px]">{product.configuration}</Text>
                   <Text className="font-bold text-[#9661D9] text-[16px]">
-                    {product.price}
+                    {formatCurrency(product.price.toString())} đ
                   </Text>
                   <View className="flex-row gap-2 items-center">
                     <Icon name="map-marker" size={20} color="#9661D9" />
@@ -159,7 +200,7 @@ export default function HomePage() {
                   <View className="flex-row gap-2 items-center">
                     <Icon name="clock-o" size={20} color="#9661D9" />
                     <Text className="font-bold text-[14px]">
-                      {product.postingDate}
+                      {new Date(product.postingDate).toLocaleDateString()}
                     </Text>
                   </View>
                 </View>
@@ -178,9 +219,9 @@ export default function HomePage() {
                     </Text>
                   </View>
                 </View>
-                <View>
-                  <Icon name="comments" size={30} color="#9661D9" />
-                </View>
+                <TouchableHighlight underlayColor='#fff' onPress={checkLogin}>
+                  <Ionicons name="chatbubbles-outline" size={30} color="#9661D9"/>
+                </TouchableHighlight>
               </View>
             </View>
             {reportVisible && selectedProductId === product.id && ( // Hiển thị menu báo cáo nếu điều kiện thỏa mãn
@@ -199,7 +240,6 @@ export default function HomePage() {
       <Notification message={notifications.message} type={notifications.type} visible={notifications.visible} /> 
     </View>
   );
-
 }
 
 const styles = StyleSheet.create({
@@ -270,4 +310,3 @@ const styles = StyleSheet.create({
 //         color: '#999',
 //     },
 // });
-

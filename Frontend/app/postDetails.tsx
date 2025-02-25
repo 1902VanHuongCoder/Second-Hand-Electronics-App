@@ -1,24 +1,86 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Image, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Carousel from '@/components/Carousel';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
+import axios from 'axios';
+import { useLocalSearchParams } from 'expo-router';
+import { ParsedUrlQuery } from 'querystring';
+import { useAuthCheck } from '../store/checkLogin';
+// Định nghĩa kiểu cho sản phẩm
+interface Product {
+  id: string;
+  title: string;
+  configuration: string;
+  price: number;
+  address: string;
+  postingDate: string;
+  battery: string;
+  nameUser: string | null;
+  versionName: string | null;
+  brandName: string;
+  type: 'laptop' | 'phone';
+  ramCapacity?: string | null;
+  cpuName?: string | null;
+  gpuName?: string | null;
+  screenSize?: string | null;
+  storageCapacity?: string | null;
+  storageType?: string | null;
+}
 
 const { width: viewportWidth } = Dimensions.get('window');
 
 export default function PostDetailsScreen() {
+  const [product, setProduct] = useState<Product | null>(null);
+  const { id } = useLocalSearchParams();
+
+  const checkAuth = useAuthCheck();
   const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    const fetchProductDetails = async () => {
+      try {
+        const response = await axios.get(`http://10.0.2.2:5000/api/products/details/${id}`);
+        setProduct(response.data as Product);
+        console.log(response.data)
+      } catch (error) {
+        console.error('Error fetching product details:', error);
+      }
+    };
+
+    fetchProductDetails();
+  }, [id]);
+
+  // const getDisplayAddress = (product: Product) => {
+  //   if (typeof product.location === 'object' && product.location?.fullAddress) {
+  //     return product.location.fullAddress;
+  //   }
+  //   if (typeof product.location === 'string') {
+  //     return product.location;
+  //   }
+  //   return product.address || 'Chưa có địa chỉ';
+  // };
+
+  if (!product) {
+    return <Text>Loading...</Text>; // Hiển thị loading khi đang lấy dữ liệu
+  }
 
   return (
     <ScrollView style={styles.container}>
       <Carousel />
+      <Image
+        style={styles.image}
+        source={require("../assets/images/z6316149378615_f6d6f665171bf597c35f86bf13ca61b2.jpg")}// Giả sử bạn có một mảng images
+      />
       <View style={styles.content}>
-        <Text style={styles.postName}>Laptop gaming ASUS 16GB 256GB</Text>
-        <Text style={styles.description} className='text-justify'>This is a detailed description of the post. It provides all the necessary information about the post.</Text>
-        <Text style={styles.price}>100 VND</Text>
-        <Text style={styles.location} className='font-bold'>Địa chỉ: <Text className='font-normal'>New York, USA</Text></Text>
-        <Text style={styles.location} className='font-bold'>Ngày đăng: <Text className='font-normal'>20:30 01/01/2025</Text></Text>
+        <Text style={styles.postName}>{product.title}</Text>
+       
+        <Text style={styles.price}>{product.price} VND</Text>
+        <Text style={styles.location}>Địa chỉ: {product.address}</Text>
+        <Text style={styles.location}>Ngày đăng: {new Date(product.postingDate).toLocaleDateString()}</Text>
+        <Text style={styles.location}>Phiên bản: {product.versionName || 'Chưa có phiên bản'}</Text>
+        <Text style={styles.location}>Thương hiệu: {product.brandName || 'Chưa có thương hiệu'}</Text>
         <Text style={styles.location} className='font-bold uppercase'>Mô tả chi tiết</Text>
         <TouchableOpacity onPress={() => setExpanded(!expanded)}>
           <Text style={styles.expandText}>
@@ -27,34 +89,34 @@ export default function PostDetailsScreen() {
         </TouchableOpacity>
         {expanded && (
           <Text style={styles.expandedText} className='text-justify'>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec faucibus orci at augue blandit euismod. Morbi et ex convallis, congue risus venenatis, efficitur magna. Pellentesque non nisi maximus, elementum sem at, gravida ligula. Integer dapibus arcu sit amet libero malesuada accumsan. Suspendisse vehicula fringilla accumsan. Nullam accumsan leo quis luctus blandit. Mauris dapibus vitae eros ac accumsan...
+            { <Text style={styles.description}>{product.configuration}</Text>}
           </Text>
         )}
         <Text style={styles.specs} className='font-bold uppercase'>Thông số kỹ thuật</Text>
         <View style={styles.specsContainer}>
           <View style={styles.specItem}>
             <Ionicons name="hardware-chip-outline" size={24} color="black" className='font-bold'/>
-            <Text style={styles.specText} className='font-bold'>CPU: <Text className='font-normal'>Intel Core i7</Text></Text>
+            <Text style={styles.specText} className='font-bold'>CPU: <Text className='font-normal'>{product.cpuName}</Text></Text>
           </View>
           <View style={styles.specItem}>
             <Ionicons name="at-sharp" size={24} color="black" />
-            <Text style={styles.specText} className='font-bold'>RAM: <Text className='font-normal'>16GB</Text></Text>
+            <Text style={styles.specText} className='font-bold'>RAM: <Text className='font-normal'>{product.ramCapacity}</Text></Text>
           </View>
           <View style={styles.specItem}>
             <Ionicons name="disc-outline" size={24} color="black" />
-            <Text style={styles.specText} className='font-bold'>Storage: <Text className='font-normal'>256GB SSD</Text></Text>
+            <Text style={styles.specText} className='font-bold'>Storage: <Text className='font-normal'>{product.storageCapacity} ({product.storageType})</Text></Text>
           </View>
           <View style={styles.specItem}>
             <Ionicons name="laptop-outline" size={24} color="black" />
-            <Text style={styles.specText} className='font-bold'>Display: <Text className='font-normal'>15.6" FHD</Text></Text>
+            <Text style={styles.specText} className='font-bold'>Display: <Text className='font-normal'>{product.screenSize}</Text></Text>
           </View>
           <View style={styles.specItem}>
             <Ionicons name="battery-charging-outline" size={24} color="black" />
-            <Text style={styles.specText} className='font-bold'>Battery: <Text className='font-normal'>97%</Text></Text>
+            <Text style={styles.specText} className='font-bold'>Battery: <Text className='font-normal'>{product.battery}</Text></Text>
           </View>
         </View>
         <View style={styles.buttonContainer}>
-          <Pressable style={styles.buttonWrapper}>
+          <TouchableOpacity style={styles.buttonWrapper} onPress={checkAuth}>
             <LinearGradient
               colors={['rgba(156,98,215,1)', 'rgba(82,52,113,1)']}
               start={{ x: 0, y: 0 }}
@@ -62,10 +124,10 @@ export default function PostDetailsScreen() {
               style={styles.button} 
             >
               <Ionicons name="chatbubble-ellipses-outline" size={24} color="white" />
-             <Link href="/chat"><Text style={styles.buttonText}>NHẮN TIN</Text></Link> 
+             <Text style={styles.buttonText}>NHẮN TIN</Text>
             </LinearGradient>
-          </Pressable>
-          <Pressable style={styles.buttonWrapper}>
+          </TouchableOpacity>
+          <Pressable style={styles.buttonWrapper} onPress={checkAuth}>
             <LinearGradient
               colors={['rgba(156,98,215,1)', 'rgba(82,52,113,1)']}
               start={{ x: 0, y: 0 }}

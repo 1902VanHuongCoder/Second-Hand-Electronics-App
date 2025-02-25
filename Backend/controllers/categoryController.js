@@ -16,7 +16,7 @@ exports.addCategory = async (req, res) => {
 // Lấy danh sách Category
 exports.getCategories = async (req, res) => {
   try {
-    const categories = await Category.find();
+    const categories = await Category.find().select('_id categoryName');
     res.status(200).json({ success: true, data: categories });
   } catch (error) {
     console.error('Lỗi lấy danh sách Category:', error);
