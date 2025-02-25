@@ -10,14 +10,14 @@ import { NotificationContext } from '@/context/NotificationContext';
 import Notification from '@/components/Notification';
 
 export default function SignUpScreen() {
+  const [username, setUsername] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [validateInput, setValidateInput] = useState({ phoneError: '', passwordError: '' });
+  const [validateInput, setValidateInput] = useState({ usernameError: '', phoneError: '', passwordError: '' });
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const { notifications, showNotification } = useContext(NotificationContext);
-
 
   const dispatch = useDispatch<AppDispatch>();
   const { loading, error, user } = useSelector((state: RootState) => state.auth);
@@ -25,6 +25,12 @@ export default function SignUpScreen() {
 
   const handleSignup = async () => {
     let valid = true;
+    if (username === '') {
+      setValidateInput((prev) => ({ ...prev, usernameError: 'Vui lòng nhập tên người dùng' }));
+      valid = false;
+    } else {
+      setValidateInput((prev) => ({ ...prev, usernameError: '' }));
+    }
     if (phone === '') {
       setValidateInput((prev) => ({ ...prev, phoneError: 'Vui lòng nhập số điện thoại' }));
       valid = false;
@@ -40,13 +46,14 @@ export default function SignUpScreen() {
 
     if (valid) {
       setIsLoading(true);
-      const resultAction = await dispatch(signupUser({ phone, password }));
+      const resultAction = await dispatch(signupUser({ name: username, phone, password }));
 
       if (resultAction.type === 'auth/signupUser/fulfilled') {
         showNotification("Đăng ký thành công", "success");
         setTimeout(() => {
           router.push("/login");
         }, 3000);
+        setUsername('');
         setPhone('');
         setPassword('');
       } else {
@@ -65,7 +72,17 @@ export default function SignUpScreen() {
       />
       <View className='relative z-20 flex justify-center items-center w-full p-5 h-screen'>
         <Text className='text-4xl font-bold w-full '>ĐĂNG KÝ</Text>
-        <Text className='mt-8 w-full text-left text-lg'>Số điện thoại</Text>
+        <Text className='mt-8 w-full text-left text-lg'>Tên người dùng</Text>
+        <TextInput
+          className="outline-none border-2 text-lg border-gray-400 rounded-md px-2 py-3 w-full bg-white mt-2 placeholder-opacity-50 placeholder-gray-400"
+          placeholder="Tên người dùng"
+          value={username}
+          onChangeText={setUsername}
+          editable={!loading}
+        />
+        {validateInput.usernameError !== '' && <Text className='w-full py-3 text-red-500'>{validateInput.usernameError}</Text>}
+
+        <Text className='mt-5 w-full text-left text-lg'>Số điện thoại</Text>
         <TextInput
           className="outline-none border-2 text-lg border-gray-400 rounded-md px-2 py-3 w-full bg-white mt-2 placeholder-opacity-50 placeholder-gray-400"
           placeholder="0xx-xxx-xxxx"

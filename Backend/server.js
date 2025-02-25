@@ -16,11 +16,13 @@ const laptopRoutes = require('./routes/laptopRoutes');
 const productRoutes = require('./routes/productRoutes');
 const screenRoutes = require('./routes/screenRoutes');
 const homeRoutes = require('./routes/homeRoutes');
+const uploadImageRoutes = require('./routes/uploadImageRoutes');
 // Load env vars trước khi làm bất cứ điều gì khác
 
 dotenv.config();
 
-console.log('MONGODB_URI:', process.env.MONGODB_URI);
+// console.log('MONGODB_URI:', process.env.MONGODB_URI);
+// console.log('CLOUDINARY KEY:', process.env.CLOUDINARY_API_KEY);
 
 const app = express();
 
@@ -63,7 +65,11 @@ app.post('/api/hello', (req, res) => {
 });
 
 // Sử dụng các route người dùng
+
+
 app.use('/api', userRoutes);
+
+app.use('/api', uploadImageRoutes);
 
 app.use('/api', gpuRoutes );
 
