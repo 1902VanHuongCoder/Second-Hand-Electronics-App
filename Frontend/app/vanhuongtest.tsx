@@ -3,14 +3,15 @@ import { View, Button, Image, ActivityIndicator, Alert, Text, ScrollView } from 
 import axios from "axios";
 import * as ImagePicker from 'expo-image-picker';
 
-const API_URL = "http://10.0.2.2:5000/api/uploadmultiple";
+const API_URL = "http://10.0.2.2:5000/api/uploadvideo";
+const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50 MB
 
-const UploadAvatarScreen = () => {
-  const [images, setImages] = useState<string[]>([]);
-  const [avatarUrls, setAvatarUrls] = useState<string[]>([]);
+const UploadVideoScreen = () => {
+  const [video, setVideo] = useState<string | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const selectImages = async () => {
+  const selectVideo = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (permissionResult.granted === false) {
@@ -19,20 +20,27 @@ const UploadAvatarScreen = () => {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsMultipleSelection: true,
+        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
         quality: 1,
     });
 
     if (!result.canceled) {
-        const selectedImages = result.assets.map(asset => asset.uri);
-        setImages(selectedImages);
+        const videoUri = result.assets[0].uri;
+        const videoInfo = await fetch(videoUri);
+        const videoBlob = await videoInfo.blob();
+
+        if (videoBlob.size > MAX_VIDEO_SIZE) {
+            Alert.alert("Video too large", "Please select a video smaller than 50 MB.");
+            return;
+        }
+
+        setVideo(videoUri);
     }
   };
 
-  const uploadImages = async () => {
-    if (images.length === 0) {
-      Alert.alert("Please select images first");
+  const uploadVideo = async () => {
+    if (!video) {
+      Alert.alert("Please select a video first");
       return;
     }
 
@@ -40,20 +48,18 @@ const UploadAvatarScreen = () => {
 
     try {
       const formData = new FormData();
-      images.forEach((image, index) => {
-        formData.append("images", {
-          uri: image,
-          type: "image/jpeg",
-          name: `avatar-${index}.jpg`,
-        } as any);
-      });
+      formData.append("video", {
+        uri: video,
+        type: "video/mp4",
+        name: "video.mp4",
+      } as any);
 
-      const response = await axios.post<{ urls: string[], success: boolean, message: string }>(API_URL, formData, {
+      const response = await axios.post<{ url: string, success: boolean, message: string }>(API_URL, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      setAvatarUrls(response.data.urls);
-      Alert.alert("Upload Successful", "Images uploaded successfully");
+      setVideoUrl(response.data.url);
+      Alert.alert("Upload Successful", "Video uploaded successfully");
     } catch (error) {
       console.error("Upload Error:", error);
       Alert.alert("Upload Failed", "Something went wrong.");
@@ -64,23 +70,16 @@ const UploadAvatarScreen = () => {
 
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: "center", alignItems: "center" }}>
-      <Button title="Select Images" onPress={selectImages} />
-      <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center" }}>
-        {images.map((image, index) => (
-          <Image key={index} source={{ uri: image }} style={{ width: 100, height: 100, borderRadius: 50, margin: 10 }} />
-        ))}
-      </View>
-      {loading ? <ActivityIndicator size="large" color="blue" /> : <Button title="Upload Images" onPress={uploadImages} />}
-      <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center" }}>
-        {avatarUrls.map((url, index) => (
-          <View key={index} style={{ alignItems: "center", margin: 10 }}>
-            <Image source={{ uri: url }} style={{ width: 100, height: 100, borderRadius: 50 }} />
-            <Text>{url}</Text>
-          </View>
-        ))}
-      </View>
+      <Button title="Select Video" onPress={selectVideo} />
+      {video && <Text>Selected Video: {video}</Text>}
+      {loading ? <ActivityIndicator size="large" color="blue" /> : <Button title="Upload Video" onPress={uploadVideo} />}
+      {videoUrl && (
+        <View style={{ alignItems: "center", margin: 10 }}>
+          <Text>Uploaded Video URL: {videoUrl}</Text>
+        </View>
+      )}
     </ScrollView>
   );
 };
 
-export default UploadAvatarScreen;
+export default UploadVideoScreen;
