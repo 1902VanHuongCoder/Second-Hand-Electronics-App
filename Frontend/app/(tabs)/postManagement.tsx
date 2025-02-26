@@ -32,6 +32,7 @@ export default function PostManagement() {
         const fetchUserPosts = async () => {
             try {
                 if (user) {
+                    console.log("hello");
 
                     const response = await axios.get<Product[]>(`http://10.0.2.2:5000/api/post-management/user/${user.id}`);
                     setProducts(response.data);
@@ -41,7 +42,7 @@ export default function PostManagement() {
             }
         }
         fetchUserPosts();
-    }, [user, checkAuth]);
+    }, [user]);
 
     return (
         <View className='w-full h-full bg-white'>

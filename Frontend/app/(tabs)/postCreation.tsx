@@ -549,7 +549,7 @@ export default function PostCreation() {
 
     const uploadImages = async () => {
         if (images.length === 0) {
-            Alert.alert("Please select images first");
+            Alert.alert("Vui lòng chọn ảnh trước");
             return;
         }
 
@@ -561,20 +561,59 @@ export default function PostCreation() {
                 formData.append("images", {
                     uri: image,
                     type: "image/jpeg",
-                    name: `avatar-${index}.jpg`,
+                    name: `image-${index}.jpg`,
                 } as any);
             });
 
-            const response = await axios.post<{ urls: string[], success: boolean, message: string }>(API_URL, formData, {
+            const response = await axios.post(API_URL, formData, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
 
-            setAvatarUrls(response.data.urls);
-            // setImages([]);
-            Alert.alert("Upload Successful", "Images uploaded successfully");
-        } catch (error) {
+            if (!response.data.success) {
+                let errorMessage = "Upload thất bại:\n";
+                
+                if (response.data.details) {
+                    if (response.data.details.hasInappropriateContent) {
+                        const inappropriateFiles = response.data.details.inappropriateFiles || [];
+                        errorMessage += "Các ảnh không phù hợp hoặc trùng lặp:\n";
+                        inappropriateFiles.forEach((fileName: string) => {
+                            errorMessage += `- ${fileName}\n`;
+                        });
+                    }
+                    
+                    if (response.data.details.isDuplicate) {
+                        errorMessage += "Một số ảnh đã tồn tại trong hệ thống\n";
+                    }
+                }
+                
+                Alert.alert(
+                    "Upload Thất Bại", 
+                    errorMessage,
+                    [
+                        { text: "OK", onPress: () => console.log("OK Pressed") }
+                    ]
+                );
+                setLoading(false);
+                return;
+            }
+
+            setAvatarUrls(response.data.urls || []);
+            Alert.alert(
+                "Thành công", 
+                "Upload ảnh thành công",
+                [
+                    { text: "OK", onPress: () => console.log("OK Pressed") }
+                ]
+            );
+        } catch (error: any) {
             console.error("Upload Error:", error);
-            Alert.alert("Upload Failed", "Something went wrong.");
+            Alert.alert(
+                "Lỗi Upload", 
+                error.response?.data?.message || "Có lỗi xảy ra khi upload ảnh",
+                [
+                    { text: "OK", onPress: () => console.log("OK Pressed") }
+                ]
+            );
         } finally {
             setLoading(false);
         }
