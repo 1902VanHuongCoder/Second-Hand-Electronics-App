@@ -181,7 +181,7 @@ export default function PostCreation() {
         const fetchConditions = async () => {
             try {
                 const response = await axios.get('http://10.0.2.2:5000/api/conditions');
-                setConditions(response.data.data);
+                setConditions(response.data.data.data);
             } catch (error) {
                 console.error('Lỗi khi lấy danh sách tình trạng:', error);
             }
@@ -194,16 +194,16 @@ export default function PostCreation() {
         const fetchData = async () => {
             try {
                 const categoriesResponse = await axios.get<ApiResponse<Category>>('http://10.0.2.2:5000/api/categories');
-                setCategories(categoriesResponse.data.data);
+                setCategories(categoriesResponse.data.data.data);
 
                 const brandsResponse = await axios.get<ApiResponse<Brand>>('http://10.0.2.2:5000/api/brands');
-                setBrands(brandsResponse.data.data);
+                setBrands(brandsResponse.data.data.data);
 
                 const ramsResponse = await axios.get<ApiResponse<Ram>>('http://10.0.2.2:5000/api/rams');
-                setRams(ramsResponse.data.data);
+                setRams(ramsResponse.data.data.data);
 
                 const screensResponse = await axios.get<ApiResponse<Screen>>('http://10.0.2.2:5000/api/screens');
-                setScreens(screensResponse.data.data);
+                setScreens(screensResponse.data.data.data);
 
             } catch (error) {
                 console.error('Lỗi khi lấy dữ liệu:', error);
@@ -222,10 +222,10 @@ export default function PostCreation() {
                     axios.get('http://10.0.2.2:5000/api/storage-types')
                 ]);
                 
-                setStorages(storagesResponse.data.data);
-                setStorageTypes(storageTypesResponse.data.data);
-                console.log('Storages:', storagesResponse.data.data);
-                console.log('Storage Types:', storageTypesResponse.data.data);
+                setStorages(storagesResponse.data.data.data);
+                setStorageTypes(storageTypesResponse.data.data.data);
+                console.log('Storages:', storagesResponse.data.data.data);
+                console.log('Storage Types:', storageTypesResponse.data.data.data);
             } catch (error) {
                 console.error('Lỗi khi lấy dữ liệu storage:', error);
             }
@@ -405,7 +405,7 @@ export default function PostCreation() {
 
             // Gọi API tạo product
             const productResponse = await axios.post('http://10.0.2.2:5000/api/products', productData);
-            const productId = productResponse.data.data._id;
+            const productId = productResponse.data.data.data._id;
 
             // Tạo laptop hoặc phone details tùy theo category
             const category = categories.find(cat => cat._id === selectedCategory);
@@ -458,8 +458,8 @@ export default function PostCreation() {
 
                 console.log('Versions Response:', versionsRes.data); // Debug log
                 
-                setBrands(brandsRes.data.data);
-                setVersions(versionsRes.data.data);
+                setBrands(brandsRes.data.data.data);
+                setVersions(versionsRes.data.data.data);
 
                 // Kiểm tra category là laptop
                 const selectedCategoryObj = categories.find(cat => cat._id === itemValue);
@@ -475,10 +475,10 @@ export default function PostCreation() {
                         axios.get<ApiResponse<StorageType>>('http://10.0.2.2:5000/api/storage-types')
                     ]);
 
-                    setCpus(cpusRes.data.data);
-                    setGpus(gpusRes.data.data);
-                    setScreens(screensRes.data.data);
-                    setStorageTypes(storageTypesRes.data.data);
+                    setCpus(cpusRes.data.data.data);
+                    setGpus(gpusRes.data.data.data);
+                    setScreens(screensRes.data.data.data);
+                    setStorageTypes(storageTypesRes.data.data.data);
                 }
             } catch (error) {
                 console.error('Lỗi khi lấy dữ liệu:', error);
