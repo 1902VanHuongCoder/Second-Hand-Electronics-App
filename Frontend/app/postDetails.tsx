@@ -27,6 +27,8 @@ interface Product {
   screenSize?: string | null;
   storageCapacity?: string | null;
   storageType?: string | null;
+  video: string | null;
+  images: string[];
 }
 
 const { width: viewportWidth } = Dimensions.get('window');
@@ -43,7 +45,7 @@ export default function PostDetailsScreen() {
       try {
         const response = await axios.get(`http://10.0.2.2:5000/api/products/details/${id}`);
         setProduct(response.data as Product);
-        console.log(response.data)
+        console.log("Product details data", response.data)
       } catch (error) {
         console.error('Error fetching product details:', error);
       }

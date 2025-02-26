@@ -98,7 +98,6 @@ exports.getProductDetails = async (req, res) => {
         const product = await Product.findById(req.params.id);
         if (!product) return res.status(404).json({ message: 'Product not found' });
         category = product ? await Category.findById(product.categoryId) : null;
-        console.log(category.categoryName)
         let formattedAddress = '';
         if (product.location) {
             if (typeof product.location === 'object') {
@@ -138,6 +137,8 @@ exports.getProductDetails = async (req, res) => {
                     gpuName: gpu ? gpu.gpuName : null,
                     storageCapacity: storage ? storage.storageCapacity : null,
                     storageType: storageType ? storageType.storageName : null,
+                    images: product ? product.images : [],
+                    video: product ? product.videos : null,
                     type: 'laptop'
                 };
         } else if (category.categoryName === 'Điện thoại') {
@@ -162,6 +163,8 @@ exports.getProductDetails = async (req, res) => {
                     battery: phone ? phone.battery : null,
                     storageCapacity: storage ? storage.storageCapacity : null,
                     storageType: storageType ? storageType.storageName : null,
+                    images: product ? product.images : [],
+                    video: product ? product.videos : null,
                     type: 'phone'
             };
         }

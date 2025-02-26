@@ -10,9 +10,13 @@ import { useAuthCheck } from '../../store/checkLogin';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
 import * as ImagePicker from 'expo-image-picker';
+import * as VideoThumbnails from 'expo-video-thumbnails';
+import { Video, ResizeMode } from 'expo-av';
+
 
 const API_URL = "http://10.0.2.2:5000/api/uploadmultiple";
-
+const API_URL_UPLOAD_VIDEO = "http://10.0.2.2:5000/api/uploadvideo";
+const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50 MB
 
 // Định nghĩa kiểu cho ảnh và video
 
@@ -112,7 +116,11 @@ export default function PostCreation() {
     // Lấy user từ Redux store
     const { user } = useSelector((state: RootState) => state.auth);
     const [avatarUrls, setAvatarUrls] = useState<string[]>([]);
+    const [video, setVideo] = useState<string | null>(null);
+    const [videoUrl, setVideoUrl] = useState<string | null>(null);
+    const [thumbnail, setThumbnail] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [videoloading, setVideoLoading] = useState(false);
     // States cho các trường select
     const checkAuth = useAuthCheck();
     const [selectedCategory, setSelectedCategory] = useState("");
@@ -380,10 +388,10 @@ export default function PostCreation() {
             return;
         }
 
-        if(avatarUrls.length === 0) {
+        if (avatarUrls.length === 0) {
             Alert.alert('Thông báo', 'Vui lòng chọn ảnh sản phẩm');
             return;
-        }else if(avatarUrls.length > 6){
+        } else if (avatarUrls.length > 6) {
             Alert.alert('Thông báo', 'Vui lòng chọn tối đa 6 ảnh sản phẩm');
             return;
         }
@@ -402,7 +410,7 @@ export default function PostCreation() {
                 isVip: selectedPostType === "Đăng tin trả phí",
                 isSold: false,
                 warranty: selectedWarranty,
-                videos: [],
+                videos: videoUrl,
                 location: {
                     provinceCode: selectedProvince,
                     provinceName: provinces.find(p => p.code === selectedProvince)?.name,
@@ -412,7 +420,7 @@ export default function PostCreation() {
                     wardName: wards.find(w => w.code === selectedWard)?.name,
                     detailAddress: detailAddress,
                     fullAddress: selectedLocation
-                }, 
+                },
                 images: avatarUrls
             };
 
@@ -579,6 +587,71 @@ export default function PostCreation() {
             setLoading(false);
         }
     };
+
+    const selectVideo = async () => {
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+        if (!permissionResult.granted) {
+            Alert.alert("Permission to access camera roll is required!");
+            return;
+        }
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+            quality: 1,
+        });
+
+        if (!result.canceled) {
+            const videoUri = result.assets[0].uri;
+            const videoInfo = await fetch(videoUri);
+            const videoBlob = await videoInfo.blob();
+
+            if (videoBlob.size > MAX_VIDEO_SIZE) {
+                Alert.alert("Video too large", "Please select a video smaller than 50 MB.");
+                return;
+            }
+
+            setVideo(videoUri);
+
+            // Generate video thumbnail
+            try {
+                const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, { time: 1000 });
+                setThumbnail(uri);
+            } catch (err) {
+                console.error("Thumbnail generation error:", err);
+            }
+        }
+    };
+
+    const uploadVideo = async () => {
+        if (!video) {
+            Alert.alert("Please select a video first");
+            return;
+        }
+
+        setVideoLoading(true);
+
+        try {
+            const formData = new FormData();
+            formData.append("video", {
+                uri: video,
+                type: "video/mp4",
+                name: "video.mp4",
+            } as any);
+
+            const response = await axios.post<{ url: string; success: boolean; message: string }>(API_URL_UPLOAD_VIDEO, formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+
+            setVideoUrl(response.data.url);
+            Alert.alert("Upload Successful", "Video uploaded successfully");
+        } catch (error) {
+            console.error("Upload Error:", error);
+            Alert.alert("Upload Failed", "Something went wrong.");
+        } finally {
+            setVideoLoading(false);
+        }
+    };
     return (
         <View className='w-full h-full bg-white p-4'>
             <ScrollView>
@@ -605,8 +678,7 @@ export default function PostCreation() {
                     <View className='flex-col gap-2'>
                         <View className='border-2 border-[#D9D9D9] rounded-lg p-3 flex-col items-center'>
                             <Text className='text-[#9661D9] font-semibold self-end'>Đăng từ 01 đến 06 hình</Text>
-                            {images.length < 0 && <Icon name='camera' size={40} color='#9661D9' />}
-
+                            <View style={{display: images.length > 0 ? 'none' : 'flex', marginTop: 10 }}> <Icon name='camera'  size={40} color='#9661D9' /></View>
                             {images.length > 0 && <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 20, marginTop: 20, marginBottom: 20 }}>
                                 {images.map((image, index) => (
                                     <Image key={index} source={{ uri: image }} style={{ width: 100, height: 100, borderRadius: 5, margin: 10 }} />
@@ -619,8 +691,8 @@ export default function PostCreation() {
                                     </View>
                                 ))}
                             </View>} */}
-                            {loading && <ActivityIndicator size="large" color="blue" style={{marginTop: 10, marginBottom: 10}} />}
-                            <View style={{ flexDirection: "row", justifyContent: "center", gap: 20, marginBottom: 20 , marginTop: images.length > 0 ? 0 : 20 }}>
+                            {loading && <ActivityIndicator size="large" color="blue" style={{ marginTop: 10, marginBottom: 10 }} />}
+                            <View style={{ flexDirection: "row", justifyContent: "center", gap: 20, marginBottom: 20, marginTop: images.length > 0 ? 0 : 20 }}>
                                 <Button title="Chọn ảnh" onPress={selectImages} />
                                 <Button title="Tải ảnh lên" onPress={uploadImages} disabled={images.length > 0 ? false : true} />
                             </View>
@@ -629,21 +701,22 @@ export default function PostCreation() {
                     </View>
                     <View className='flex-col gap-2'>
                         <View className='border-2 border-[#D9D9D9] rounded-lg p-3 flex-col items-center'>
-                            <Icon className='mt-4' name='video-camera' size={40} color='#9661D9' />
-                            <TouchableHighlight
-                                onPress={() => { }}
-                                underlayColor="#DDDDDD"
-                                style={{ padding: 10, alignItems: 'center' }}
-                            >
-                                <Text className='font-bold uppercase'>Đăng tối đa 01 video sản phẩm</Text>
-                            </TouchableHighlight>
-                            <ScrollView horizontal>
-                                {videos.map((video, index) => (
-                                    <Text key={index} style={{ margin: 5 }}>
-                                        {video.uri ? video.uri.split('/').pop() : 'Video chưa chọn'} {/* Hiển thị tên video */}
-                                    </Text>
-                                ))}
-                            </ScrollView>
+                            <Text className='text-[#9661D9] font-semibold self-end'>Đăng tối đa 1 video dưới 50MB</Text>
+                            {!video && <Icon className='mt-4' name='video-camera' size={40} color='#9661D9' />}
+                            {video && (
+                                <Video
+                                    source={{ uri: video }}
+                                    style={{ width: 300, height: 200, marginTop: 10 }}
+                                    useNativeControls
+                                    resizeMode={ResizeMode.CONTAIN}
+                                />
+                            )}
+                            {videoloading && <ActivityIndicator size="large" color="blue" style={{ marginBottom: 20, }}/>}
+                            <View style={{ flexDirection: "row", justifyContent: "center", gap: 20, marginBottom: 20, marginTop: images.length > 0 ? 0 : 20 }}>
+                                <Button title="Chọn video" onPress={selectVideo} />
+                                <Button disabled={video ? false : true} title="Tải video lên" onPress={uploadVideo} />
+                            </View>
+
                         </View>
                     </View>
                     <View className='flex-col gap-2'>
