@@ -63,6 +63,7 @@ export default function RootLayout() {
             <Stack.Screen name="searchResults" options={{ title: 'Kết quả tìm kiếm', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff', headerTitleAlign: 'center' }} />
             <Stack.Screen name="chat" options={{ title: 'Trò chuyện', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff', headerTitleAlign: 'center' }} />
             <Stack.Screen name="hiddenPosts" options={{ title: 'Ẩn bài đăng', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff', headerTitleAlign: 'center' }} />
+            <Stack.Screen name="vanhuongtest" options={{ title: 'Van Huong Test', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff', headerTitleAlign: 'center' }} />
 
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="_sitemap" options={{ title: 'Sitemap' }} />

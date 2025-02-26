@@ -10,7 +10,7 @@ import {
 import React, { useContext, useEffect, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/FontAwesome";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import { NotificationContext } from "@/context/NotificationContext";
@@ -42,6 +42,7 @@ interface User {
 }
 
 export default function HomePage() {
+  const router = useRouter();
   const { notifications, showNotification } = useContext(NotificationContext);
   const [text, onChangeText] = React.useState("");
   const [reportVisible, setReportVisible] = useState(false); // State để theo dõi trạng thái hiển thị menu báo cáo
@@ -116,7 +117,7 @@ export default function HomePage() {
           value={text}
           placeholder="Tìm kiếm ..."
         />
-        <TouchableHighlight className="bg-[#9661D9] px-5 py-4 rounded-lg flex items-center justify-center">
+        <TouchableHighlight onPress={() => router.push('/vanhuongtest')} className="bg-[#9661D9] px-5 py-4 rounded-lg flex items-center justify-center">
           <Text className="text-[#fff] font-semibold text-[16px] text-center">
             Tìm kiếm
           </Text>

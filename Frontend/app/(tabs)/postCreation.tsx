@@ -1,4 +1,4 @@
-import { Text, View, ScrollView, TextInput, TouchableHighlight, Button, Image, Alert } from 'react-native'
+import { Text, View, ScrollView, ActivityIndicator, TextInput, TouchableHighlight, Button, Image, Alert } from 'react-native'
 
 import React, { useState, useEffect, useMemo } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -9,6 +9,10 @@ import axios from 'axios';
 import { useAuthCheck } from '../../store/checkLogin';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
+import * as ImagePicker from 'expo-image-picker';
+
+const API_URL = "http://10.0.2.2:5000/api/uploadmultiple";
+
 
 // Định nghĩa kiểu cho ảnh và video
 
@@ -107,7 +111,8 @@ interface OriginOption {
 export default function PostCreation() {
     // Lấy user từ Redux store
     const { user } = useSelector((state: RootState) => state.auth);
-
+    const [avatarUrls, setAvatarUrls] = useState<string[]>([]);
+    const [loading, setLoading] = useState(false);
     // States cho các trường select
     const checkAuth = useAuthCheck();
     const [selectedCategory, setSelectedCategory] = useState("");
@@ -133,7 +138,7 @@ export default function PostCreation() {
     const [battery, setBattery] = useState<string>('');
 
     // States cho media
-    const [images, setImages] = useState<Media[]>([]);
+    const [images, setImages] = useState<string[]>([]);
     const [videos, setVideos] = useState<Media[]>([]);
 
     // States cho data từ API
@@ -181,7 +186,7 @@ export default function PostCreation() {
         const fetchConditions = async () => {
             try {
                 const response = await axios.get('http://10.0.2.2:5000/api/conditions');
-                setConditions(response.data.data.data);
+                setConditions(response.data.data);
             } catch (error) {
                 console.error('Lỗi khi lấy danh sách tình trạng:', error);
             }
@@ -194,16 +199,16 @@ export default function PostCreation() {
         const fetchData = async () => {
             try {
                 const categoriesResponse = await axios.get<ApiResponse<Category>>('http://10.0.2.2:5000/api/categories');
-                setCategories(categoriesResponse.data.data.data);
+                setCategories(categoriesResponse.data.data);
 
                 const brandsResponse = await axios.get<ApiResponse<Brand>>('http://10.0.2.2:5000/api/brands');
-                setBrands(brandsResponse.data.data.data);
+                setBrands(brandsResponse.data.data);
 
                 const ramsResponse = await axios.get<ApiResponse<Ram>>('http://10.0.2.2:5000/api/rams');
-                setRams(ramsResponse.data.data.data);
+                setRams(ramsResponse.data.data);
 
                 const screensResponse = await axios.get<ApiResponse<Screen>>('http://10.0.2.2:5000/api/screens');
-                setScreens(screensResponse.data.data.data);
+                setScreens(screensResponse.data.data);
 
             } catch (error) {
                 console.error('Lỗi khi lấy dữ liệu:', error);
@@ -221,11 +226,11 @@ export default function PostCreation() {
                     axios.get('http://10.0.2.2:5000/api/storages'),
                     axios.get('http://10.0.2.2:5000/api/storage-types')
                 ]);
-                
-                setStorages(storagesResponse.data.data.data);
-                setStorageTypes(storageTypesResponse.data.data.data);
-                console.log('Storages:', storagesResponse.data.data.data);
-                console.log('Storage Types:', storageTypesResponse.data.data.data);
+
+                setStorages(storagesResponse.data.data);
+                setStorageTypes(storageTypesResponse.data.data);
+                console.log('Storages:', storagesResponse.data.data);
+                console.log('Storage Types:', storageTypesResponse.data.data);
             } catch (error) {
                 console.error('Lỗi khi lấy dữ liệu storage:', error);
             }
@@ -235,14 +240,14 @@ export default function PostCreation() {
     }, []);
 
     // Lọc brands theo category
-    const filteredBrands = brands.filter(brand => 
+    const filteredBrands = brands.filter(brand =>
         brand.categoryId === selectedCategory
     );
 
     // Kiểm tra xem có phải category laptop không
     const isLaptopCategory = useMemo(() => {
-        return selectedCategory && categories.find(cat => 
-            cat._id === selectedCategory && 
+        return selectedCategory && categories.find(cat =>
+            cat._id === selectedCategory &&
             cat.categoryName.toLowerCase() === 'laptop'
         );
     }, [selectedCategory, categories]);
@@ -250,12 +255,12 @@ export default function PostCreation() {
     // Lọc storages dựa trên điều kiện
     const filteredStorages = useMemo(() => {
         if (!selectedCategory) return [];
-        
+
         if (isLaptopCategory) {
             // Nếu là laptop, lọc theo storageType đã chọn
             return storages.filter(storage => {
-                const storageTypeId = typeof storage.storageTypeId === 'object' 
-                    ? storage.storageTypeId._id 
+                const storageTypeId = typeof storage.storageTypeId === 'object'
+                    ? storage.storageTypeId._id
                     : storage.storageTypeId;
                 return storageTypeId === selectedStorageType;
             });
@@ -267,7 +272,7 @@ export default function PostCreation() {
 
     // Lọc versions theo brand đã chọn
     const filteredVersions = useMemo(() => {
-        return versions.filter(version => 
+        return versions.filter(version =>
             version.brandId?._id === selectedBrand
         );
     }, [versions, selectedBrand]);
@@ -341,9 +346,9 @@ export default function PostCreation() {
         const provinceName = provinces.find(p => p.code === selectedProvince)?.name || '';
         const districtName = districts.find(d => d.code === selectedDistrict)?.name || '';
         const wardName = wards.find(w => w.code === selectedWard)?.name || '';
-        
+
         let fullAddress = '';
-        
+
         if (detailAddress) {
             fullAddress += detailAddress;
         }
@@ -356,7 +361,7 @@ export default function PostCreation() {
         if (provinceName) {
             fullAddress += fullAddress ? `, ${provinceName}` : provinceName;
         }
-        
+
         setSelectedLocation(fullAddress);
     };
 
@@ -367,11 +372,19 @@ export default function PostCreation() {
         }
 
         // Validate các trường bắt buộc
-        if (!selectedCategory || !selectedBrand || !selectedCondition || 
-            !selectedStorage || !selectedWarranty || !selectedOrigin || 
-            !title || !description || !price || !selectedPostType || 
+        if (!selectedCategory || !selectedBrand || !selectedCondition ||
+            !selectedStorage || !selectedWarranty || !selectedOrigin ||
+            !title || !description || !price || !selectedPostType ||
             !selectedRam) {
             Alert.alert('Thông báo', 'Vui lòng nhập đầy đủ thông tin sản phẩm');
+            return;
+        }
+
+        if(avatarUrls.length === 0) {
+            Alert.alert('Thông báo', 'Vui lòng chọn ảnh sản phẩm');
+            return;
+        }else if(avatarUrls.length > 6){
+            Alert.alert('Thông báo', 'Vui lòng chọn tối đa 6 ảnh sản phẩm');
             return;
         }
 
@@ -389,7 +402,6 @@ export default function PostCreation() {
                 isVip: selectedPostType === "Đăng tin trả phí",
                 isSold: false,
                 warranty: selectedWarranty,
-                images: [],
                 videos: [],
                 location: {
                     provinceCode: selectedProvince,
@@ -400,12 +412,13 @@ export default function PostCreation() {
                     wardName: wards.find(w => w.code === selectedWard)?.name,
                     detailAddress: detailAddress,
                     fullAddress: selectedLocation
-                }
+                }, 
+                images: avatarUrls
             };
 
             // Gọi API tạo product
             const productResponse = await axios.post('http://10.0.2.2:5000/api/products', productData);
-            const productId = productResponse.data.data.data._id;
+            const productId = productResponse.data.data._id;
 
             // Tạo laptop hoặc phone details tùy theo category
             const category = categories.find(cat => cat._id === selectedCategory);
@@ -447,7 +460,7 @@ export default function PostCreation() {
         setSelectedCategory(itemValue);
         setSelectedBrand("");
         setSelectedVersion(""); // Reset version khi đổi category
-        
+
         if (itemValue) {
             try {
                 // Lấy dữ liệu brands và versions
@@ -457,14 +470,14 @@ export default function PostCreation() {
                 ]);
 
                 console.log('Versions Response:', versionsRes.data); // Debug log
-                
-                setBrands(brandsRes.data.data.data);
-                setVersions(versionsRes.data.data.data);
+
+                setBrands(brandsRes.data.data);
+                setVersions(versionsRes.data.data);
 
                 // Kiểm tra category là laptop
                 const selectedCategoryObj = categories.find(cat => cat._id === itemValue);
                 const isLaptopCategory = selectedCategoryObj?.categoryName.toLowerCase() === 'laptop';
-                
+
                 console.log('Is Laptop Category:', isLaptopCategory);
 
                 if (isLaptopCategory) {
@@ -475,10 +488,10 @@ export default function PostCreation() {
                         axios.get<ApiResponse<StorageType>>('http://10.0.2.2:5000/api/storage-types')
                     ]);
 
-                    setCpus(cpusRes.data.data.data);
-                    setGpus(gpusRes.data.data.data);
-                    setScreens(screensRes.data.data.data);
-                    setStorageTypes(storageTypesRes.data.data.data);
+                    setCpus(cpusRes.data.data);
+                    setGpus(gpusRes.data.data);
+                    setScreens(screensRes.data.data);
+                    setStorageTypes(storageTypesRes.data.data);
                 }
             } catch (error) {
                 console.error('Lỗi khi lấy dữ liệu:', error);
@@ -514,6 +527,58 @@ export default function PostCreation() {
         checkAuth()
     }, [checkAuth]);
 
+    const selectImages = async () => {
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+        if (permissionResult.granted === false) {
+            Alert.alert("Permission to access camera roll is required!");
+            return;
+        }
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsMultipleSelection: true,
+            quality: 1,
+        });
+
+        if (!result.canceled) {
+            const selectedImages = result.assets.map(asset => asset.uri);
+            setImages(selectedImages);
+        }
+    };
+
+    const uploadImages = async () => {
+        if (images.length === 0) {
+            Alert.alert("Please select images first");
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const formData = new FormData();
+            images.forEach((image, index) => {
+                formData.append("images", {
+                    uri: image,
+                    type: "image/jpeg",
+                    name: `avatar-${index}.jpg`,
+                } as any);
+            });
+
+            const response = await axios.post<{ urls: string[], success: boolean, message: string }>(API_URL, formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+
+            setAvatarUrls(response.data.urls);
+            // setImages([]);
+            Alert.alert("Upload Successful", "Images uploaded successfully");
+        } catch (error) {
+            console.error("Upload Error:", error);
+            Alert.alert("Upload Failed", "Something went wrong.");
+        } finally {
+            setLoading(false);
+        }
+    };
     return (
         <View className='w-full h-full bg-white p-4'>
             <ScrollView>
@@ -527,10 +592,10 @@ export default function PostCreation() {
                             >
                                 <Picker.Item label="Chọn danh mục" value="" />
                                 {categories.map(category => (
-                                    <Picker.Item 
-                                        key={category._id} 
-                                        label={category.categoryName} 
-                                        value={category._id} 
+                                    <Picker.Item
+                                        key={category._id}
+                                        label={category.categoryName}
+                                        value={category._id}
                                     />
                                 ))}
                             </Picker>
@@ -539,24 +604,27 @@ export default function PostCreation() {
                     <Text className='font-bold text-[16px] uppercase'>Thông tin chi tiết</Text>
                     <View className='flex-col gap-2'>
                         <View className='border-2 border-[#D9D9D9] rounded-lg p-3 flex-col items-center'>
-                            <Text className='text-[#9661D9] font-semibold self-end'>Hình ảnh hợp lệ</Text>
-                            <Icon name='camera' size={40} color='#9661D9' />
-                            <TouchableHighlight
-                                onPress={() => { }}
-                                underlayColor="#DDDDDD"
-                                style={{ padding: 10, alignItems: 'center' }}
-                            >
-                                <Text className='font-bold uppercase'>Đăng từ 01 đến 06 hình</Text>
-                            </TouchableHighlight>
-                            <ScrollView horizontal>
+                            <Text className='text-[#9661D9] font-semibold self-end'>Đăng từ 01 đến 06 hình</Text>
+                            {images.length < 0 && <Icon name='camera' size={40} color='#9661D9' />}
+
+                            {images.length > 0 && <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 20, marginTop: 20, marginBottom: 20 }}>
                                 {images.map((image, index) => (
-                                    <Image
-                                        key={index}
-                                        source={{ uri: image.uri }}
-                                        style={{ width: 100, height: 100, margin: 5 }}
-                                    />
+                                    <Image key={index} source={{ uri: image }} style={{ width: 100, height: 100, borderRadius: 5, margin: 10 }} />
                                 ))}
-                            </ScrollView>
+                            </View>}
+                            {/* {avatarUrls.length > 0 && <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 20, marginTop: 20, marginBottom: 20 }}>
+                                {avatarUrls.map((url, index) => (
+                                    <View key={index} style={{ alignItems: "center" }}>
+                                        <Image source={{ uri: url }} style={{ width: 100, height: 100, borderRadius: 5 }} />
+                                    </View>
+                                ))}
+                            </View>} */}
+                            {loading && <ActivityIndicator size="large" color="blue" style={{marginTop: 10, marginBottom: 10}} />}
+                            <View style={{ flexDirection: "row", justifyContent: "center", gap: 20, marginBottom: 20 , marginTop: images.length > 0 ? 0 : 20 }}>
+                                <Button title="Chọn ảnh" onPress={selectImages} />
+                                <Button title="Tải ảnh lên" onPress={uploadImages} disabled={images.length > 0 ? false : true} />
+                            </View>
+                            {/* </ScrollView> */}
                         </View>
                     </View>
                     <View className='flex-col gap-2'>
@@ -607,10 +675,10 @@ export default function PostCreation() {
                                     >
                                         <Picker.Item label="Chọn hãng" value="" />
                                         {Array.isArray(brands) && brands.map(brand => (
-                                            <Picker.Item 
-                                                key={brand._id} 
-                                                label={brand.brandName} 
-                                                value={brand._id} 
+                                            <Picker.Item
+                                                key={brand._id}
+                                                label={brand.brandName}
+                                                value={brand._id}
                                             />
                                         ))}
                                     </Picker>
@@ -626,10 +694,10 @@ export default function PostCreation() {
                                         >
                                             <Picker.Item label="Chọn dòng máy" value="" />
                                             {filteredVersions.map(version => (
-                                                <Picker.Item 
-                                                    key={version._id} 
-                                                    label={version.versionName} 
-                                                    value={version._id} 
+                                                <Picker.Item
+                                                    key={version._id}
+                                                    label={version.versionName}
+                                                    value={version._id}
                                                 />
                                             ))}
                                         </Picker>
@@ -649,10 +717,10 @@ export default function PostCreation() {
                                     >
                                         <Picker.Item label="Chọn CPU" value="" />
                                         {Array.isArray(cpus) && cpus.map(cpu => (
-                                            <Picker.Item 
-                                                key={cpu._id} 
-                                                label={cpu.cpuName} 
-                                                value={cpu._id} 
+                                            <Picker.Item
+                                                key={cpu._id}
+                                                label={cpu.cpuName}
+                                                value={cpu._id}
                                             />
                                         ))}
                                     </Picker>
@@ -667,10 +735,10 @@ export default function PostCreation() {
                                     >
                                         <Picker.Item label="Chọn GPU" value="" />
                                         {Array.isArray(gpus) && gpus.map(gpu => (
-                                            <Picker.Item 
-                                                key={gpu._id} 
-                                                label={gpu.gpuName} 
-                                                value={gpu._id} 
+                                            <Picker.Item
+                                                key={gpu._id}
+                                                label={gpu.gpuName}
+                                                value={gpu._id}
                                             />
                                         ))}
                                     </Picker>
@@ -685,10 +753,10 @@ export default function PostCreation() {
                                     >
                                         <Picker.Item label="Chọn kích thước màn hình" value="" />
                                         {Array.isArray(screens) && screens.map(screen => (
-                                            <Picker.Item 
-                                                key={screen._id} 
-                                                label={screen.screenSize} 
-                                                value={screen._id} 
+                                            <Picker.Item
+                                                key={screen._id}
+                                                label={screen.screenSize}
+                                                value={screen._id}
                                             />
                                         ))}
                                     </Picker>
@@ -703,7 +771,7 @@ export default function PostCreation() {
                                     >
                                         <Picker.Item label="Chọn loại ổ cứng" value="" />
                                         {storageTypes.map(type => (
-                                            <Picker.Item 
+                                            <Picker.Item
                                                 key={type._id}
                                                 label={type.storageName}
                                                 value={type._id}
@@ -722,10 +790,10 @@ export default function PostCreation() {
                                 onValueChange={(itemValue) => setSelectedRam(itemValue)}
                             >
                                 {rams.map(ram => (
-                                    <Picker.Item 
-                                        key={ram._id} 
-                                        label={ram.ramCapacity} 
-                                        value={ram._id} 
+                                    <Picker.Item
+                                        key={ram._id}
+                                        label={ram.ramCapacity}
+                                        value={ram._id}
                                     />
                                 ))}
                             </Picker>
@@ -734,12 +802,12 @@ export default function PostCreation() {
                     <View className='flex-col gap-2'>
                         <Text className='font-bold text-[16px]'>Dung lượng pin<Text className='text-[#DC143C]'>*</Text>
                         </Text>
-                            <TextInput
-                                className='border-2 border-[#D9D9D9] rounded-lg px-2 py-5 font-semibold'
-                                placeholder='Nhập dung lượng pin'
-                                value={battery}
-                                onChangeText={setBattery}
-                            />
+                        <TextInput
+                            className='border-2 border-[#D9D9D9] rounded-lg px-2 py-5 font-semibold'
+                            placeholder='Nhập dung lượng pin'
+                            value={battery}
+                            onChangeText={setBattery}
+                        />
                     </View>
                     {selectedCategory && (
                         <View className='flex-col gap-2'>
@@ -750,16 +818,16 @@ export default function PostCreation() {
                                     onValueChange={(itemValue) => setSelectedStorage(itemValue)}
                                     enabled={!isLaptopCategory || (isLaptopCategory && selectedStorageType !== "")}
                                 >
-                                    <Picker.Item 
+                                    <Picker.Item
                                         label={
-                                            isLaptopCategory && !selectedStorageType 
-                                                ? "Vui lòng chọn loại ổ cứng trước" 
+                                            isLaptopCategory && !selectedStorageType
+                                                ? "Vui lòng chọn loại ổ cứng trước"
                                                 : "Chọn dung lượng bộ nhớ"
-                                        } 
-                                        value="" 
+                                        }
+                                        value=""
                                     />
                                     {filteredStorages.map(storage => (
-                                        <Picker.Item 
+                                        <Picker.Item
                                             key={storage._id}
                                             label={storage.storageCapacity}
                                             value={storage._id}
@@ -792,10 +860,10 @@ export default function PostCreation() {
                                 onValueChange={(itemValue) => setSelectedOrigin(itemValue)}
                             >
                                 {originOptions.map((option, index) => (
-                                    <Picker.Item 
-                                        key={index} 
-                                        label={option.label} 
-                                        value={option.value} 
+                                    <Picker.Item
+                                        key={index}
+                                        label={option.label}
+                                        value={option.value}
                                     />
                                 ))}
                             </Picker>
@@ -811,7 +879,7 @@ export default function PostCreation() {
                     </View>
                     <Text className='font-bold text-[16px] uppercase'>Tiêu đề tin đăng và mô tả chi tiết</Text>
                     <View className='flex-col gap-2'>
-                        <Text className='font-bold text-[16px]'>Tiêu đề<Text className='text-[#DC143C]'>*</Text></Text>               
+                        <Text className='font-bold text-[16px]'>Tiêu đề<Text className='text-[#DC143C]'>*</Text></Text>
                         <TextInput
                             className='border-2 border-[#D9D9D9] rounded-lg px-2 py-5 font-semibold'
                             placeholder='Nhập tiêu đề'
@@ -852,7 +920,7 @@ export default function PostCreation() {
                             >
                                 <Picker.Item label="Chọn Tỉnh/Thành phố" value="" />
                                 {provinces.map(province => (
-                                    <Picker.Item 
+                                    <Picker.Item
                                         key={province.code}
                                         label={province.name}
                                         value={province.code}
@@ -872,7 +940,7 @@ export default function PostCreation() {
                                 >
                                     <Picker.Item label="Chọn Quận/Huyện" value="" />
                                     {districts.map(district => (
-                                        <Picker.Item 
+                                        <Picker.Item
                                             key={district.code}
                                             label={district.name}
                                             value={district.code}
@@ -893,7 +961,7 @@ export default function PostCreation() {
                                 >
                                     <Picker.Item label="Chọn Phường/Xã" value="" />
                                     {wards.map(ward => (
-                                        <Picker.Item 
+                                        <Picker.Item
                                             key={ward.code}
                                             label={ward.name}
                                             value={ward.code}
@@ -923,7 +991,7 @@ export default function PostCreation() {
                             </Text>
                         </View>
                     )}
-                    <TouchableHighlight 
+                    <TouchableHighlight
                         className="rounded-lg mt-4 self-end"
                         onPress={handleSubmit}
                     >
@@ -944,3 +1012,4 @@ export default function PostCreation() {
     )
 }
 //npm install react-native-image-picker
+
