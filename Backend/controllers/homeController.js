@@ -22,7 +22,7 @@ exports.getHomeProducts = async (req, res) => {
         // Kết hợp thông tin sản phẩm từ laptop
         const laptopProducts = await Promise.all(
             laptops.map(async (laptop) => {
-                const product = await Product.findById(laptop.productId).select('-images');
+                const product = await Product.findById(laptop.productId);
                 if (!product) return null;
 
                 const ram = await Ram.findById(laptop.ramId);
@@ -35,14 +35,19 @@ exports.getHomeProducts = async (req, res) => {
                 const storage = await Storage.findById(laptop.storageId);
                 const storageType = storage ? await StorageType.findById(storage.storageTypeId) : null;
 
+                console.log(product);
+
                 return {
                     id: product._id,
                     title: product.title,
+                    images: product ? product.images : [],
+                    video: product ? product.videos : null,
                     configuration: product.description,
                     price: product.price,
                     address: product.location.fullAddress,
                     postingDate: product.createdAt,
                     nameUser: user ? user.name : null,
+                    avatarUrl: user ? user.avatarUrl : null,
                     brandName: brand ? brand.brandName : null,
                     ramCapacity: ram ? ram.capacity : null,
                     cpuName: cpu ? cpu.name : null,
@@ -58,18 +63,21 @@ exports.getHomeProducts = async (req, res) => {
         // Kết hợp thông tin sản phẩm từ điện thoại
         const phoneProducts = await Promise.all(
             phones.map(async (phone) => {
-                const product = await Product.findById(phone.productId).select('-images');
+                const product = await Product.findById(phone.productId);
                 if (!product) return null;
 
                 const ram = await Ram.findById(phone.ramId);
                 const user = await User.findById(product.userId);
                 const version = await Version.findById(product.versionId);
                 const brand = version ? await Brand.findById(version.brandId) : null;
-
+                console.log(product);
                 return {
                     id: product._id,
                     title: product.title,
+                    images: product ? product.images : [],
+                    video: product ? product.videos : null,
                     configuration: product.description,
+                    avatarUrl: user ? user.avatarUrl : null,
                     price: product.price,
                     address: product.location.fullAddress,
                     postingDate: product.createdAt,

@@ -14,7 +14,7 @@ const productSchema = new mongoose.Schema({
     isSold: { type: Boolean, default: false },
     warranty: { type: String, default: '' },
     images: { type: [String], default: [] },
-    videos: { type: [String], default: [] },
+    videos: { type: String, default: '' },
     location: {
         provinceCode: {
             type: String,
