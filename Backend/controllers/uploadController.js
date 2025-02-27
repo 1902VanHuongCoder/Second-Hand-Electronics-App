@@ -4,8 +4,7 @@ const cloudinary = require('../cloundinaryConfig');
 const multer = require('multer');
 const axios = require('axios');
 const fs = require('fs');
-const FormData = require('form-data');
-const crypto = require('crypto');
+const sharp = require('sharp');
 
 // Cấu hình multer storage
 const storage = multer.diskStorage({
@@ -31,74 +30,6 @@ exports.upload = multer({
   }
 });
 
-// Hàm kiểm tra nội dung không phù hợp sử dụng Imagga
-async function checkInappropriateContent(imagePath) {
-  try {
-    const formData = new FormData();
-    
-    // Đọc file và thêm vào form data với key là 'image'
-    const imageFile = fs.createReadStream(imagePath);
-    formData.append('image', imageFile);
-    
-    const baseUrl = 'https://api.imagga.com/v2';
-    const response = await axios({
-      method: 'post',
-      url: `${baseUrl}/tags`,  // Sử dụng endpoint /tags để phân tích ảnh
-      data: formData,
-      headers: {
-        'Authorization': `Basic ${Buffer.from(`${process.env.IMAGGA_API_KEY}:${process.env.IMAGGA_API_SECRET}`).toString('base64')}`,
-        ...formData.getHeaders(),
-        'Accept': 'application/json'
-      },
-      maxContentLength: Infinity,
-      maxBodyLength: Infinity
-    });
-
-    // Kiểm tra kết quả phân tích
-    if (response.data && response.data.result) {
-      const tags = response.data.result.tags;
-      // Danh sách các tag không phù hợp
-      const inappropriateTags = ['nude', 'adult', 'nsfw', 'explicit'];
-      
-      // Kiểm tra xem có tag không phù hợp nào với confidence > 30%
-      return tags.some(tag => 
-        inappropriateTags.includes(tag.tag.en.toLowerCase()) && 
-        tag.confidence > 80
-      );
-    }
-    
-    return false;
-  } catch (error) {
-    console.error('Error checking content:', {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status,
-      headers: error.response?.headers
-    });
-    // Trong trường hợp lỗi, cho phép upload
-    return false;
-  }
-}
-
-async function generateImageHash(imagePath) {
-  return new Promise((resolve, reject) => {
-    const hash = crypto.createHash('md5');
-    const stream = fs.createReadStream(imagePath);
-    
-    stream.on('data', (data) => {
-      hash.update(data);
-    });
-    
-    stream.on('end', () => {
-      resolve(hash.digest('hex'));
-    });
-    
-    stream.on('error', (err) => {
-      reject(err);
-    });
-  });
-}
-
 // Hàm lấy danh sách ảnh từ Cloudinary
 async function getExistingImages() {
   try {
@@ -107,7 +38,6 @@ async function getExistingImages() {
       prefix: 'profile_pictures/',
       max_results: 500,
     });
-    // Trả về mảng URL của ảnh
     return response.resources.map(resource => resource.secure_url);
   } catch (error) {
     console.error('Error fetching images from Cloudinary:', error);
@@ -115,90 +45,161 @@ async function getExistingImages() {
   }
 }
 
+// Hàm tạo pHash
+async function generatePHash(imagePath) {
+  try {
+    const buffer = await sharp(imagePath)
+      .resize(32, 32, { fit: 'fill' })
+      .grayscale()
+      .raw()
+      .toBuffer();
+
+    const pixels = new Uint8Array(buffer);
+    const average = pixels.reduce((sum, val) => sum + val, 0) / pixels.length;
+
+    let hash = '';
+    for (let i = 0; i < pixels.length; i++) {
+      hash += pixels[i] > average ? '1' : '0';
+    }
+
+    return hash;
+  } catch (error) {
+    console.error('Error generating pHash:', error);
+    throw error;
+  }
+}
+
+// Hàm tính khoảng cách Hamming
+function getHammingDistance(hash1, hash2) {
+  let distance = 0;
+  for (let i = 0; i < hash1.length; i++) {
+    if (hash1[i] !== hash2[i]) {
+      distance++;
+    }
+  }
+  return distance;
+}
+
+// Thêm hàm helper để xóa file
+const deleteFile = (filePath) => {
+  return new Promise((resolve) => {
+    fs.unlink(filePath, (err) => {
+      if (err) console.error('Error deleting file:', err);
+      resolve();
+    });
+  });
+};
+
 exports.uploadMulti = async (req, res) => {
+  const tempFiles = []; // Mảng lưu đường dẫn các file tạm
+  
   try {
     const urls = [];
     const files = req.files;
-    let hasInappropriateContent = false;
-    const inappropriateFiles = [];
-    const seenHashes = new Set(); // Set để lưu hash của các ảnh đã upload
+    const duplicateFiles = [];
+    const seenHashes = new Set();
 
-    // Lấy danh sách hash của ảnh đã có từ Cloudinary
+    // Lấy và tạo hash cho ảnh hiện có
     const existingImages = await getExistingImages();
-    const existingHashes = new Set(); // Set để lưu hash của ảnh đã tồn tại
+    const existingHashes = [];
 
-    // Tạo hash cho tất cả ảnh hiện có
     for (const image of existingImages) {
       try {
         const response = await axios.get(image, { responseType: 'arraybuffer' });
-        const buffer = Buffer.from(response.data);
-        const hash = crypto.createHash('md5').update(buffer).digest('hex');
-        existingHashes.add(hash);
+        const tempPath = `./uploads/temp_${Date.now()}.jpg`;
+        fs.writeFileSync(tempPath, response.data);
+        tempFiles.push(tempPath); // Thêm vào danh sách file cần xóa
+        const hash = await generatePHash(tempPath);
+        existingHashes.push(hash);
       } catch (error) {
         console.error('Error generating hash for existing image:', error);
       }
     }
 
     for (const file of files) {
+      tempFiles.push(file.path); // Thêm file upload vào danh sách cần xóa
       try {
-        // Kiểm tra nội dung không phù hợp
-        const isInappropriate = await checkInappropriateContent(file.path);
+        const newHash = await generatePHash(file.path);
+        let isDuplicate = false;
 
-        if (isInappropriate) {
-          hasInappropriateContent = true;
-          inappropriateFiles.push(file.originalname);
+        // Kiểm tra với ảnh đã có
+        for (const existingHash of existingHashes) {
+          const distance = getHammingDistance(newHash, existingHash);
+           console.log(distance);
+          if (distance < 20) {
+           console.log(distance);
+            isDuplicate = true;
+            break;
+          }
+        }
+
+        // Kiểm tra với ảnh trong cùng lần upload
+        for (const seenHash of seenHashes) {
+          const distance = getHammingDistance(newHash, seenHash);
+          if (distance < 10) {
+            isDuplicate = true;
+            break;
+          }
+        }
+
+        if (isDuplicate) {
+          duplicateFiles.push(file.originalname);
           continue;
         }
 
-        // Tạo hash cho ảnh mới
-        const hash = await generateImageHash(file.path);
-        
-        // Kiểm tra ảnh trùng lặp với ảnh đã có và ảnh trong cùng lần upload
-        if (existingHashes.has(hash) || seenHashes.has(hash)) {
-          inappropriateFiles.push(file.originalname);
-          hasInappropriateContent = true;
-          continue;
-        }
+        seenHashes.add(newHash);
 
-        // Thêm hash vào set
-        seenHashes.add(hash);
-
-        // Upload lên Cloudinary nếu ảnh phù hợp
+        // Upload lên Cloudinary
         const result = await cloudinary.uploader.upload(file.path, {
           folder: 'profile_pictures',
         });
         urls.push(result.secure_url);
-      } finally {
-        // Xóa file tạm sau khi xử lý xong
-        fs.unlink(file.path, (err) => {
-          if (err) console.error('Error deleting temp file:', err);
-        });
+      } catch (error) {
+        console.error('Error processing file:', error);
       }
     }
 
-    if (hasInappropriateContent) {
+    // Xóa tất cả file tạm
+    await Promise.all(tempFiles.map(file => deleteFile(file)));
+
+    if (duplicateFiles.length > 0) {
       return res.status(400).json({
         success: false,
-        message: 'Một số ảnh có nội dung không phù hợp hoặc trùng lặp',
+        message: 'Phát hiện ảnh trùng lặp',
         details: { 
-          hasInappropriateContent: true,
-          inappropriateFiles: inappropriateFiles,
-          isDuplicate: true
+          duplicateFiles: duplicateFiles
         }
       });
     }
 
     res.json({
       success: true,
-      message: 'Images uploaded successfully',
+      message: 'Tải ảnh lên thành công',
       urls: urls,
     });
+
   } catch (error) {
     console.error('Error uploading images:', error);
+    // Đảm bảo xóa file tạm ngay cả khi có lỗi
+    await Promise.all(tempFiles.map(file => deleteFile(file)));
+    
     res.status(500).json({ 
       success: false, 
-      message: 'Error uploading images',
+      message: 'Lỗi khi tải ảnh lên',
       error: error.message 
     });
   }
 };
+
+// Thêm cleanup định kỳ để đảm bảo
+setInterval(() => {
+  fs.readdir('./uploads', (err, files) => {
+    if (err) return;
+    files.forEach(file => {
+      const filePath = `./uploads/${file}`;
+      fs.unlink(filePath, err => {
+        if (err) console.error('Error deleting leftover file:', err);
+      });
+    });
+  });
+}, 100000); // Chạy mỗi 30 '
