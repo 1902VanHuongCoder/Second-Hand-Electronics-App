@@ -38,6 +38,7 @@
     "expo-status-bar": "~2.0.1",
     "expo-symbols": "~0.2.2",
     "expo-system-ui": "~4.0.8",
+    "expo-video-thumbnails": "~9.0.3",
     "expo-web-browser": "~14.0.2",
     "nativewind": "^4.1.23",
     "react": "18.3.1",
@@ -53,10 +54,10 @@
     "react-native-snap-carousel": "^3.9.1",
     "react-native-super-grid": "^6.0.1",
     "react-native-vector-icons": "^10.2.0",
+    "react-native-video": "^6.10.2",
     "react-native-web": "~0.19.13",
     "react-native-webview": "13.12.5",
-    "react-redux": "^9.2.0",
-    "expo-video-thumbnails": "~9.0.3"
+    "react-redux": "^9.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
