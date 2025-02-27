@@ -33,6 +33,8 @@ interface Product {
   screenSize?: string | null; // Thêm screenSize
   storageCapacity?: string | null; // Thêm storageCapacity
   storageType?: string | null; // Thêm storageType// Sẽ sử dụng fullAddress từ backend
+  images: string[];
+  avatarUrl: string;
 }
 
 // Định nghĩa kiểu cho người dùng
@@ -60,6 +62,9 @@ export default function HomePage() {
       try {
 
         const response = await axios.get<Product[]>('http://10.0.2.2:5000/api/home');
+
+        console.log("Post data", response.data);
+        
         setProducts(response.data);
 
         // Lấy thông tin người dùng cho từng sản phẩm
@@ -177,7 +182,7 @@ export default function HomePage() {
                 <Link href={`/postDetails?id=${product.id}`}>
                   <Image
                     style={{ width: 170, height: 170 }}
-                    source={require("../assets/images/z6316149378615_f6d6f665171bf597c35f86bf13ca61b2.jpg")}
+                    source={{ uri: product.images[0] }}
                   />
                 </Link>
                 <View className="w-[50%] flex-col gap-1">
@@ -212,7 +217,7 @@ export default function HomePage() {
                   <Image
                     style={{ width: 50, height: 50 }}
                     className="rounded-full"
-                    source={require("../assets/images/z6186705977978_00edd678a64db50dba5ef61a50391611.jpg")}
+                    source={{uri: product.avatarUrl}} 
                   />
                   <View>
                     <Text className="font-medium text-[14px]">Người bán</Text>

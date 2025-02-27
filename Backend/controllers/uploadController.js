@@ -191,6 +191,7 @@ exports.uploadMulti = async (req, res) => {
   }
 };
 
+
 // Thêm cleanup định kỳ để đảm bảo
 setInterval(() => {
   fs.readdir('./uploads', (err, files) => {
@@ -203,3 +204,23 @@ setInterval(() => {
     });
   });
 }, 100000); // Chạy mỗi 30 '
+
+
+// Function to upload a video to Cloudinary
+exports.uploadVideo = async (req, res) => {
+  try {
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      resource_type: 'video', // Specify the resource type as video
+      folder: 'videos', // Optional: specify a folder in Cloudinary
+    });
+
+    res.json({
+      success: true,
+      message: 'Video uploaded successfully',
+      url: result.secure_url,
+    });
+  } catch (error) {
+    console.error('Error uploading video:', error);
+    res.status(500).json({ success: false, message: 'Error uploading video' });
+  }
+};

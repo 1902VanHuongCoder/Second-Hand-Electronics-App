@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Image, Pressable } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Dimensions, Image, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import Carousel from '@/components/Carousel';
-import { Link, useRouter } from 'expo-router';
 import axios from 'axios';
 import { useLocalSearchParams } from 'expo-router';
-import { ParsedUrlQuery } from 'querystring';
 import { useAuthCheck } from '../store/checkLogin';
+import { Video, ResizeMode } from 'expo-av';
+
 // Định nghĩa kiểu cho sản phẩm
 interface Product {
   id: string;
@@ -27,9 +26,12 @@ interface Product {
   screenSize?: string | null;
   storageCapacity?: string | null;
   storageType?: string | null;
+  video: string | null;
+  images: string[];
 }
 
-const { width: viewportWidth } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
+
 
 export default function PostDetailsScreen() {
   const [product, setProduct] = useState<Product | null>(null);
@@ -43,7 +45,6 @@ export default function PostDetailsScreen() {
       try {
         const response = await axios.get(`http://10.0.2.2:5000/api/products/details/${id}`);
         setProduct(response.data as Product);
-        console.log(response.data)
       } catch (error) {
         console.error('Error fetching product details:', error);
       }
@@ -52,30 +53,20 @@ export default function PostDetailsScreen() {
     fetchProductDetails();
   }, [id]);
 
-  // const getDisplayAddress = (product: Product) => {
-  //   if (typeof product.location === 'object' && product.location?.fullAddress) {
-  //     return product.location.fullAddress;
-  //   }
-  //   if (typeof product.location === 'string') {
-  //     return product.location;
-  //   }
-  //   return product.address || 'Chưa có địa chỉ';
-  // };
-
   if (!product) {
     return <Text>Loading...</Text>; // Hiển thị loading khi đang lấy dữ liệu
   }
 
+  const media: { type: 'image' | 'video'; uri: string }[] = [
+    ...product.images.map((image) => ({ type: 'image' as const, uri: image })),
+    ...(product.video ? [{ type: 'video' as const, uri: product.video }] : []),
+  ];
+
   return (
     <ScrollView style={styles.container}>
-      <Carousel />
-      <Image
-        style={styles.image}
-        source={require("../assets/images/z6316149378615_f6d6f665171bf597c35f86bf13ca61b2.jpg")}// Giả sử bạn có một mảng images
-      />
+      <MediaCarousel data={media}/>
       <View style={styles.content}>
         <Text style={styles.postName}>{product.title}</Text>
-       
         <Text style={styles.price}>{product.price} VND</Text>
         <Text style={styles.location}>Địa chỉ: {product.address}</Text>
         <Text style={styles.location}>Ngày đăng: {new Date(product.postingDate).toLocaleDateString()}</Text>
@@ -144,7 +135,106 @@ export default function PostDetailsScreen() {
   );
 }
 
+
+interface MediaItem {
+  type: 'image' | 'video';
+  uri: string;
+}
+
+interface MediaCarouselProps {
+  data: MediaItem[];
+}
+
+const MediaCarousel: React.FC<MediaCarouselProps> = ({ data }) => {
+  const flatListRef = useRef<FlatList>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const renderItem = ({ item }: { item: MediaItem }) => {
+    return (
+      <View style={styles.itemContainer}>
+        {item.type === 'image' ? (
+          <Image source={{ uri: item.uri }} style={styles.image} />
+        ) : (
+          <Video
+            source={{ uri: item.uri }}
+            style={styles.video}
+            useNativeControls
+            resizeMode={ResizeMode.CONTAIN}
+          />
+        )}
+      </View>
+    );
+  };
+
+  const handleNext = () => {
+    if (activeIndex < data.length - 1) {
+      flatListRef.current?.scrollToIndex({ index: activeIndex + 1 });
+      setActiveIndex(activeIndex + 1);
+    }
+  };
+
+  const handlePrev = () => {
+    if (activeIndex > 0) {
+      flatListRef.current?.scrollToIndex({ index: activeIndex - 1 });
+      setActiveIndex(activeIndex - 1);
+    }
+  };
+
+  return (
+    <View>
+      <FlatList
+        ref={flatListRef}
+        data={data}
+        renderItem={renderItem}
+        keyExtractor={(item, index) => index.toString()}
+        horizontal
+        pagingEnabled
+        // showsHorizontalScrollIndicator={true}
+        // // onMomentumScrollEnd={(event) => {
+        // //   const index = Math.floor(event.nativeEvent.contentOffset.x / width);
+        // //   setActiveIndex(index);
+        // // }}
+      />
+      <View style={styles.paginationContainer}>
+        {data.map((_, index) => (
+          <View
+            key={index}
+            style={[
+              styles.dotStyle,
+              { opacity: index === activeIndex ? 1 : 0.4 },
+            ]}
+          />
+        ))}
+      </View>
+      <View style={styles.navigateButton}>
+        <TouchableOpacity style={styles.navigateButtonFlatList} onPress={handlePrev}>
+          <Ionicons name="chevron-back" size={24} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navigateButtonFlatList} onPress={handleNext}>
+          <Ionicons name="chevron-forward" size={24} color="white" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
+
 const styles = StyleSheet.create({
+  itemContainer: {
+    width: width,
+    height: 300,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  image: {
+    width: '90%',
+    height: '100%',
+    borderRadius: 10,
+  },
+  video: {
+    width: '90%',
+    height: '100%',
+    borderRadius: 10,
+  },
   container: {
     flex: 1,
     backgroundColor: 'white',
@@ -161,17 +251,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   slide: {
-    width: viewportWidth,
+    width: width,
     height: 200,
-  },
-  image: {
-    width: '100%',
-    height: 400,
   },
   content: {
     padding: 20,
   },
- 
   description: {
     fontSize: 16,
     marginVertical: 10,
@@ -211,23 +296,42 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     fontSize: 16,
   },
-  buttonContainer: {
+  navigateButton: {
     flexDirection: 'row',
-    marginTop: 20,
-    marginBottom: 6,
-    gap: 10,
+    justifyContent: 'space-between',
+    position: 'absolute',
+    top: '50%',
+    width: '100%',
+    paddingHorizontal: 10,
   },
-  buttonWrapper: {
-    flex: 1,
+  buttonContainer: {
+    marginTop:20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
   },
   button: {
     display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
     flexDirection: 'row',
-    paddingHorizontal: 40,
-    borderRadius: 5,
-    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    width: '100%',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 20,
+    padding: 10,
+  },
+  navigateButtonFlatList: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 20,
+    padding: 10,
+  },
+  buttonWrapper: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '48%',
   },
   buttonText: {
     color: 'white',
@@ -250,5 +354,16 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     fontFamily: 'Knewave',
   },
+  paginationContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    paddingVertical: 8,
+  },
+  dotStyle: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginHorizontal: 8,
+    backgroundColor: 'rgba(99, 95, 95, 0.92)',
+  },
 });
-
