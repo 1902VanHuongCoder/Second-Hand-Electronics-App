@@ -17,12 +17,13 @@ export default function PublishPost() {
     const { id } = useLocalSearchParams();
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [totalPrice, setToTalPrice] = useState(0);
+    const [selectedDays, setSelectedDays] = useState(0);
     const choosePrices = [
-        { day: '1 Ngày', price: 28000 },
-        { day: '2 Ngày', price: 56000 },
-        { day: '3 Ngày', price: 84000 },
-        { day: '5 Ngày', price: 140000 },
-        { day: '7 Ngày', price: 196000 },
+        { day: 1, price: 28000 },
+        { day: 2, price: 56000 },
+        { day: 3, price: 84000 },
+        { day: 5, price: 140000 },
+        { day: 7, price: 196000 },
     ]
 
     useEffect(() => {
@@ -40,6 +41,7 @@ export default function PublishPost() {
     const handlePriceSelection = (index: number) => {
         setSelectedIndex(index);
         setToTalPrice(choosePrices[index].price);
+        setSelectedDays(choosePrices[index].day);
     }
 
     const formatCurrency = (value: number) => {
@@ -80,7 +82,7 @@ export default function PublishPost() {
                             }}
                         >
                             <View>
-                                <Text className='font-bold text-[16px] mb-1'>{item.day}</Text>
+                                <Text className='font-bold text-[16px] mb-1'>{item.day} Ngày</Text>
                                 <Text className='font-semibold text-[#9661D9]'>{formatCurrency(item.price)} đ</Text>
                             </View>
                         </TouchableHighlight>
@@ -100,7 +102,12 @@ export default function PublishPost() {
                         style={{ paddingTop: 12, paddingBottom: 12, paddingStart: 30, paddingEnd: 30, borderRadius: 14 }}
                     >
                         <View className="flex-row items-center justify-center gap-2">
-                            <Link href="/payment"><Text className="font-bold text-[18px] text-[#fff]">Thanh toán</Text></Link>
+                            <Link
+                                href={{
+                                    pathname: "/payment",
+                                    params: { id, totalPrice, selectedDays } // Truyền id sản phẩm, tổng tiền và số ngày đã chọn
+                                }}
+                            ><Text className="font-bold text-[18px] text-[#fff]">Thanh toán</Text></Link>
                         </View>
                     </LinearGradient>
                 </TouchableHighlight>

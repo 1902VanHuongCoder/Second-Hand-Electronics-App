@@ -19,7 +19,7 @@ const homeRoutes = require('./routes/homeRoutes');
 const uploadImageRoutes = require('./routes/uploadImageRoutes');
 const phoneRoutes = require('./routes/phoneRoutes');
 const postManagementRoutes = require('./routes/postManagementRoutes');
-
+const orderRoutes = require('./routes/orderRoutes');
 // Load env vars trước khi làm bất cứ điều gì khác
 
 dotenv.config();
@@ -103,6 +103,8 @@ app.use('/api/laptops', laptopRoutes);
 
 // Sử dụng các route Product
 app.use('/api/products', productRoutes);
+
+app.use('/api/orders', orderRoutes);
 
 // Sử dụng các route Screen
 app.use('/api/screens', screenRoutes);
