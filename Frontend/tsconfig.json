@@ -13,6 +13,7 @@
     "**/*.ts",
     "**/*.tsx",
     "**/*.jsx",
+    "@types/**/*",
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
     "nativewind-env.d.ts"

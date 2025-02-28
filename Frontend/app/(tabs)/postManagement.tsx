@@ -41,7 +41,7 @@ export default function PostManagement() {
             }
         }
         fetchUserPosts();
-    }, [user, checkAuth]);
+    }, [user]);
 
     return (
         <View className='w-full h-full bg-white'>

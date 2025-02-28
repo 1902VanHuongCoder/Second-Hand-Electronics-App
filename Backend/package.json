@@ -10,6 +10,7 @@
     "test": "test"
   },
   "dependencies": {
+    "@paypal/checkout-server-sdk": "^1.0.3",
     "accepts": "^1.3.8",
     "array-flatten": "^1.1.1",
     "bcryptjs": "^3.0.0",
@@ -75,6 +76,7 @@
     "on-finished": "^2.4.1",
     "parseurl": "^1.3.3",
     "path-to-regexp": "^0.1.12",
+    "paypal-rest-sdk": "^1.8.1",
     "proxy-addr": "^2.0.7",
     "punycode": "^2.3.1",
     "qs": "^6.13.0",

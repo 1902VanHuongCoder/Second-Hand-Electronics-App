@@ -1,22 +1,37 @@
-import { Text, View, Image, TouchableHighlight } from "react-native";
+import { Text, View, Image, TouchableHighlight, Linking } from "react-native";
 import React, { useState, useEffect, useContext } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { useLocalSearchParams } from "expo-router";
 import axios from 'axios';
-import * as PayPal from 'react-native-paypal-wrapper';
-import { useSelector } from 'react-redux';
-import { RootState } from '../store/store';
 import Notification from "@/components/Notification";
 import { NotificationContext } from "@/context/NotificationContext";
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
+import { useRouter } from 'expo-router';
 interface Product {
     id: string;
     title: string;
     price: number;
     images: String;
 }
+
+interface PayPalResponse {
+    id: string;
+    links: Array<{
+        rel: string;
+        href: string;
+        method: string;
+    }>;
+    payer: {
+        payer_info: {
+            payer_id: string;
+            email: string;
+        };
+    };
+}
+
 export default function PushNews() {
-    console.log('PayPal:', PayPal);
     const [selectedIndex, setSelectedIndex] = useState(0);
     const { id, totalPrice, selectedDays } = useLocalSearchParams();
     const { user } = useSelector((state: RootState) => state.auth);
@@ -26,8 +41,7 @@ export default function PushNews() {
         { id: 1, icon: "paypal", name: "PayPal" },
         { id: 2, icon: "credit-card", name: "VN Pay" },
     ];
-
-    // Chuyển đổi totalPrice thành số
+    const router = useRouter();
     const numericTotalPrice = Array.isArray(totalPrice) ? parseFloat(totalPrice[0]) : parseFloat(totalPrice);
 
     useEffect(() => {
@@ -47,41 +61,41 @@ export default function PushNews() {
     }
 
     const handlePayment = async () => {
-        if (selectedIndex === 0) { // Nếu chọn PayPal
+        if (selectedIndex === 0) {
+            const orderData = {
+                productId: id,
+                userId: user?.id,
+                totalPrice: numericTotalPrice,
+                newsPushDay: selectedDays
+            };
+
             try {
-                const response = await PayPal.paymentRequest({
-                    clientId: 'ASAhNybLVOlW4gvMFeUkObE0UV1qLqntaYqAeLjeyz_LcDBlFFDrOgQHl73H7kQHce4Y5GsMgN0Tdga9',
-                    environment: 'sandbox',
-                    intent: 'sale',
-                    price: numericTotalPrice.toString(),
-                    currency: 'USD',
-                    shortDescription: `Thanh toán cho sản phẩm: ${product?.title}`,
-                });
-                console.log(id)
+                const response = await axios.post<{ approvalUrl: string }>(
+                    "http://10.0.2.2:5000/api/paypal/payment",
+                    {
+                        amount: numericTotalPrice,
+                        currency: "USD"
+                    }
+                );
 
-                if (response.state === 'approved') {
-                    const orderData = {
-                        productId: id,
-                        userId: user?.id,
-                        totalPrice: numericTotalPrice,
-                        newsPushDay: selectedDays
-                    };
-
-                    await axios.post('http://10.0.2.2:5000/api/orders/thanhtoan', orderData, {
-                        headers: {
-                            'Content-Type': 'application/json'
+                const approvalUrl = response.data.approvalUrl;
+                if (approvalUrl) {
+                    router.push({
+                        pathname: "/PayPalWebView",
+                        params: {
+                            approvalUrl,
+                            orderData: JSON.stringify(orderData)
                         }
                     });
-                    showNotification("Thanh toán thành công!", "success");
                 } else {
-                    showNotification("Thanh toán không thành công!", "error");
+                    showNotification("Không tìm thấy liên kết thanh toán!", "error");
                 }
             } catch (error) {
-                console.error('Error during PayPal payment:', error);
-                // showNotification(error || "Có lỗi xảy ra trong quá trình thanh toán.", "error");
+                console.error("Error during payment:", error);
+                showNotification("Có lỗi xảy ra trong quá trình thanh toán.", "error");
             }
         } else {
-            showNotification('Chức năng này chưa được hỗ trợ.', "error");
+            showNotification("Chức năng này chưa được hỗ trợ.", "error");
         }
     };
 
@@ -108,10 +122,7 @@ export default function PushNews() {
                     <Text className="font-bold text-[16px]">Đẩy tin {selectedDays} ngày</Text>
                 </View>
             </View>
-            <View
-                className="mt-4 mb-4 border-b-2 border-[#D9D9D9]"
-                style={{ flex: 1 }}
-            >
+            <View className="mt-4 mb-4 border-b-2 border-[#D9D9D9]" style={{ flex: 1 }}>
                 <Text className="font-bold text-[18px]">Chọn hình thức thanh toán</Text>
                 <View className="mt-4 flex-col gap-4">
                     {choosePayMents.map((item, index) => (
@@ -136,9 +147,7 @@ export default function PushNews() {
             </View>
             <View className="self-end flex-row gap-4 items-center">
                 <View className="flex-col">
-                    <Text className="font-bold text-[16px] text-[#808080]">
-                        Tổng tiền
-                    </Text>
+                    <Text className="font-bold text-[16px] text-[#808080]">Tổng tiền</Text>
                     <Text className="font-bold text-[20px]">{formatCurrency(numericTotalPrice)} đ</Text>
                 </View>
                 <TouchableHighlight className="rounded-lg" onPress={handlePayment}>
@@ -155,9 +164,7 @@ export default function PushNews() {
                         }}
                     >
                         <View className="flex-row items-center justify-center gap-2">
-                            <Text className="font-bold text-[18px] text-[#fff]">
-                                Thanh toán
-                            </Text>
+                            <Text className="font-bold text-[18px] text-[#fff]">Thanh toán</Text>
                         </View>
                     </LinearGradient>
                 </TouchableHighlight>
