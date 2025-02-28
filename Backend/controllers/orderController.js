@@ -33,10 +33,18 @@ exports.confirmPayment = async (req, res) => {
                 await newOrder.save();
 
                 // Cập nhật thông tin sản phẩm
-                const expirationDate = moment().add(parseInt(newsPushDay), 'days').toDate();
                 const product = await Product.findById(productId);
-                product.isVip = true;
-                product.newsPushDay = expirationDate;
+
+                if (product.isVip && product.newsPushDay) {
+                    // Nếu sản phẩm đã là VIP và có ngày hết hạn, cộng thêm số ngày mới
+                    const currentExpirationDate = moment(product.newsPushDay);
+                    product.newsPushDay = currentExpirationDate.add(parseInt(newsPushDay), 'days').toDate();
+                } else {
+                    // Nếu sản phẩm chưa là VIP, set ngày hết hạn mới
+                    product.isVip = true;
+                    product.newsPushDay = moment().add(parseInt(newsPushDay), 'days').toDate();
+                }
+
                 await product.save();
 
                 res.status(200).json({ message: 'Đơn hàng đã được tạo thành công.', order: newOrder });

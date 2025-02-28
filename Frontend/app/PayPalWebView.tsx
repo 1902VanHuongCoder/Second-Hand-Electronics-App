@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { View, ActivityIndicator, Alert } from "react-native";
 import { WebView, WebViewNavigation } from "react-native-webview";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -7,6 +7,7 @@ import axios from "axios";
 export default function PayPalWebView() {
     const router = useRouter();
     const params = useLocalSearchParams();
+    const previousUrl = useRef<string>("");
 
     // Ép kiểu về string để tránh lỗi "string | string[]"
     const approvalUrl = Array.isArray(params.approvalUrl) ? params.approvalUrl[0] : params.approvalUrl;
@@ -16,6 +17,12 @@ export default function PayPalWebView() {
 
     const handleNavigation = async (navState: WebViewNavigation) => {
         const { url } = navState;
+
+        // Kiểm tra nếu URL hiện tại giống với URL trước đó thì bỏ qua
+        if (url === previousUrl.current) {
+            return;
+        }
+        previousUrl.current = url;
 
         if (url.includes("/api/paypal/success")) {
             const urlParams = new URLSearchParams(url.split("?")[1]);
@@ -43,9 +50,9 @@ export default function PayPalWebView() {
                 }
             } catch (error) {
                 Alert.alert("Lỗi", "Có lỗi khi xác nhận thanh toán.");
+            } finally {
+                router.push("/(tabs)/postManagement");
             }
-
-            router.push("/(tabs)/postManagement");
         } else if (url.includes("/api/paypal/cancel")) {
             Alert.alert("Thông báo", "Thanh toán bị hủy!");
             router.push("/(tabs)/postManagement");

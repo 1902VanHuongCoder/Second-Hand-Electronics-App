@@ -49,7 +49,7 @@ const productSchema = new mongoose.Schema({
             required: true
         }
     },
-    newsPushDay: {type: Date, required: true},
+    newsPushDay: { type: Date },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
 });
