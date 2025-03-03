@@ -66,6 +66,7 @@ export default function PostManagement() {
                             <TouchableHighlight className='border-2 w-[20%] rounded-md p-3 border-[#808080]'>
                                 <View className='flex-row items-center justify-center gap-2'>
                                     <Icon name='pencil' size={22} color={'#808080'} />
+                                    <Link href={`/postCreation?id=${product.id}`}><Text></Text></Link>
                                 </View>
                             </TouchableHighlight>
                             <TouchableHighlight className='border-2 w-[40%] rounded-md p-3 border-[#9661D9]'>

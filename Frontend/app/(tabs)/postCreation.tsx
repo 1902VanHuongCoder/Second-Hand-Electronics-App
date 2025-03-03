@@ -410,7 +410,7 @@ export default function PostCreation() {
                 isVip: selectedPostType === "Đăng tin trả phí",
                 isSold: false,
                 warranty: selectedWarranty,
-                videos: videoUrl,
+                videos: videoUrl || '',
                 location: {
                     provinceCode: selectedProvince,
                     provinceName: provinces.find(p => p.code === selectedProvince)?.name,
