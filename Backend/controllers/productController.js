@@ -319,3 +319,31 @@ exports.getProductDetails = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }; 
+
+exports.searchProducts = async (req, res) => {
+    try {
+        const { searchTerm } = req.query;
+
+        if (!searchTerm) {
+            return res.status(400).json({ message: "Vui lòng nhập từ khóa tìm kiếm" });
+        }
+
+        const searchRegex = new RegExp(searchTerm, 'i');
+
+        const products = await Product.find({
+            $or: [
+                { title: searchRegex },
+                { description: searchRegex },
+                { 'location.fullAddress': searchRegex }
+            ]
+        })
+            .populate('categoryId', 'categoryName')
+            .populate('versionId', 'versionName')
+            .populate('userId', 'name')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json(products);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}

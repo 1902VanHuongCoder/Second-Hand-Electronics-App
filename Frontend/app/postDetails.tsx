@@ -53,6 +53,20 @@ export default function PostDetailsScreen() {
     fetchProductDetails();
   }, [id]);
 
+  const formatCurrency = (value: number) => {
+    return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+
+  // const getDisplayAddress = (product: Product) => {
+  //   if (typeof product.location === 'object' && product.location?.fullAddress) {
+  //     return product.location.fullAddress;
+  //   }
+  //   if (typeof product.location === 'string') {
+  //     return product.location;
+  //   }
+  //   return product.address || 'Chưa có địa chỉ';
+  // };
+
   if (!product) {
     return <Text>Loading...</Text>; // Hiển thị loading khi đang lấy dữ liệu
   }
@@ -67,6 +81,7 @@ export default function PostDetailsScreen() {
       <MediaCarousel data={media}/>
       <View style={styles.content}>
         <Text style={styles.postName}>{product.title}</Text>
+        <Text style={styles.price}>{formatCurrency(product.price)} đ</Text>
         <Text style={styles.price}>{product.price} VND</Text>
         <Text style={styles.location}>Địa chỉ: {product.address}</Text>
         <Text style={styles.location}>Ngày đăng: {new Date(product.postingDate).toLocaleDateString()}</Text>
@@ -346,7 +361,7 @@ const styles = StyleSheet.create({
   expandedText: {
     fontSize: 16,
     marginVertical: 10,
-    fontFamily: 'Knewave',
+    fontWeight: 600
   },
   postName: {
     fontSize: 24,

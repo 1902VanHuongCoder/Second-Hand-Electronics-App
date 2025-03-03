@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "react-native-paypal": "^4.1.0"
+  }
+}

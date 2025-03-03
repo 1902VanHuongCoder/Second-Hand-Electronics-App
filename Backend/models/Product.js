@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
-    categoryId: { type: mongoose.Schema.Types.ObjectId , required: true },
-    userId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    categoryId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     versionId: { type: mongoose.Schema.Types.ObjectId, required: true },
     conditionId: { type: mongoose.Schema.Types.ObjectId, required: true },
     storageId: { type: mongoose.Schema.Types.ObjectId, required: true },
@@ -49,6 +49,7 @@ const productSchema = new mongoose.Schema({
             required: true
         }
     },
+    newsPushDay: { type: Date },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
 });

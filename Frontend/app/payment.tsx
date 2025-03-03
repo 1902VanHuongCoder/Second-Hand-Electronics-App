@@ -1,16 +1,111 @@
-import { Text, View, Image, TouchableHighlight } from "react-native";
-import React, { useState } from "react";
+import { Text, View, Image, TouchableHighlight, Linking } from "react-native";
+import React, { useState, useEffect, useContext } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/FontAwesome";
-import { Link } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
+import axios from 'axios';
+import Notification from "@/components/Notification";
+import { NotificationContext } from "@/context/NotificationContext";
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
+import { useRouter } from 'expo-router';
+interface Product {
+    id: string;
+    title: string;
+    price: number;
+    images: String;
+}
+
+interface PayPalResponse {
+    id: string;
+    links: Array<{
+        rel: string;
+        href: string;
+        method: string;
+    }>;
+    payer: {
+        payer_info: {
+            payer_id: string;
+            email: string;
+        };
+    };
+}
+
 export default function PushNews() {
     const [selectedIndex, setSelectedIndex] = useState(0);
+    const { id, totalPrice, selectedDays } = useLocalSearchParams();
+    const { user } = useSelector((state: RootState) => state.auth);
+    const [product, setProduct] = useState<Product | null>(null);
+    const { notifications, showNotification } = useContext(NotificationContext);
     const choosePayMents = [
         { id: 1, icon: "paypal", name: "PayPal" },
         { id: 2, icon: "credit-card", name: "VN Pay" },
     ];
+    const router = useRouter();
+    const numericTotalPrice = Array.isArray(totalPrice) ? parseFloat(totalPrice[0]) : parseFloat(totalPrice);
+
+    useEffect(() => {
+        const fetchProduct = async () => {
+            try {
+                const response = await axios.get(`http://10.0.2.2:5000/api/products/${id}`);
+                setProduct(response.data as Product);
+            } catch (error) {
+                console.error('Error fetching product details:', error);
+            }
+        };
+        fetchProduct();
+    }, [id]);
+
+    const formatCurrency = (value: number) => {
+        return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    const handlePayment = async () => {
+        if (selectedIndex === 0) {
+            const orderData = {
+                productId: id,
+                userId: user?.id,
+                totalPrice: numericTotalPrice,
+                newsPushDay: selectedDays
+            };
+
+            try {
+                const response = await axios.post<{ approvalUrl: string }>(
+                    "http://10.0.2.2:5000/api/paypal/payment",
+                    {
+                        amount: numericTotalPrice,
+                        currency: "USD"
+                    }
+                );
+
+                const approvalUrl = response.data.approvalUrl;
+                if (approvalUrl) {
+                    router.push({
+                        pathname: "/PayPalWebView",
+                        params: {
+                            approvalUrl,
+                            orderData: JSON.stringify(orderData)
+                        }
+                    });
+                } else {
+                    showNotification("Không tìm thấy liên kết thanh toán!", "error");
+                }
+            } catch (error) {
+                console.error("Error during payment:", error);
+                showNotification("Có lỗi xảy ra trong quá trình thanh toán.", "error");
+            }
+        } else {
+            showNotification("Chức năng này chưa được hỗ trợ.", "error");
+        }
+    };
+
     return (
-        <View className="w-full h-full bg-white p-4 flex-col">
+        <View className="relative w-full h-full bg-white p-4 flex-col">
+            <Notification
+                message={notifications.message}
+                type={notifications.type}
+                visible={notifications.visible}
+            />
             <View className="flex-row gap-1 border-b-2 border-[#D9D9D9] pb-4">
                 <Image
                     style={{ width: 90, height: 90 }}
@@ -19,18 +114,15 @@ export default function PushNews() {
                 />
                 <View className="flex-col justify-between">
                     <View>
-                        <Text className="font-bold text-[18px]">IPhone 16 Pro Max</Text>
+                        <Text className="font-bold text-[18px]">{product?.title}</Text>
                         <Text className="text-[#9661D9] text-[16px] font-bold">
-                            9.000.000 đ
+                            {product?.price !== undefined ? formatCurrency(product.price) : 'Giá không xác định'} đ
                         </Text>
                     </View>
-                    <Text className="font-bold text-[16px]">Đẩy tin 1 ngày</Text>
+                    <Text className="font-bold text-[16px]">Đẩy tin {selectedDays} ngày</Text>
                 </View>
             </View>
-            <View
-                className="mt-4 mb-4 border-b-2 border-[#D9D9D9]"
-                style={{ flex: 1 }}
-            >
+            <View className="mt-4 mb-4 border-b-2 border-[#D9D9D9]" style={{ flex: 1 }}>
                 <Text className="font-bold text-[18px]">Chọn hình thức thanh toán</Text>
                 <View className="mt-4 flex-col gap-4">
                     {choosePayMents.map((item, index) => (
@@ -55,12 +147,10 @@ export default function PushNews() {
             </View>
             <View className="self-end flex-row gap-4 items-center">
                 <View className="flex-col">
-                    <Text className="font-bold text-[16px] text-[#808080]">
-                        Tổng tiền
-                    </Text>
-                    <Text className="font-bold text-[20px]">28.000 đ</Text>
+                    <Text className="font-bold text-[16px] text-[#808080]">Tổng tiền</Text>
+                    <Text className="font-bold text-[20px]">{formatCurrency(numericTotalPrice)} đ</Text>
                 </View>
-                <TouchableHighlight className="rounded-lg">
+                <TouchableHighlight className="rounded-lg" onPress={handlePayment}>
                     <LinearGradient
                         colors={["#523471", "#9C62D7"]}
                         start={{ x: 1, y: 0 }}
@@ -74,9 +164,7 @@ export default function PushNews() {
                         }}
                     >
                         <View className="flex-row items-center justify-center gap-2">
-                            <Link href="/payment"><Text className="font-bold text-[18px] text-[#fff]">
-                                Thanh toán
-                            </Text></Link> 
+                            <Text className="font-bold text-[18px] text-[#fff]">Thanh toán</Text>
                         </View>
                     </LinearGradient>
                 </TouchableHighlight>
@@ -84,5 +172,3 @@ export default function PushNews() {
         </View>
     );
 }
-
-//npm install react-native-super-grid để sử dụng grid từ react native

@@ -59,12 +59,12 @@ export default function UserProfile() {
             <View className='p-4'>
                 <View className='flex-col justify-center gap-4'>
                     <View className="flex-row items-center justify-center gap-2">
-                        <TouchableHighlight onPress={checkAuth} className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
+                        <Link href="/(tabs)/postManagement" className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
                             <View className="flex-row items-center justify-center gap-2">
                                 <Icon name="book" size={22} color="#333" />
                                 <Text className="font-bold text-[18px] text-[#333]">Bài đăng</Text>
                             </View>
-                        </TouchableHighlight>
+                        </Link>
                         <TouchableHighlight onPress={checkAuth} className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
                             <View className="flex-row items-center justify-center gap-2">
                                 <Icon name="comments" size={22} color="#333" />
