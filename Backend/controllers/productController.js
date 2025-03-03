@@ -109,37 +109,37 @@ exports.getProductDetails = async (req, res) => {
         }
         let detail = {};
         if (category.categoryName === 'Laptop') {
-                const laptop = await Laptop.findOne({ productId: product._id });
-    
-                const ram = await Ram.findById(laptop.ramId);
-                const user = await User.findById(product.userId);
-                const screen = laptop ? await Screen.findById(laptop.screenId) : null; 
-                const cpu = laptop ? await Cpu.findById(laptop.cpuId) : null;
-                const version = await Version.findById(product.versionId);
-                const brand = version ? await Brand.findById(version.brandId) : null;
-                const gpu = laptop ?  await Gpu.findById(laptop.gpuId) : null;
-                const storage = await Storage.findById(product.storageId);
-                const storageType = storage ? await StorageType.findById(storage.storageTypeId) : null;
-                
-                 detail ={
-                    id: product._id,
-                    title: product.title,
-                    configuration: product.description,
-                    price: product.price,
-                    address: formattedAddress,
-                    postingDate: product.createdAt,
-                    battery: laptop ? laptop.battery : null,
-                    nameUser: user ? user.name : null,
-                    versionName: version ? version.versionName : null,
-                    brandName: brand ? brand.brandName : null,
-                    ramCapacity: ram ? ram.ramCapacity : null,
-                    cpuName: cpu ? cpu.cpuName : null,
-                    screenSize: screen ? screen.screenSize : null,
-                    gpuName: gpu ? gpu.gpuName : null,
-                    storageCapacity: storage ? storage.storageCapacity : null,
-                    storageType: storageType ? storageType.storageName : null,
-                    type: 'laptop'
-                };
+            const laptop = await Laptop.findOne({ productId: product._id });
+
+            const ram = await Ram.findById(laptop.ramId);
+            const user = await User.findById(product.userId);
+            const screen = laptop ? await Screen.findById(laptop.screenId) : null;
+            const cpu = laptop ? await Cpu.findById(laptop.cpuId) : null;
+            const version = await Version.findById(product.versionId);
+            const brand = version ? await Brand.findById(version.brandId) : null;
+            const gpu = laptop ? await Gpu.findById(laptop.gpuId) : null;
+            const storage = await Storage.findById(product.storageId);
+            const storageType = storage ? await StorageType.findById(storage.storageTypeId) : null;
+
+            detail = {
+                id: product._id,
+                title: product.title,
+                configuration: product.description,
+                price: product.price,
+                address: formattedAddress,
+                postingDate: product.createdAt,
+                battery: laptop ? laptop.battery : null,
+                nameUser: user ? user.name : null,
+                versionName: version ? version.versionName : null,
+                brandName: brand ? brand.brandName : null,
+                ramCapacity: ram ? ram.ramCapacity : null,
+                cpuName: cpu ? cpu.cpuName : null,
+                screenSize: screen ? screen.screenSize : null,
+                gpuName: gpu ? gpu.gpuName : null,
+                storageCapacity: storage ? storage.storageCapacity : null,
+                storageType: storageType ? storageType.storageName : null,
+                type: 'laptop'
+            };
         } else if (category.categoryName === 'Điện thoại') {
             const phone = await Phone.findOne({ productId: product._id });
             const user = await User.findById(product.userId);
@@ -148,21 +148,21 @@ exports.getProductDetails = async (req, res) => {
             const brand = version ? await Brand.findById(version.brandId) : null;
             const storage = await Storage.findById(product.storageId);
             const storageType = storage ? await StorageType.findById(storage.storageTypeId) : null;
-           detail = {
-                    id: product._id,
-                    title: product.title,
-                    configuration: product.description,
-                    price: product.price,
-                    address: formattedAddress,
-                    postingDate: product.createdAt,
-                    nameUser: user ? user.name : null,
-                    versionName: version ? version.versionName : null,
-                    brandName: brand ? brand.brandName : null,
-                    ramCapacity: ram ? ram.ramCapacity : null,
-                    battery: phone ? phone.battery : null,
-                    storageCapacity: storage ? storage.storageCapacity : null,
-                    storageType: storageType ? storageType.storageName : null,
-                    type: 'phone'
+            detail = {
+                id: product._id,
+                title: product.title,
+                configuration: product.description,
+                price: product.price,
+                address: formattedAddress,
+                postingDate: product.createdAt,
+                nameUser: user ? user.name : null,
+                versionName: version ? version.versionName : null,
+                brandName: brand ? brand.brandName : null,
+                ramCapacity: ram ? ram.ramCapacity : null,
+                battery: phone ? phone.battery : null,
+                storageCapacity: storage ? storage.storageCapacity : null,
+                storageType: storageType ? storageType.storageName : null,
+                type: 'phone'
             };
         }
         console.log(detail)
@@ -170,4 +170,32 @@ exports.getProductDetails = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
-}; 
+};
+
+exports.searchProducts = async (req, res) => {
+    try {
+        const { searchTerm } = req.query;
+
+        if (!searchTerm) {
+            return res.status(400).json({ message: "Vui lòng nhập từ khóa tìm kiếm" });
+        }
+
+        const searchRegex = new RegExp(searchTerm, 'i');
+
+        const products = await Product.find({
+            $or: [
+                { title: searchRegex },
+                { description: searchRegex },
+                { 'location.fullAddress': searchRegex }
+            ]
+        })
+            .populate('categoryId', 'categoryName')
+            .populate('versionId', 'versionName')
+            .populate('userId', 'name')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json(products);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}

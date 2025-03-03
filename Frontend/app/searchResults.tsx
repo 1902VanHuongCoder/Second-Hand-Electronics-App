@@ -6,57 +6,76 @@ import {
     ScrollView,
     TextInput,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Icon from "react-native-vector-icons/FontAwesome";
+import axios from 'axios';
+import { Link, useLocalSearchParams, useRouter } from "expo-router";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 
-export default function HomePage() {
-    const [text, onChangeText] = useState("");
+interface Product {
+    id: string;
+    title: string;
+    configuration: string;
+    price: number;
+    address: string;
+    postingDate: string;
+    nameUser: string | null;
+    brandName: string;
+    type: 'laptop' | 'phone';
+    ramCapacity?: string | null;
+    cpuName?: string | null;
+    gpuName?: string | null;
+    screenSize?: string | null;
+    storageCapacity?: string | null;
+    storageType?: string | null;
+}
+
+// Định nghĩa kiểu cho response từ API
+interface ProductResponse {
+    _id: string;
+    title: string;
+    description: string;
+    price: number;
+    location: {
+        fullAddress: string;
+    };
+    createdAt: string;
+    userId: {
+        _id: string;
+        name: string;
+    };
+    configuration: string;
+}
+
+// Hàm chuyển đổi dữ liệu từ API sang định dạng Product
+const mapApiResponseToProduct = (apiProduct: ProductResponse): Product => {
+    return {
+        id: apiProduct._id,
+        title: apiProduct.title,
+        configuration: apiProduct.configuration || '',
+        price: apiProduct.price,
+        address: apiProduct.location?.fullAddress || '',
+        postingDate: new Date(apiProduct.createdAt).toLocaleDateString('vi-VN'),
+        nameUser: apiProduct.userId?.name,
+        brandName: '',
+        type: 'phone',
+        ramCapacity: null,
+        cpuName: null,
+        gpuName: null,
+        screenSize: null,
+        storageCapacity: null,
+        storageType: null
+    };
+};
+
+export default function SearchResults() {
     const [reportVisible, setReportVisible] = useState(false); // State để theo dõi trạng thái hiển thị menu báo cáo
     const [selectedProductId, setSelectedProductId] = useState<string | null>(null); // Chỉ định kiểu cho selectedProductId
     const [selectedReason, setSelectedReason] = useState<string | null>(null); // State để lưu lý do đã chọn
-
-    const products = [
-        {
-            id: "1",
-            name: "Laptop Acer Aspire 3 Spin A3SP14-31PT-387Z",
-            configuration: "I3-N305/8GB/512GB/14.0 FHD+/CẢM ỨNG/WIN11/XÁM",
-            price: "9.000.000 đ",
-            address: "Ba Đình - Hà Nội",
-            postingDate: "23:34:23 12/02/2024",
-            image:
-                "../assets/images/z6316149378615_f6d6f665171bf597c35f86bf13ca61b2.jpg",
-            avatar:
-                "../assets/images/z6186705977978_00edd678a64db50dba5ef61a50391611.jpg",
-            nameUser: "Hoàng Anh Lê",
-        },
-        {
-            id: "2",
-            name: "Laptop Acer Aspire 3 Spin A3SP14-31PT-387Z",
-            configuration: "I3-N305/8GB/512GB/14.0 FHD+/CẢM ỨNG/WIN11/XÁM",
-            price: "9.000.000 đ",
-            address: "Ba Đình - Hà Nội",
-            postingDate: "23:34:23 12/02/2024",
-            image:
-                "../assets/images/z6316149378615_f6d6f665171bf597c35f86bf13ca61b2.jpg",
-            avatar:
-                "../assets/images/z6186705977978_00edd678a64db50dba5ef61a50391611.jpg",
-            nameUser: "Hoàng Anh",
-        },
-        {
-            id: "3",
-            name: "Laptop Acer Aspire 3 Spin A3SP14-31PT-387Z",
-            configuration: "I3-N305/8GB/512GB/14.0 FHD+/CẢM ỨNG/WIN11/XÁM",
-            price: "9.000.000 đ",
-            address: "Ba Đình - Hà Nội",
-            postingDate: "23:34:23 12/02/2024",
-            image:
-                "../assets/images/z6316149378615_f6d6f665171bf597c35f86bf13ca61b2.jpg",
-            avatar:
-                "../assets/images/z6186705977978_00edd678a64db50dba5ef61a50391611.jpg",
-            nameUser: "Hoàng Anh",
-        },
-    ];
-
+    const { searchTerm } = useLocalSearchParams();
+    const [products, setProducts] = useState<Product[]>([]);
+    const { user } = useSelector((state: RootState) => state.auth);
     const reportReasons = [
         "Nội dung không phù hợp",
         "Hàng giả, hàng nhái",
@@ -65,33 +84,41 @@ export default function HomePage() {
         "Khác",
     ];
 
+    useEffect(() => {
+        const fetchSearchResults = async () => {
+            try {
+                const response = await axios.get<ProductResponse[]>(`http://10.0.2.2:5000/api/products/search/ketquatimkiem?searchTerm=${searchTerm}`);
+                const mappedProducts = response.data.map(mapApiResponseToProduct);
+                setProducts(mappedProducts);
+                console.log(mappedProducts)
+            } catch (error) {
+                console.error('Error fetching search results:', error);
+            }
+        };
+
+        if (searchTerm) {
+            fetchSearchResults();
+        }
+    }, [searchTerm]);
+
     const handleReportPress = (productId: string) => {
         setSelectedProductId(productId);
-        setReportVisible(!reportVisible); // Chuyển đổi trạng thái hiển thị menu báo cáo
+        setReportVisible(!reportVisible);
     };
 
     const handleReasonSelect = (reason: string) => {
         setSelectedReason(reason);
-        alert(`Bạn đã chọn lý do: ${reason}`); // Thực hiện hành động báo cáo ở đây
+        alert(`Bạn đã chọn lý do: ${reason}`);
     };
 
+    const formatCurrency = (value: Number) => {
+        return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
     return (
-        <View className="p-4" style={{ flex: 1 }}>
+        <View className="p-4 bg-white" style={{ flex: 1 }}>
             <View className="flex-col gap-4">
-                <View className="flex-row justify-between items-center">
-                    <TextInput
-                        className="border-2 border-[#D9D9D9] w-2/3 px-2 py-4 text-[#000] rounded-lg font-semibold"
-                        onChangeText={onChangeText}
-                        value={text}
-                        placeholder="Tìm kiếm ..."
-                    />
-                    <TouchableHighlight className="bg-[#9661D9] px-5 py-4 rounded-lg flex items-center justify-center">
-                        <Text className="text-[#fff] font-semibold text-[16px] text-center">
-                            Tìm kiếm
-                        </Text>
-                    </TouchableHighlight>
-                </View>
-                <Text className="font-bold text-[16px]">Danh sách các sản phẩm phù hợp</Text>
+                <Text className="font-bold text-[16px]">Kết quả tìm kiếm với "{searchTerm}"</Text>
             </View>
             <ScrollView>
                 {products.map((product) => (
@@ -101,20 +128,24 @@ export default function HomePage() {
                     >
                         <View className="flex-col gap-4">
                             <View className="flex-row gap-2 w-full">
-                                <Image
-                                    style={{ width: 170, height: 170 }}
-                                    source={require("../assets/images/z6316149378615_f6d6f665171bf597c35f86bf13ca61b2.jpg")}
-                                />
+                                <Link href={`/postDetails?id=${product.id}`}>
+                                    <Image
+                                        style={{ width: 170, height: 170 }}
+                                        source={require("../assets/images/z6316149378615_f6d6f665171bf597c35f86bf13ca61b2.jpg")}
+                                    />
+                                </Link>
                                 <View className="w-[50%] flex-col gap-1">
-                                    <View className="flex-row gap-1">
-                                        <Text className="font-bold text-[16px]">{product.name}</Text>
+                                    <View className="flex-row justify-between items-center">
+                                        <Link href={`/postDetails?id=${product.id}`}>
+                                            <Text className="font-bold text-[16px]">{product.title}</Text>
+                                        </Link>
                                         <TouchableHighlight onPress={() => handleReportPress(product.id)}>
                                             <Icon name="ellipsis-v" size={18} color="#9661D9" />
                                         </TouchableHighlight>
                                     </View>
                                     <Text className="text-[12px]">{product.configuration}</Text>
                                     <Text className="font-bold text-[#9661D9] text-[16px]">
-                                        {product.price}
+                                        {formatCurrency(product.price)} đ
                                     </Text>
                                     <View className="flex-row gap-2 items-center">
                                         <Icon name="map-marker" size={20} color="#9661D9" />
@@ -149,7 +180,7 @@ export default function HomePage() {
                                 </View>
                             </View>
                         </View>
-                        {reportVisible && selectedProductId === product.id && ( // Hiển thị menu báo cáo nếu điều kiện thỏa mãn
+                        {reportVisible && selectedProductId === product.id && (
                             <View className="bg-[#F4E9FF] p-4 rounded-lg mt-2">
                                 <Text className="text-[#000] font-bold text-[18px]">Chọn lý do báo cáo:</Text>
                                 {reportReasons.map((reason, index) => (
