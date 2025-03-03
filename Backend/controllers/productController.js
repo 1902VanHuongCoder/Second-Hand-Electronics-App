@@ -58,6 +58,31 @@ exports.createProduct = async (req, res) => {
         const product = new Product(productData);
         const savedProduct = await product.save();
 
+        // Thêm thông tin chi tiết cho laptop hoặc điện thoại
+        const category = await Category.findById(req.body.categoryId);
+        if (category.categoryName === 'Laptop') {
+            const laptopData = {
+                productId: savedProduct._id,
+                cpuId: new mongoose.Types.ObjectId(req.body.cpuId),
+                gpuId: new mongoose.Types.ObjectId(req.body.gpuId),
+                ramId: new mongoose.Types.ObjectId(req.body.ramId),
+                screenId: new mongoose.Types.ObjectId(req.body.screenId),
+                battery: req.body.battery,
+                origin: req.body.origin,
+            };
+            const laptop = new Laptop(laptopData);
+            await laptop.save();
+        } else if (category.categoryName === 'Điện thoại') {
+            const phoneData = {
+                productId: savedProduct._id,
+                ramId: new mongoose.Types.ObjectId(req.body.ramId),
+                battery: req.body.battery,
+                origin: req.body.origin,
+            };
+            const phone = new Phone(phoneData);
+            await phone.save();
+        }
+
         res.status(201).json({
             success: true,
             data: savedProduct
