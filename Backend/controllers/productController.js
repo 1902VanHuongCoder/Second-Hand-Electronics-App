@@ -51,7 +51,7 @@ exports.createProduct = async (req, res) => {
             isSold: req.body.isSold || false,
             warranty: req.body.warranty,
             images: req.body.images || [],
-            videos: req.body.videos || [],
+            videos: typeof req.body.videos === 'string' ? req.body.videos : '',
             location: req.body.location
         };
 
@@ -70,14 +70,159 @@ exports.createProduct = async (req, res) => {
     }
 };
 
+// Lấy thông tin chi tiết sản phẩm để chỉnh sửa
+exports.getProductForEdit = async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id);
+        if (!product) return res.status(404).json({ message: 'Product not found' });
+        
+        // Bỏ qua việc kiểm tra quyền sở hữu tạm thời để debug
+        // if (product.userId.toString() !== req.user.id) {
+        //     return res.status(403).json({ message: 'Bạn không có quyền chỉnh sửa sản phẩm này' });
+        // }
+        
+        const category = await Category.findById(product.categoryId);
+        
+        let detailData = {};
+        if (category.categoryName === 'Laptop') {
+            const laptop = await Laptop.findOne({ productId: product._id });
+            detailData = {
+                cpuId: laptop.cpuId,
+                gpuId: laptop.gpuId,
+                screenId: laptop.screenId,
+                battery: laptop.battery,
+                origin: laptop.origin
+            };
+        } else if (category.categoryName === 'Điện thoại') {
+            const phone = await Phone.findOne({ productId: product._id });
+            detailData = {
+                battery: phone.battery,
+                origin: phone.origin
+            };
+        }
+        
+        // Phân tách địa chỉ
+        let locationData = {};
+        if (typeof product.location === 'object') {
+            locationData = product.location;
+        }
+        
+        const editData = {
+            id: product._id,
+            categoryId: product.categoryId,
+            brandId: null, // Sẽ được lấy từ version
+            versionId: product.versionId,
+            conditionId: product.conditionId,
+            storageId: product.storageId,
+            ramId: null, // Sẽ được lấy từ laptop/phone
+            title: product.title,
+            description: product.description,
+            price: product.price,
+            warranty: product.warranty,
+            isVip: product.isVip,
+            images: product.images,
+            videos: product.videos,
+            location: locationData,
+            ...detailData
+        };
+        
+        // Lấy thông tin version để có brandId
+        const version = await Version.findById(product.versionId);
+        if (version) {
+            editData.brandId = version.brandId;
+        }
+        
+        // Lấy thông tin ramId
+        if (category.categoryName === 'Laptop') {
+            const laptop = await Laptop.findOne({ productId: product._id });
+            if (laptop) {
+                editData.ramId = laptop.ramId;
+            }
+        } else if (category.categoryName === 'Điện thoại') {
+            const phone = await Phone.findOne({ productId: product._id });
+            if (phone) {
+                editData.ramId = phone.ramId;
+            }
+        }
+        
+        // Lấy thông tin storageType nếu là laptop
+        if (category.categoryName === 'Laptop') {
+            const storage = await Storage.findById(product.storageId);
+            if (storage) {
+                editData.storageTypeId = storage.storageTypeId;
+            }
+        }
+        
+        res.status(200).json(editData);
+    } catch (error) {
+        console.error('Error in getProductForEdit:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // Cập nhật sản phẩm
 exports.updateProduct = async (req, res) => {
     try {
-        const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!updatedProduct) return res.status(404).json({ message: 'Product not found' });
-        res.status(200).json(updatedProduct);
+        const product = await Product.findById(req.params.id);
+        if (!product) return res.status(404).json({ message: 'Product not found' });
+        
+        // Kiểm tra quyền sở hữu sản phẩm
+        if (product.userId.toString() !== req.body.userId) {
+            return res.status(403).json({ message: 'Bạn không có quyền chỉnh sửa sản phẩm này' });
+        }
+        
+        const productData = {
+            categoryId: new mongoose.Types.ObjectId(req.body.categoryId),
+            versionId: new mongoose.Types.ObjectId(req.body.versionId),
+            conditionId: new mongoose.Types.ObjectId(req.body.conditionId),
+            storageId: new mongoose.Types.ObjectId(req.body.storageId),
+            title: req.body.title,
+            description: req.body.description,
+            price: req.body.price,
+            isVip: req.body.isVip,
+            warranty: req.body.warranty,
+            images: req.body.images || product.images,
+            videos: req.body.videos || product.videos,
+            location: req.body.location || product.location,
+            updatedAt: Date.now()
+        };
+        
+        const updatedProduct = await Product.findByIdAndUpdate(req.params.id, productData, { new: true });
+        
+        // Cập nhật thông tin chi tiết (laptop hoặc phone)
+        const category = await Category.findById(req.body.categoryId);
+        
+        if (category.categoryName === 'Laptop') {
+            const laptopData = {
+                cpuId: new mongoose.Types.ObjectId(req.body.cpuId),
+                gpuId: new mongoose.Types.ObjectId(req.body.gpuId),
+                ramId: new mongoose.Types.ObjectId(req.body.ramId),
+                screenId: new mongoose.Types.ObjectId(req.body.screenId),
+                battery: req.body.battery,
+                origin: req.body.origin,
+                updatedAt: Date.now()
+            };
+            
+            await Laptop.findOneAndUpdate({ productId: req.params.id }, laptopData);
+        } else if (category.categoryName === 'Điện thoại') {
+            const phoneData = {
+                ramId: new mongoose.Types.ObjectId(req.body.ramId),
+                battery: req.body.battery,
+                origin: req.body.origin
+            };
+            
+            await Phone.findOneAndUpdate({ productId: req.params.id }, phoneData);
+        }
+        
+        res.status(200).json({
+            success: true,
+            data: updatedProduct
+        });
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
     }
 };
 
