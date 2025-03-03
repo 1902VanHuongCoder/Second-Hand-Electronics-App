@@ -6,6 +6,15 @@ const router = express.Router();
 const uploadController = require('../controllers/uploadController');
 const multer = require('multer');
 
+// Cấu hình multer
+// const storage = multer.diskStorage({
+//     destination: (req, file, cb) => {
+//         cb(null, './uploads/');
+//     },
+//     filename: (req, file, cb) => {
+//         cb(null, `${Date.now()}-${file.originalname}`);
+//     },
+// });
 // // Cấu hình multer
 // const storage = multer.diskStorage({
 //     destination: (req, file, cb) => {
