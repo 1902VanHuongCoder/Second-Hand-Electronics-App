@@ -51,7 +51,7 @@ exports.createProduct = async (req, res) => {
             isSold: req.body.isSold || false,
             warranty: req.body.warranty,
             images: req.body.images || [],
-            videos: req.body.videos || [],
+            videos: typeof req.body.videos === 'string' ? req.body.videos : '',
             location: req.body.location
         };
 
