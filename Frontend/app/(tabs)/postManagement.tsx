@@ -63,10 +63,13 @@ export default function PostManagement() {
                             <Text className='font-medium text-[14px]'>Lượt xem: <Text className='font-bold'>{product.views}</Text></Text>
                         </View>
                         <View className='px-6 flex-row w-full gap-4 mx-auto items-center justify-center'>
-                            <TouchableHighlight className='border-2 w-[20%] rounded-md p-3 border-[#808080]'>
+                            <TouchableHighlight 
+                                className='border-2 w-[20%] rounded-md p-3 border-[#808080]'
+                                onPress={() => router.push(`/postCreation?id=${product.id}`)}
+                            >
                                 <View className='flex-row items-center justify-center gap-2'>
                                     <Icon name='pencil' size={22} color={'#808080'} />
-                                    <Link href={`/postCreation?id=${product.id}`}><Text></Text></Link>
+                                    <Text className='font-bold text-[#808080] text-[16px]'>Sửa</Text>
                                 </View>
                             </TouchableHighlight>
                             <TouchableHighlight className='border-2 w-[40%] rounded-md p-3 border-[#9661D9]'>
