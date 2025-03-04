@@ -25,3 +25,13 @@ exports.getBrands = async (req, res) => {
     res.status(500).json({ success: false, message: 'Lỗi server' });
   }
 }; 
+
+exports.getBrandsById = async (req, res) => {
+  const { categoryId } = req.params;
+  try {
+    const brands = await Brand.find({ categoryId });
+    res.status(200).json(brands);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}

@@ -43,6 +43,20 @@ interface User {
   name: string; // Thêm các thuộc tính cần thiết khác
 }
 
+interface Category {
+  _id: string;
+  categoryName: string;
+}
+
+interface CategoryResponse {
+  categories: Category[];
+}
+
+interface Brand {
+  _id: string;
+  brandName: string;
+}
+
 export default function HomePage() {
   const router = useRouter();
   const { notifications, showNotification } = useContext(NotificationContext);
@@ -52,7 +66,9 @@ export default function HomePage() {
   const [selectedReason, setSelectedReason] = useState<string | null>(null); // State để lưu lý do đã chọn
   const checkAuth = useAuthCheck();
   const [products, setProducts] = useState<Product[]>([]);
-  // const [users, setUsers] = useState<{ [key: string]: User }>({}); // Sử dụng kiểu User cho các giá trị
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [categories, setCategory] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const checkLogin = () => {
     checkAuth();
   }
@@ -61,32 +77,24 @@ export default function HomePage() {
     const fetchProducts = async () => {
       try {
         const response = await axios.get<Product[]>('http://10.0.2.2:5000/api/home');
-
-        console.log("Post data", response.data);
-
         setProducts(response.data);
-        console.log(response.data)
-
-        // Lấy thông tin người dùng cho từng sản phẩm
-        // const userIds = response.data.map(product => product.userId);
-        // const uniqueUserIds = [...new Set(userIds)]; // Lấy danh sách userId duy nhất
-
-        // const userResponses = await Promise.all(
-        //   uniqueUserIds.map(userId => axios.get<User>(`http://10.0.2.2:5000/api/users/${userId}`))
-        // );
-
-        // const usersData = userResponses.reduce<{ [key: string]: User }>((acc, userResponse) => {
-        //   acc[userResponse.data._id] = userResponse.data; // Lưu thông tin người dùng theo userId
-        //   return acc;
-        // }, {});
-
-        // setUsers(usersData); // Cập nhật state với thông tin người dùng
-
+        setAllProducts(response.data);
       } catch (error) {
         console.error('Error fetching products:', error);
       }
     };
 
+    const fetchCategory = async () => {
+      try {
+        const response = await axios.get<CategoryResponse>('http://10.0.2.2:5000/api/allcategory');
+        setCategory(response.data.categories);
+
+      } catch (err) {
+        console.log("Error fetching category: ", err)
+      }
+    }
+
+    fetchCategory();
     fetchProducts();
   }, []);
 
@@ -98,15 +106,42 @@ export default function HomePage() {
     "Khác",
   ];
 
+  const getAllProducts = async () => {
+    setBrands([]);
+    try {
+      const response = await axios.get<Product[]>('http://10.0.2.2:5000/api/home');
+      setProducts(response.data);
+    } catch (error) {
+      console.error('Error fetching all products:', error);
+    }
+  };
+
+  const getBrandsById = async (categoryId: string, categoryName: string) => {
+    try {
+      const response = await axios.get<Brand[]>(`http://10.0.2.2:5000/api/brands/${categoryId}`);
+      setBrands(response.data);
+
+      if (categoryName.toLowerCase().includes("điện thoại")) {
+        setProducts(allProducts.filter(product => product.type === "phone"));
+      } else if (categoryName.toLowerCase().includes("laptop")) {
+        setProducts(allProducts.filter(product => product.type === "laptop"));
+      } else {
+        setProducts(allProducts);
+      }
+    } catch (error) {
+      console.error('Error fetching brands:', error);
+    }
+  };
+
   const handleReportPress = (productId: string) => {
     checkLogin();
     setSelectedProductId(productId);
-    setReportVisible(!reportVisible); // Chuyển đổi trạng thái hiển thị menu báo cáo
+    setReportVisible(!reportVisible);
   };
 
   const handleReasonSelect = (reason: string) => {
     setSelectedReason(reason);
-    alert(`Bạn đã chọn lý do: ${reason}`); // Thực hiện hành động báo cáo ở đây
+    alert(`Bạn đã chọn lý do: ${reason}`);
   };
 
   const formatCurrency = (value: String) => {
@@ -119,6 +154,15 @@ export default function HomePage() {
       return;
     }
     router.push(`/searchResults?searchTerm=${encodeURIComponent(searchTerm.trim())}`);
+  };
+
+  const fetchProductsByBrand = async (brandId: string) => {
+    try {
+      const response = await axios.get<Product[]>(`http://10.0.2.2:5000/api/products/products-by-brand/${brandId}`);
+      setProducts(response.data);
+    } catch (error) {
+      console.error("Error fetching products by brand:", error);
+    }
   };
 
   return (
@@ -151,7 +195,6 @@ export default function HomePage() {
             <Text className="uppercase font-extrabold text-white text-[18px]">
               2Hand Market
             </Text>
-
             <Text className="text-[14px] text-white font-medium">
               Buôn bán các thiết bị hiện tại và uy tính.
             </Text>
@@ -162,28 +205,53 @@ export default function HomePage() {
           />
         </LinearGradient>
         <View className="flex-row gap-4 mt-6 items-center justify-center">
-          <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
+          <TouchableHighlight underlayColor="#D9D9D9" onPress={() => getAllProducts()} className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
             <View className="flex-row items-center justify-center gap-2">
               <Ionicons name="logo-slack" className="text-[]" size={22} color="#9661D9" />
               <Text className="font-bold text-[18px] text-[#9661D9]">All</Text>
             </View>
           </TouchableHighlight>
-          <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
-            <View className="flex-row items-center justify-center gap-2">
-              <Icon name="mobile" size={24} color="#9661D9" />
-              <Text className="font-bold text-[18px] text-[#9661D9]">
-                Điện thoại
-              </Text>
-            </View>
-          </TouchableHighlight>
-          <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
-            <View className="flex-row items-center justify-center gap-2">
-              <Icon name="laptop" size={22} color="#9661D9" />
-              <Text className="font-bold text-[18px] text-[#9661D9]">Laptop</Text>
-            </View>
-          </TouchableHighlight>
+          {categories.map((category) => {
+            const iconName = category.categoryName === "Điện thoại" ? "mobile" :
+              category.categoryName === "Laptop" ? "laptop" : "question-circle";
+            return (
+              <TouchableHighlight
+                underlayColor="#D9D9D9"
+                key={category._id}
+                onPress={() => getBrandsById(category._id, category.categoryName)}
+                className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center"
+              >
+                <View className="flex-row items-center justify-center gap-2">
+                  <Icon name={iconName} size={24} color="#9661D9" />
+                  <Text className="font-bold text-[18px] text-[#9661D9]">
+                    {category.categoryName}
+                  </Text>
+                </View>
+              </TouchableHighlight>
+            );
+          })}
         </View>
-        {products.map((product) => (
+        {brands.length > 0 && (
+          <View className="mt-4">
+            <ScrollView horizontal className="mt-2" contentContainerStyle={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+              <View className="flex flex-row gap-4 justify-center items-center">
+                {brands.map((brand) => (
+                  <TouchableHighlight
+                    onPress={() => fetchProductsByBrand(brand._id)}
+                    underlayColor="#D9D9D9"
+                    key={brand._id}
+                    className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center"
+                  >
+                    <Text className="font-bold text-[18px] text-[#9661D9]">
+                      {brand.brandName}
+                    </Text>
+                  </TouchableHighlight>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
+        )}
+        {products.map((product, index) => (
           <View
             key={product.id}
             className="mt-6 flex-col gap-4 border-b border-[#D9D9D9] pb-4"
