@@ -56,7 +56,6 @@ export default function HomePage() {
   const checkLogin = () => {
     checkAuth();
   }
-
   useEffect(() => {
     const fetchProducts = async () => {
       try {

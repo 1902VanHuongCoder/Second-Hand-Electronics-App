@@ -1,4 +1,4 @@
-import { Text, View, ScrollView, ActivityIndicator, TextInput, TouchableHighlight, Button, Image, Alert } from 'react-native'
+import { Text, View, ScrollView, ActivityIndicator, TextInput, TouchableHighlight, Button, Image, Alert, TouchableOpacity } from 'react-native'
 
 import React, { useState, useEffect, useMemo } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -14,6 +14,7 @@ import * as VideoThumbnails from 'expo-video-thumbnails';
 import { Video, ResizeMode } from 'expo-av';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system';
 
 
 const API_URL = "http://10.0.2.2:5000/api/uploadmultiple";
@@ -625,28 +626,66 @@ export default function PostCreation() {
     }, [checkAuth]);
 
     const selectImages = async () => {
+        // Kiểm tra nếu đã đạt số lượng ảnh tối đa
+        if (avatarUrls.length >= 6) {
+            Alert.alert(
+                "Số lượng ảnh tối đa",
+                "Bạn đã đạt số lượng ảnh tối đa (6 ảnh). Vui lòng xóa bớt ảnh trước khi thêm mới.",
+                [{ text: "OK" }]
+            );
+            return;
+        }
+
         const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
         if (permissionResult.granted === false) {
-            Alert.alert("Permission to access camera roll is required!");
+            Alert.alert("Cần quyền truy cập", "Ứng dụng cần quyền truy cập thư viện ảnh để tiếp tục!");
             return;
         }
+
+        // Tính toán số lượng ảnh còn có thể chọn
+        const remainingImages = 6 - avatarUrls.length;
 
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsMultipleSelection: true,
             quality: 1,
+            selectionLimit: remainingImages, // Giới hạn số lượng ảnh có thể chọn
         });
 
         if (!result.canceled) {
-            const selectedImages = result.assets.map(asset => asset.uri);
-            setImages(selectedImages);
+            // Kiểm tra nếu tổng số ảnh vượt quá giới hạn
+            if (result.assets.length > remainingImages) {
+                Alert.alert(
+                    "Quá nhiều ảnh",
+                    `Bạn chỉ có thể chọn thêm tối đa ${remainingImages} ảnh.`,
+                    [{ text: "OK" }]
+                );
+                // Chỉ lấy số lượng ảnh còn lại được phép
+                const selectedImages = result.assets.slice(0, remainingImages).map(asset => asset.uri);
+                setImages(selectedImages);
+            } else {
+                const selectedImages = result.assets.map(asset => asset.uri);
+                setImages(selectedImages);
+            }
         }
     };
 
     const uploadImages = async () => {
         if (images.length === 0) {
             Alert.alert("Vui lòng chọn ảnh trước");
+            return;
+        }
+
+        // Kiểm tra tổng số ảnh sau khi tải lên không vượt quá 6
+        if (avatarUrls.length + images.length > 6) {
+            Alert.alert(
+                "Quá nhiều ảnh", 
+                `Bạn đã có ${avatarUrls.length} ảnh. Chỉ có thể tải thêm tối đa ${6 - avatarUrls.length} ảnh nữa.`,
+                [
+                    { text: "OK" }
+                ]
+            );
             return;
         }
 
@@ -694,7 +733,12 @@ export default function PostCreation() {
                 return;
             }
 
-            setAvatarUrls(response.data.urls || []);
+            // Giữ lại ảnh cũ và thêm ảnh mới
+            const newUrls = [...avatarUrls, ...(response.data.urls || [])];
+            setAvatarUrls(newUrls);
+            // Xóa ảnh đã chọn sau khi tải lên thành công
+            setImages([]);
+            
             Alert.alert(
                 "Thành công", 
                 "Upload ảnh thành công",
@@ -702,64 +746,99 @@ export default function PostCreation() {
                     { text: "OK", onPress: () => console.log("OK Pressed") }
                 ]
             );
-        } catch (error: any) {
-            console.error("Upload Error:", error);
-            Alert.alert(
-                "Lỗi Upload", 
-                error.response?.data?.message || "Có lỗi xảy ra khi upload ảnh",
-                [
-                    { text: "OK", onPress: () => console.log("OK Pressed") }
-                ]
-            );
+        } catch (error) {
+            // console.error('Lỗi khi upload ảnh:', error);
+            Alert.alert('Phát hiện có ảnh đã được sử dụng , vui lòng chọn ảnh chính chủ hoặc xóa bỏ hình ảnh trùng lắp  ');
         } finally {
             setLoading(false);
         }
     };
 
     const selectVideo = async () => {
-        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-        if (!permissionResult.granted) {
-            Alert.alert("Permission to access camera roll is required!");
+        // Kiểm tra nếu đã có video
+        if (videoUrl) {
+            Alert.alert(
+                "Video đã tồn tại", 
+                "Bạn đã tải lên một video. Vui lòng xóa video hiện tại trước khi chọn video mới.",
+                [{ text: "OK" }]
+            );
             return;
         }
 
-        const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Videos,
-            quality: 1,
-        });
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-        if (!result.canceled) {
-            const videoUri = result.assets[0].uri;
-            const videoInfo = await fetch(videoUri);
-            const videoBlob = await videoInfo.blob();
+        if (permissionResult.granted === false) {
+            Alert.alert("Cần quyền truy cập", "Ứng dụng cần quyền truy cập thư viện để tiếp tục!");
+            return;
+        }
 
-            if (videoBlob.size > MAX_VIDEO_SIZE) {
-                Alert.alert("Video too large", "Please select a video smaller than 50 MB.");
-                return;
+        try {
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+                allowsEditing: true,
+                quality: 1,
+                videoMaxDuration: 60, // Giới hạn thời lượng video tối đa 60 giây
+            });
+
+            if (!result.canceled) {
+                // Kiểm tra kích thước video
+                const fileInfo = await FileSystem.getInfoAsync(result.assets[0].uri);
+                if (fileInfo.size > MAX_VIDEO_SIZE) {
+                    Alert.alert(
+                        "Video quá lớn", 
+                        "Kích thước video vượt quá 50MB. Vui lòng chọn video nhỏ hơn.",
+                        [{ text: "OK" }]
+                    );
+                    return;
+                }
+
+                setVideo(result.assets[0].uri);
+                
+                // Tạo thumbnail cho video
+                try {
+                    const { uri } = await VideoThumbnails.getThumbnailAsync(result.assets[0].uri, { time: 1000 });
+                    setThumbnail(uri);
+                } catch (err) {
+                    console.error("Lỗi khi tạo thumbnail:", err);
+                }
             }
-
-            setVideo(videoUri);
-
-            // Generate video thumbnail
-            try {
-                const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, { time: 1000 });
-                setThumbnail(uri);
-            } catch (err) {
-                console.error("Thumbnail generation error:", err);
-            }
+        } catch (error) {
+            console.error("Lỗi khi chọn video:", error);
+            Alert.alert("Lỗi", "Không thể chọn video. Vui lòng thử lại sau.");
         }
     };
 
     const uploadVideo = async () => {
         if (!video) {
-            Alert.alert("Please select a video first");
+            Alert.alert("Vui lòng chọn video trước");
+            return;
+        }
+
+        // Kiểm tra nếu đã có video
+        if (videoUrl) {
+            Alert.alert(
+                "Video đã tồn tại", 
+                "Bạn đã tải lên một video. Vui lòng xóa video hiện tại trước khi tải lên video mới.",
+                [{ text: "OK" }]
+            );
             return;
         }
 
         setVideoLoading(true);
 
         try {
+            // Kiểm tra kích thước video
+            const fileInfo = await FileSystem.getInfoAsync(video);
+            if (fileInfo.size > MAX_VIDEO_SIZE) {
+                Alert.alert(
+                    "Video quá lớn", 
+                    "Kích thước video vượt quá 50MB. Vui lòng chọn video nhỏ hơn.",
+                    [{ text: "OK" }]
+                );
+                setVideoLoading(false);
+                return;
+            }
+
             const formData = new FormData();
             formData.append("video", {
                 uri: video,
@@ -767,15 +846,33 @@ export default function PostCreation() {
                 name: "video.mp4",
             } as any);
 
-            const response = await axios.post<{ url: string; success: boolean; message: string }>(API_URL_UPLOAD_VIDEO, formData, {
+            const response = await axios.post(API_URL_UPLOAD_VIDEO, formData, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
 
-            setVideoUrl(response.data.url);
-            Alert.alert("Upload Successful", "Video uploaded successfully");
+            if (response.data && response.data.success) {
+                setVideoUrl(response.data.url);
+                setVideo(null); // Xóa video đã chọn sau khi tải lên thành công
+                
+                Alert.alert(
+                    "Thành công", 
+                    "Upload video thành công",
+                    [{ text: "OK" }]
+                );
+            } else {
+                Alert.alert(
+                    "Upload Thất Bại", 
+                    response.data?.message || "Không thể tải lên video. Vui lòng thử lại sau.",
+                    [{ text: "OK" }]
+                );
+            }
         } catch (error) {
-            console.error("Upload Error:", error);
-            Alert.alert("Upload Failed", "Something went wrong.");
+            console.error('Lỗi khi upload video:', error);
+            Alert.alert(
+                "Lỗi", 
+                "Không thể tải lên video. Vui lòng thử lại sau.",
+                [{ text: "OK" }]
+            );
         } finally {
             setVideoLoading(false);
         }
@@ -908,46 +1005,199 @@ export default function PostCreation() {
                     <Text className='font-bold text-[16px] uppercase'>Thông tin chi tiết</Text>
                     <View className='flex-col gap-2'>
                         <View className='border-2 border-[#D9D9D9] rounded-lg p-3 flex-col items-center'>
-                            <Text className='text-[#9661D9] font-semibold self-end'>Đăng từ 01 đến 06 hình</Text>
-                            <View style={{display: images.length > 0 ? 'none' : 'flex', marginTop: 10 }}> <Icon name='camera'  size={40} color='#9661D9' /></View>
-                            {images.length > 0 && <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 20, marginTop: 20, marginBottom: 20 }}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 10 }}>
+                                <Text className='text-[#9661D9] font-semibold'>Đăng từ 01 đến 06 hình</Text>
+                                {avatarUrls.length > 0 && (
+                                    <TouchableOpacity 
+                                        onPress={() => {
+                                            Alert.alert(
+                                                "Xác nhận",
+                                                "Bạn có chắc muốn xóa tất cả ảnh đã tải lên?",
+                                                [
+                                                    { text: "Hủy", style: "cancel" },
+                                                    { 
+                                                        text: "Xóa tất cả", 
+                                                        style: "destructive",
+                                                        onPress: () => setAvatarUrls([]) 
+                                                    }
+                                                ]
+                                            );
+                                        }}
+                                    >
+                                        <Text style={{ color: 'red', fontWeight: 'bold' }}>Xóa tất cả</Text>
+                                    </TouchableOpacity>
+                                )}
+                            </View>
+                            <View style={{display: images.length > 0 || avatarUrls.length > 0 ? 'none' : 'flex', marginTop: 10 }}> 
+                                <Icon name='camera' size={40} color='#9661D9' />
+                            </View>
+                            {(avatarUrls.length > 0 || images.length > 0) && (
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginVertical: 5 }}>
+                                    <Text style={{ color: '#666' }}>
+                                        Đã tải lên: {avatarUrls.length}/6 ảnh
+                                    </Text>
+                                    <Text style={{ color: avatarUrls.length >= 6 ? 'red' : '#666' }}>
+                                        Còn lại: {6 - avatarUrls.length} ảnh
+                                    </Text>
+                                </View>
+                            )}
+                            {images.length > 0 && <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 10, marginTop: 10, marginBottom: 10 }}>
                                 {images.map((image, index) => (
-                                    <Image key={index} source={{ uri: image }} style={{ width: 100, height: 100, borderRadius: 5, margin: 10 }} />
-                                ))}
-                            </View>}
-                            {/* {avatarUrls.length > 0 && <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 20, marginTop: 20, marginBottom: 20 }}>
-                                {avatarUrls.map((url, index) => (
-                                    <View key={index} style={{ alignItems: "center" }}>
-                                        <Image source={{ uri: url }} style={{ width: 100, height: 100, borderRadius: 5 }} />
+                                    <View key={index} style={{ position: 'relative', margin: 5 }}>
+                                        <Image source={{ uri: image }} style={{ width: 100, height: 100, borderRadius: 5 }} />
+                                        <TouchableOpacity 
+                                            style={{ 
+                                                position: 'absolute', 
+                                                top: -5, 
+                                                right: -5, 
+                                                backgroundColor: 'rgba(255,0,0,0.7)', 
+                                                borderRadius: 10,
+                                                width: 20,
+                                                height: 20,
+                                                justifyContent: 'center',
+                                                alignItems: 'center'
+                                            }}
+                                            onPress={() => {
+                                                const newImages = [...images];
+                                                newImages.splice(index, 1);
+                                                setImages(newImages);
+                                            }}
+                                        >
+                                            <Text style={{ color: 'white', fontWeight: 'bold' }}>X</Text>
+                                        </TouchableOpacity>
                                     </View>
                                 ))}
-                            </View>} */}
+                            </View>}
+                            {avatarUrls.length > 0 && <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 10, marginTop: 10, marginBottom: 10 }}>
+                                {avatarUrls.map((url, index) => (
+                                    <View key={index} style={{ position: 'relative', margin: 5 }}>
+                                        <Image source={{ uri: url }} style={{ width: 100, height: 100, borderRadius: 5 }} />
+                                        <TouchableOpacity 
+                                            style={{ 
+                                                position: 'absolute', 
+                                                top: -5, 
+                                                right: -5, 
+                                                backgroundColor: 'rgba(255,0,0,0.7)', 
+                                                borderRadius: 10,
+                                                width: 20,
+                                                height: 20,
+                                                justifyContent: 'center',
+                                                alignItems: 'center'
+                                            }}
+                                            onPress={() => {
+                                                const newUrls = [...avatarUrls];
+                                                newUrls.splice(index, 1);
+                                                setAvatarUrls(newUrls);
+                                            }}
+                                        >
+                                            <Text style={{ color: 'white', fontWeight: 'bold' }}>X</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                ))}
+                            </View>}
                             {loading && <ActivityIndicator size="large" color="blue" style={{ marginTop: 10, marginBottom: 10 }} />}
-                            <View style={{ flexDirection: "row", justifyContent: "center", gap: 20, marginBottom: 20, marginTop: images.length > 0 ? 0 : 20 }}>
+                            <View style={{ flexDirection: "row", justifyContent: "center", gap: 20, marginBottom: 10, marginTop: 10 }}>
                                 <Button title="Chọn ảnh" onPress={selectImages} />
-                                <Button title="Tải ảnh lên" onPress={uploadImages} disabled={images.length > 0 ? false : true} />
+                                <Button 
+                                    title="Tải ảnh lên" 
+                                    onPress={uploadImages} 
+                                    disabled={images.length === 0 || avatarUrls.length >= 6} 
+                                />
                             </View>
-                            {/* </ScrollView> */}
+                            {avatarUrls.length >= 6 && (
+                                <Text style={{ color: 'red', marginTop: 5, textAlign: 'center' }}>
+                                    Đã đạt số lượng ảnh tối đa (6 ảnh)
+                                </Text>
+                            )}
                         </View>
                     </View>
                     <View className='flex-col gap-2'>
                         <View className='border-2 border-[#D9D9D9] rounded-lg p-3 flex-col items-center'>
-                            <Text className='text-[#9661D9] font-semibold self-end'>Đăng tối đa 1 video dưới 50MB</Text>
-                            {!video && <Icon className='mt-4' name='video-camera' size={40} color='#9661D9' />}
-                            {video && (
-                                <Video
-                                    source={{ uri: video }}
-                                    style={{ width: 300, height: 200, marginTop: 10 }}
-                                    useNativeControls
-                                    resizeMode={ResizeMode.CONTAIN}
-                                />
-                            )}
-                            {videoloading && <ActivityIndicator size="large" color="blue" style={{ marginBottom: 20, }}/>}
-                            <View style={{ flexDirection: "row", justifyContent: "center", gap: 20, marginBottom: 20, marginTop: images.length > 0 ? 0 : 20 }}>
-                                <Button title="Chọn video" onPress={selectVideo} />
-                                <Button disabled={video ? false : true} title="Tải video lên" onPress={uploadVideo} />
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 10 }}>
+                                <Text className='text-[#9661D9] font-semibold'>Đăng tối đa 1 video dưới 50MB</Text>
+                                {videoUrl && (
+                                    <TouchableOpacity 
+                                        onPress={() => {
+                                            Alert.alert(
+                                                "Xác nhận",
+                                                "Bạn có chắc muốn xóa video đã tải lên?",
+                                                [
+                                                    { text: "Hủy", style: "cancel" },
+                                                    { 
+                                                        text: "Xóa", 
+                                                        style: "destructive",
+                                                        onPress: () => setVideoUrl(null) 
+                                                    }
+                                                ]
+                                            );
+                                        }}
+                                    >
+                                        <Text style={{ color: 'red', fontWeight: 'bold' }}>Xóa video</Text>
+                                    </TouchableOpacity>
+                                )}
                             </View>
-
+                            {!video && !videoUrl && <Icon className='mt-4' name='video-camera' size={40} color='#9661D9' />}
+                            {videoUrl && (
+                                <Text style={{ marginTop: 5, color: '#666', marginBottom: 5 }}>
+                                    Đã tải lên video
+                                </Text>
+                            )}
+                            {video && (
+                                <View style={{ position: 'relative', marginVertical: 10 }}>
+                                    <Video
+                                        source={{ uri: video }}
+                                        style={{ width: 300, height: 200 }}
+                                        useNativeControls
+                                        resizeMode={ResizeMode.CONTAIN}
+                                    />
+                                    <TouchableOpacity 
+                                        style={{ 
+                                            position: 'absolute', 
+                                            top: 5, 
+                                            right: 5, 
+                                            backgroundColor: 'rgba(255,0,0,0.7)', 
+                                            borderRadius: 10,
+                                            width: 20,
+                                            height: 20,
+                                            justifyContent: 'center',
+                                            alignItems: 'center'
+                                        }}
+                                        onPress={() => {
+                                            setVideo(null);
+                                        }}
+                                    >
+                                        <Text style={{ color: 'white', fontWeight: 'bold' }}>X</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+                            {videoUrl && !video && (
+                                <View style={{ position: 'relative', marginVertical: 10 }}>
+                                    <Video
+                                        source={{ uri: videoUrl }}
+                                        style={{ width: 300, height: 200 }}
+                                        useNativeControls
+                                        resizeMode={ResizeMode.CONTAIN}
+                                    />
+                                </View>
+                            )}
+                            {videoloading && <ActivityIndicator size="large" color="blue" style={{ marginVertical: 10 }}/>}
+                            <View style={{ flexDirection: "row", justifyContent: "center", gap: 20, marginVertical: 10 }}>
+                                <Button 
+                                    title="Chọn video" 
+                                    onPress={selectVideo} 
+                                    disabled={videoUrl !== null}
+                                />
+                                <Button 
+                                    disabled={video === null} 
+                                    title="Tải video lên" 
+                                    onPress={uploadVideo} 
+                                />
+                            </View>
+                            {videoUrl && (
+                                <Text style={{ color: 'green', marginTop: 5, textAlign: 'center' }}>
+                                    Video đã được tải lên thành công
+                                </Text>
+                            )}
                         </View>
                     </View>
                     <View className='flex-col gap-2'>
