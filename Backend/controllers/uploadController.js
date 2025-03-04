@@ -224,3 +224,21 @@ exports.uploadVideo = async (req, res) => {
     res.status(500).json({ success: false, message: 'Error uploading video' });
   }
 };
+
+// Hàm upload avatar
+exports.uploadAvatar = async (req, res) => {
+  try {
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: 'profile_pictures', // Optional: specify a folder in Cloudinary
+    });
+
+    res.json({
+      success: true,
+      message: 'Avatar uploaded successfully',
+      url: result.secure_url,
+    });
+  } catch (error) {
+    console.error('Error uploading avatar:', error);
+    res.status(500).json({ success: false, message: 'Error uploading avatar' });
+  }
+};

@@ -11,7 +11,7 @@ import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
 
-const API_URL = "http://10.0.2.2:5000/api/upload";
+const API_URL = "http://10.0.2.2:5000/api/uploadAvatar";
 
 export default function ProfileSettings() {
     const dispatch = useDispatch<AppDispatch>();

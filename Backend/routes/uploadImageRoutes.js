@@ -38,7 +38,7 @@ const multer = require('multer');
 //         }
 //     }
 // });
-
+router.post('/uploadAvatar', upload.single('image'), uploadController.uploadAvatar);
 // Route upload nhiều ảnh
 router.post('/uploadmultiple', upload.array('images', 6), uploadController.uploadMulti);
 
