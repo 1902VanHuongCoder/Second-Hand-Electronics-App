@@ -63,7 +63,7 @@ export default function HomePage() {
         const response = await axios.get<Product[]>('http://10.0.2.2:5000/api/home');
 
         console.log("Post data", response.data);
-        
+
         setProducts(response.data);
         console.log(response.data)
 
@@ -226,9 +226,8 @@ export default function HomePage() {
               <View className="flex-row justify-between items-center w-full">
                 <View className="flex-row gap-2 items-center">
                   <Image
-                    style={{ width: 50, height: 50 }}
-                    className="rounded-full"
-                    source={{uri: product.avatarUrl}} 
+                    source={product.avatarUrl ? { uri: product.avatarUrl } : require("../assets/images/avatar.jpg")}
+                    style={{ width: 50, height: 50, borderRadius: 25 }}
                   />
                   <View>
                     <Text className="font-medium text-[14px]">Người bán</Text>
@@ -265,66 +264,3 @@ const styles = StyleSheet.create({
     padding: 20,
   },
 })
-
-//npm install react-native-linear-gradient sử dụng này để gradient background
-//npm install react-native-vector-icons cài icon
-
-// const styles = StyleSheet.create({
-//     container: {
-//         padding: 16,
-//     },
-//     card: {
-//         backgroundColor: '#fff',
-//         borderRadius: 8,
-//         padding: 16,
-//         marginBottom: 16,
-//         shadowColor: '#000',
-//         shadowOffset: {
-//             width: 0,
-//             height: 2,
-//         },
-//         shadowOpacity: 0.1,
-//         shadowRadius: 4,
-//         elevation: 2,
-//     },
-//     cardContent: {
-//         flexDirection: 'column',
-//     },
-//     title: {
-//         fontWeight: 'bold',
-//         fontSize: 18,
-//     },
-//     battery: {
-//         fontSize: 14,
-//         color: '#666',
-//     },
-//     ram: {
-//         fontSize: 14,
-//         color: '#666',
-//     },
-//     screen: {
-//         fontSize: 14,
-//         color: '#666',
-//     },
-//     productTitle: {
-//         fontWeight: 'bold',
-//         fontSize: 16,
-//         marginTop: 8,
-//     },
-//     description: {
-//         fontSize: 14,
-//         color: '#333',
-//     },
-//     price: {
-//         fontWeight: 'bold',
-//         fontSize: 16,
-//         color: '#9661D9',
-//         marginTop: 4,
-//     },
-//     loading: {
-//         textAlign: 'center',
-//         marginTop: 20,
-//         fontSize: 16,
-//         color: '#999',
-//     },
-// });

@@ -364,7 +364,7 @@ exports.searchProducts = async (req, res) => {
         })
             .populate('categoryId', 'categoryName')
             .populate('versionId', 'versionName')
-            .populate('userId', 'name')
+            .populate('userId', 'name avatarUrl')
             .sort({ createdAt: -1 });
 
         res.status(200).json(products);
