@@ -30,6 +30,21 @@ exports.upload = multer({
   }
 });
 
+// Cấu hình multer cho video
+exports.uploadVideoMiddleware = multer({
+  storage,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB cho video
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('video/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Chỉ chấp nhận file video!'));
+    }
+  }
+});
+
 // Hàm lấy danh sách ảnh từ Cloudinary
 async function getExistingImages() {
   try {

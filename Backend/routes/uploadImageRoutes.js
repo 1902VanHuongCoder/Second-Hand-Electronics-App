@@ -1,6 +1,6 @@
 const express = require('express');
 
-const {uploadVideo, uploadImage, upload, uploadMulti } = require('../controllers/uploadController');
+const {uploadVideo, uploadImage, upload, uploadMulti, uploadVideoMiddleware } = require('../controllers/uploadController');
 
 const router = express.Router();
 const uploadController = require('../controllers/uploadController');
@@ -43,6 +43,6 @@ router.post('/uploadAvatar', upload.single('image'), uploadController.uploadAvat
 router.post('/uploadmultiple', upload.array('images', 6), uploadController.uploadMulti);
 
 // Route to handle video uploads
-router.post('/uploadvideo', upload.single('video'), uploadVideo);
+router.post('/uploadvideo', uploadVideoMiddleware.single('video'), uploadVideo);
 
 module.exports = router;
