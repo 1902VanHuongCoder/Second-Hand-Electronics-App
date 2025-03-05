@@ -21,6 +21,7 @@ interface Product {
     address: string;
     postingDate: string;
     nameUser: string | null;
+    avatarUrl: string,
     brandName: string;
     type: 'laptop' | 'phone';
     ramCapacity?: string | null;
@@ -29,6 +30,7 @@ interface Product {
     screenSize?: string | null;
     storageCapacity?: string | null;
     storageType?: string | null;
+    images: string[];
 }
 
 // Định nghĩa kiểu cho response từ API
@@ -44,8 +46,10 @@ interface ProductResponse {
     userId: {
         _id: string;
         name: string;
+        avatarUrl: string;
     };
     configuration: string;
+    images: [string]
 }
 
 // Hàm chuyển đổi dữ liệu từ API sang định dạng Product
@@ -53,11 +57,13 @@ const mapApiResponseToProduct = (apiProduct: ProductResponse): Product => {
     return {
         id: apiProduct._id,
         title: apiProduct.title,
+        images: apiProduct.images,
         configuration: apiProduct.configuration || '',
         price: apiProduct.price,
         address: apiProduct.location?.fullAddress || '',
         postingDate: new Date(apiProduct.createdAt).toLocaleDateString('vi-VN'),
         nameUser: apiProduct.userId?.name,
+        avatarUrl: apiProduct.userId?.avatarUrl || '',
         brandName: '',
         type: 'phone',
         ramCapacity: null,
@@ -90,7 +96,7 @@ export default function SearchResults() {
                 const response = await axios.get<ProductResponse[]>(`http://10.0.2.2:5000/api/products/search/ketquatimkiem?searchTerm=${searchTerm}`);
                 const mappedProducts = response.data.map(mapApiResponseToProduct);
                 setProducts(mappedProducts);
-                console.log(mappedProducts)
+                console.log('tim kiem', mappedProducts)
             } catch (error) {
                 console.error('Error fetching search results:', error);
             }
@@ -131,7 +137,7 @@ export default function SearchResults() {
                                 <Link href={`/postDetails?id=${product.id}`}>
                                     <Image
                                         style={{ width: 170, height: 170 }}
-                                        source={require("../assets/images/z6316149378615_f6d6f665171bf597c35f86bf13ca61b2.jpg")}
+                                        source={{ uri: product.images[0] }}
                                     />
                                 </Link>
                                 <View className="w-[50%] flex-col gap-1">
@@ -164,9 +170,8 @@ export default function SearchResults() {
                             <View className="flex-row justify-between items-center w-full">
                                 <View className="flex-row gap-2">
                                     <Image
-                                        style={{ width: 50, height: 50 }}
-                                        className="rounded-full"
-                                        source={require("../assets/images/z6186705977978_00edd678a64db50dba5ef61a50391611.jpg")}
+                                        source={product.avatarUrl ? { uri: product.avatarUrl } : require("../assets/images/avatar.jpg")}
+                                        style={{ width: 50, height: 50, borderRadius: 25 }}
                                     />
                                     <View>
                                         <Text className="font-medium text-[14px]">Người bán</Text>

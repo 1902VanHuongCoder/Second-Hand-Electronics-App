@@ -82,7 +82,6 @@ export default function PostDetailsScreen() {
       <View style={styles.content}>
         <Text style={styles.postName}>{product.title}</Text>
         <Text style={styles.price}>{formatCurrency(product.price)} đ</Text>
-        <Text style={styles.price}>{product.price} VND</Text>
         <Text style={styles.location}>Địa chỉ: {product.address}</Text>
         <Text style={styles.location}>Ngày đăng: {new Date(product.postingDate).toLocaleDateString()}</Text>
         <Text style={styles.location}>Phiên bản: {product.versionName || 'Chưa có phiên bản'}</Text>
