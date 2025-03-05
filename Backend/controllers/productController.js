@@ -100,14 +100,14 @@ exports.getProductForEdit = async (req, res) => {
     try {
         const product = await Product.findById(req.params.id);
         if (!product) return res.status(404).json({ message: 'Product not found' });
-        
+
         // Bỏ qua việc kiểm tra quyền sở hữu tạm thời để debug
         // if (product.userId.toString() !== req.user.id) {
         //     return res.status(403).json({ message: 'Bạn không có quyền chỉnh sửa sản phẩm này' });
         // }
-        
+
         const category = await Category.findById(product.categoryId);
-        
+
         let detailData = {};
         if (category.categoryName === 'Laptop') {
             const laptop = await Laptop.findOne({ productId: product._id });
@@ -125,13 +125,13 @@ exports.getProductForEdit = async (req, res) => {
                 origin: phone.origin
             };
         }
-        
+
         // Phân tách địa chỉ
         let locationData = {};
         if (typeof product.location === 'object') {
             locationData = product.location;
         }
-        
+
         const editData = {
             id: product._id,
             categoryId: product.categoryId,
@@ -150,13 +150,13 @@ exports.getProductForEdit = async (req, res) => {
             location: locationData,
             ...detailData
         };
-        
+
         // Lấy thông tin version để có brandId
         const version = await Version.findById(product.versionId);
         if (version) {
             editData.brandId = version.brandId;
         }
-        
+
         // Lấy thông tin ramId
         if (category.categoryName === 'Laptop') {
             const laptop = await Laptop.findOne({ productId: product._id });
@@ -169,7 +169,7 @@ exports.getProductForEdit = async (req, res) => {
                 editData.ramId = phone.ramId;
             }
         }
-        
+
         // Lấy thông tin storageType nếu là laptop
         if (category.categoryName === 'Laptop') {
             const storage = await Storage.findById(product.storageId);
@@ -177,7 +177,7 @@ exports.getProductForEdit = async (req, res) => {
                 editData.storageTypeId = storage.storageTypeId;
             }
         }
-        
+
         res.status(200).json(editData);
     } catch (error) {
         console.error('Error in getProductForEdit:', error);
@@ -190,12 +190,12 @@ exports.updateProduct = async (req, res) => {
     try {
         const product = await Product.findById(req.params.id);
         if (!product) return res.status(404).json({ message: 'Product not found' });
-        
+
         // Kiểm tra quyền sở hữu sản phẩm
         if (product.userId.toString() !== req.body.userId) {
             return res.status(403).json({ message: 'Bạn không có quyền chỉnh sửa sản phẩm này' });
         }
-        
+
         const productData = {
             categoryId: new mongoose.Types.ObjectId(req.body.categoryId),
             versionId: new mongoose.Types.ObjectId(req.body.versionId),
@@ -211,12 +211,12 @@ exports.updateProduct = async (req, res) => {
             location: req.body.location || product.location,
             updatedAt: Date.now()
         };
-        
+
         const updatedProduct = await Product.findByIdAndUpdate(req.params.id, productData, { new: true });
-        
+
         // Cập nhật thông tin chi tiết (laptop hoặc phone)
         const category = await Category.findById(req.body.categoryId);
-        
+
         if (category.categoryName === 'Laptop') {
             const laptopData = {
                 cpuId: new mongoose.Types.ObjectId(req.body.cpuId),
@@ -227,7 +227,7 @@ exports.updateProduct = async (req, res) => {
                 origin: req.body.origin,
                 updatedAt: Date.now()
             };
-            
+
             await Laptop.findOneAndUpdate({ productId: req.params.id }, laptopData);
         } else if (category.categoryName === 'Điện thoại') {
             const phoneData = {
@@ -235,10 +235,10 @@ exports.updateProduct = async (req, res) => {
                 battery: req.body.battery,
                 origin: req.body.origin
             };
-            
+
             await Phone.findOneAndUpdate({ productId: req.params.id }, phoneData);
         }
-        
+
         res.status(200).json({
             success: true,
             data: updatedProduct
@@ -278,39 +278,39 @@ exports.getProductDetails = async (req, res) => {
         }
         let detail = {};
         if (category.categoryName === 'Laptop') {
-                const laptop = await Laptop.findOne({ productId: product._id });
-    
-                const ram = await Ram.findById(laptop.ramId);
-                const user = await User.findById(product.userId);
-                const screen = laptop ? await Screen.findById(laptop.screenId) : null; 
-                const cpu = laptop ? await Cpu.findById(laptop.cpuId) : null;
-                const version = await Version.findById(product.versionId);
-                const brand = version ? await Brand.findById(version.brandId) : null;
-                const gpu = laptop ?  await Gpu.findById(laptop.gpuId) : null;
-                const storage = await Storage.findById(product.storageId);
-                const storageType = storage ? await StorageType.findById(storage.storageTypeId) : null;
-                
-                 detail ={
-                    id: product._id,
-                    title: product.title,
-                    configuration: product.description,
-                    price: product.price,
-                    address: formattedAddress,
-                    postingDate: product.createdAt,
-                    battery: laptop ? laptop.battery : null,
-                    nameUser: user ? user.name : null,
-                    versionName: version ? version.versionName : null,
-                    brandName: brand ? brand.brandName : null,
-                    ramCapacity: ram ? ram.ramCapacity : null,
-                    cpuName: cpu ? cpu.cpuName : null,
-                    screenSize: screen ? screen.screenSize : null,
-                    gpuName: gpu ? gpu.gpuName : null,
-                    storageCapacity: storage ? storage.storageCapacity : null,
-                    storageType: storageType ? storageType.storageName : null,
-                    images: product ? product.images : [],
-                    video: product ? product.videos : null,
-                    type: 'laptop'
-                };
+            const laptop = await Laptop.findOne({ productId: product._id });
+
+            const ram = await Ram.findById(laptop.ramId);
+            const user = await User.findById(product.userId);
+            const screen = laptop ? await Screen.findById(laptop.screenId) : null;
+            const cpu = laptop ? await Cpu.findById(laptop.cpuId) : null;
+            const version = await Version.findById(product.versionId);
+            const brand = version ? await Brand.findById(version.brandId) : null;
+            const gpu = laptop ? await Gpu.findById(laptop.gpuId) : null;
+            const storage = await Storage.findById(product.storageId);
+            const storageType = storage ? await StorageType.findById(storage.storageTypeId) : null;
+
+            detail = {
+                id: product._id,
+                title: product.title,
+                configuration: product.description,
+                price: product.price,
+                address: formattedAddress,
+                postingDate: product.createdAt,
+                battery: laptop ? laptop.battery : null,
+                nameUser: user ? user.name : null,
+                versionName: version ? version.versionName : null,
+                brandName: brand ? brand.brandName : null,
+                ramCapacity: ram ? ram.ramCapacity : null,
+                cpuName: cpu ? cpu.cpuName : null,
+                screenSize: screen ? screen.screenSize : null,
+                gpuName: gpu ? gpu.gpuName : null,
+                storageCapacity: storage ? storage.storageCapacity : null,
+                storageType: storageType ? storageType.storageName : null,
+                images: product ? product.images : [],
+                video: product ? product.videos : null,
+                type: 'laptop'
+            };
         } else if (category.categoryName === 'Điện thoại') {
             const phone = await Phone.findOne({ productId: product._id });
             const user = await User.findById(product.userId);
@@ -319,23 +319,23 @@ exports.getProductDetails = async (req, res) => {
             const brand = version ? await Brand.findById(version.brandId) : null;
             const storage = await Storage.findById(product.storageId);
             const storageType = storage ? await StorageType.findById(storage.storageTypeId) : null;
-           detail = {
-                    id: product._id,
-                    title: product.title,
-                    configuration: product.description,
-                    price: product.price,
-                    address: formattedAddress,
-                    postingDate: product.createdAt,
-                    nameUser: user ? user.name : null,
-                    versionName: version ? version.versionName : null,
-                    brandName: brand ? brand.brandName : null,
-                    ramCapacity: ram ? ram.ramCapacity : null,
-                    battery: phone ? phone.battery : null,
-                    storageCapacity: storage ? storage.storageCapacity : null,
-                    storageType: storageType ? storageType.storageName : null,
-                    images: product ? product.images : [],
-                    video: product ? product.videos : null,
-                    type: 'phone'
+            detail = {
+                id: product._id,
+                title: product.title,
+                configuration: product.description,
+                price: product.price,
+                address: formattedAddress,
+                postingDate: product.createdAt,
+                nameUser: user ? user.name : null,
+                versionName: version ? version.versionName : null,
+                brandName: brand ? brand.brandName : null,
+                ramCapacity: ram ? ram.ramCapacity : null,
+                battery: phone ? phone.battery : null,
+                storageCapacity: storage ? storage.storageCapacity : null,
+                storageType: storageType ? storageType.storageName : null,
+                images: product ? product.images : [],
+                video: product ? product.videos : null,
+                type: 'phone'
             };
         }
         console.log(detail)
@@ -343,7 +343,7 @@ exports.getProductDetails = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
-}; 
+};
 
 exports.searchProducts = async (req, res) => {
     try {
@@ -364,9 +364,28 @@ exports.searchProducts = async (req, res) => {
         })
             .populate('categoryId', 'categoryName')
             .populate('versionId', 'versionName')
-            .populate('userId', 'name')
+            .populate('userId', 'name avatarUrl')
             .sort({ createdAt: -1 });
 
+        res.status(200).json(products);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+exports.getProductsByBrand = async (req, res) => {
+    try {
+        const { brandId } = req.params;
+
+        const versions = await Version.find({ brandId }).select("_id");
+        const versionIds = versions.map((version) => version._id);
+
+        const products = await Product.find({ versionId: { $in: versionIds } })
+            .populate({
+                path: "versionId",
+                populate: { path: "brandId", model: "Brand" },
+            })
+            .exec();
         res.status(200).json(products);
     } catch (error) {
         res.status(500).json({ message: error.message });
