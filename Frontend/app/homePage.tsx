@@ -121,7 +121,8 @@ export default function HomePage() {
     try {
       const response = await axios.get<Product[]>('http://10.0.2.2:5000/api/home');
       setProducts(response.data);
-      console.log(response.data)
+      setAllProducts(response.data);
+      setFilteredProductsByCategory(response.data); // Reset cả danh sách lọc
     } catch (error) {
       console.error('Error fetching all products:', error);
     }
@@ -145,7 +146,6 @@ export default function HomePage() {
       console.error('Error fetching brands:', error);
     }
   };
-
 
   const handleReportPress = (productId: string) => {
     checkLogin();
@@ -181,10 +181,10 @@ export default function HomePage() {
   };
 
   const filterByPrice = (min: number, max: number) => {
-    const filtered = filteredProductsByCategory.filter(product => product.price >= min && product.price <= max);
+    const sourceProducts = filteredProductsByCategory.length > 0 ? filteredProductsByCategory : allProducts;
+    const filtered = sourceProducts.filter(product => product.price >= min && product.price <= max);
     setProducts(filtered);
   };
-
 
   return (
     <View className="p-4 relative" style={{ flex: 1 }}>
