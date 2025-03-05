@@ -23,6 +23,7 @@ interface Product {
   configuration: string;
   price: number;
   address: string;
+  description: string;
   postingDate: string;
   nameUser: string | null;
   brandName: string; // Lấy brandName từ brand
@@ -69,9 +70,18 @@ export default function HomePage() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [categories, setCategory] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
+  const [filteredProductsByCategory, setFilteredProductsByCategory] = useState<Product[]>([]);
   const checkLogin = () => {
     checkAuth();
   }
+
+  const priceRanges = [
+    { label: "Dưới 5 triệu", min: 0, max: 5000000 },
+    { label: "5 - 10 triệu", min: 5000000, max: 10000000 },
+    { label: "10 - 20 triệu", min: 10000000, max: 20000000 },
+    { label: "Trên 20 triệu", min: 20000000, max: Infinity }
+  ];
+
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -111,6 +121,7 @@ export default function HomePage() {
     try {
       const response = await axios.get<Product[]>('http://10.0.2.2:5000/api/home');
       setProducts(response.data);
+      console.log(response.data)
     } catch (error) {
       console.error('Error fetching all products:', error);
     }
@@ -121,17 +132,20 @@ export default function HomePage() {
       const response = await axios.get<Brand[]>(`http://10.0.2.2:5000/api/brands/${categoryId}`);
       setBrands(response.data);
 
+      let filteredProducts = allProducts;
       if (categoryName.toLowerCase().includes("điện thoại")) {
-        setProducts(allProducts.filter(product => product.type === "phone"));
+        filteredProducts = allProducts.filter(product => product.type === "phone");
       } else if (categoryName.toLowerCase().includes("laptop")) {
-        setProducts(allProducts.filter(product => product.type === "laptop"));
-      } else {
-        setProducts(allProducts);
+        filteredProducts = allProducts.filter(product => product.type === "laptop");
       }
+
+      setFilteredProductsByCategory(filteredProducts);
+      setProducts(filteredProducts);
     } catch (error) {
       console.error('Error fetching brands:', error);
     }
   };
+
 
   const handleReportPress = (productId: string) => {
     checkLogin();
@@ -158,12 +172,19 @@ export default function HomePage() {
 
   const fetchProductsByBrand = async (brandId: string) => {
     try {
-      const response = await axios.get<Product[]>(`http://10.0.2.2:5000/api/products/products-by-brand/${brandId}`);
+      const response = await axios.get<Product[]>(`http://10.0.2.2:5000/api/home/getAllProductByBrands/${brandId}`);
       setProducts(response.data);
+      console.log(response.data[0].id)
     } catch (error) {
       console.error("Error fetching products by brand:", error);
     }
   };
+
+  const filterByPrice = (min: number, max: number) => {
+    const filtered = filteredProductsByCategory.filter(product => product.price >= min && product.price <= max);
+    setProducts(filtered);
+  };
+
 
   return (
     <View className="p-4 relative" style={{ flex: 1 }}>
@@ -233,7 +254,7 @@ export default function HomePage() {
         </View>
         {brands.length > 0 && (
           <View className="mt-4">
-            <ScrollView horizontal className="mt-2" contentContainerStyle={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+            <ScrollView horizontal className="flex-row gap-4">
               <View className="flex flex-row gap-4 justify-center items-center">
                 {brands.map((brand) => (
                   <TouchableHighlight
@@ -251,9 +272,26 @@ export default function HomePage() {
             </ScrollView>
           </View>
         )}
+        <View className="mt-4">
+          <Text className="font-bold text-[18px] mb-2">Lọc theo giá</Text>
+          <ScrollView horizontal className="flex-row gap-4">
+            <View className="flex flex-row gap-4 justify-center items-center">
+              {priceRanges.map((range, index) => (
+                <TouchableHighlight
+                  key={index}
+                  underlayColor="#D9D9D9"
+                  onPress={() => filterByPrice(range.min, range.max)}
+                  className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center"
+                >
+                  <Text className="font-bold text-[16px] text-[#9661D9]">{range.label}</Text>
+                </TouchableHighlight>
+              ))}
+            </View>
+          </ScrollView>
+        </View>
         {products.map((product, index) => (
           <View
-            key={product.id}
+            key={index}
             className="mt-6 flex-col gap-4 border-b border-[#D9D9D9] pb-4"
           >
             <View className="flex-col gap-4">
@@ -273,7 +311,7 @@ export default function HomePage() {
                       <Icon name="ellipsis-v" size={18} color="#9661D9" />
                     </TouchableHighlight>
                   </View>
-                  <Text className="text-[12px]">{product.configuration}</Text>
+                  <Text className="text-[12px]">{product.description || product.configuration}</Text>
                   <Text className="font-bold text-[#9661D9] text-[16px]">
                     {formatCurrency(product.price.toString())} đ
                   </Text>
