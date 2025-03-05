@@ -355,13 +355,7 @@ exports.searchProducts = async (req, res) => {
 
         const searchRegex = new RegExp(searchTerm, 'i');
 
-        const products = await Product.find({
-            $or: [
-                { title: searchRegex },
-                { description: searchRegex },
-                { 'location.fullAddress': searchRegex }
-            ]
-        })
+        const products = await Product.find({ title: searchRegex })
             .populate('categoryId', 'categoryName')
             .populate('versionId', 'versionName')
             .populate('userId', 'name avatarUrl')

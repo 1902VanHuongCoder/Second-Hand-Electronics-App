@@ -126,78 +126,87 @@ export default function SearchResults() {
             <View className="flex-col gap-4">
                 <Text className="font-bold text-[16px]">Kết quả tìm kiếm với "{searchTerm}"</Text>
             </View>
-            <ScrollView>
-                {products.map((product) => (
-                    <View
-                        key={product.id}
-                        className="mt-6 flex-col gap-4 border-b border-[#D9D9D9] pb-4"
-                    >
-                        <View className="flex-col gap-4">
-                            <View className="flex-row gap-2 w-full">
-                                <Link href={`/postDetails?id=${product.id}`}>
-                                    <Image
-                                        style={{ width: 170, height: 170 }}
-                                        source={{ uri: product.images[0] }}
-                                    />
-                                </Link>
-                                <View className="w-[50%] flex-col gap-1">
-                                    <View className="flex-row justify-between items-center">
-                                        <Link href={`/postDetails?id=${product.id}`}>
-                                            <Text className="font-bold text-[16px]">{product.title}</Text>
-                                        </Link>
-                                        <TouchableHighlight onPress={() => handleReportPress(product.id)}>
-                                            <Icon name="ellipsis-v" size={18} color="#9661D9" />
-                                        </TouchableHighlight>
-                                    </View>
-                                    <Text className="text-[12px]">{product.configuration}</Text>
-                                    <Text className="font-bold text-[#9661D9] text-[16px]">
-                                        {formatCurrency(product.price)} đ
-                                    </Text>
-                                    <View className="flex-row gap-2 items-center">
-                                        <Icon name="map-marker" size={20} color="#9661D9" />
-                                        <Text className="font-bold text-[14px]">
-                                            {product.address}
+            {products.length > 0 ? (
+                <ScrollView>
+                    {products.map((product) => (
+                        <View
+                            key={product.id}
+                            className="mt-6 flex-col gap-4 border-b border-[#D9D9D9] pb-4"
+                        >
+                            <View className="flex-col gap-4">
+                                <View className="flex-row gap-2 w-full">
+                                    <Link href={`/postDetails?id=${product.id}`}>
+                                        <Image
+                                            style={{ width: 170, height: 170 }}
+                                            source={{ uri: product.images[0] }}
+                                        />
+                                    </Link>
+                                    <View className="w-[50%] flex-col gap-1">
+                                        <View className="flex-row justify-between items-center">
+                                            <Link href={`/postDetails?id=${product.id}`}>
+                                                <Text className="font-bold text-[16px]">{product.title}</Text>
+                                            </Link>
+                                            <TouchableHighlight onPress={() => handleReportPress(product.id)}>
+                                                <Icon name="ellipsis-v" size={18} color="#9661D9" />
+                                            </TouchableHighlight>
+                                        </View>
+                                        <Text className="text-[12px]">{product.configuration}</Text>
+                                        <Text className="font-bold text-[#9661D9] text-[16px]">
+                                            {formatCurrency(product.price)} đ
                                         </Text>
-                                    </View>
-                                    <View className="flex-row gap-2 items-center">
-                                        <Icon name="clock-o" size={20} color="#9661D9" />
-                                        <Text className="font-bold text-[14px]">
-                                            {product.postingDate}
-                                        </Text>
+                                        <View className="flex-row gap-2 items-center">
+                                            <Icon name="map-marker" size={20} color="#9661D9" />
+                                            <Text className="font-bold text-[14px]">
+                                                {product.address}
+                                            </Text>
+                                        </View>
+                                        <View className="flex-row gap-2 items-center">
+                                            <Icon name="clock-o" size={20} color="#9661D9" />
+                                            <Text className="font-bold text-[14px]">
+                                                {product.postingDate}
+                                            </Text>
+                                        </View>
                                     </View>
                                 </View>
-                            </View>
-                            <View className="flex-row justify-between items-center w-full">
-                                <View className="flex-row gap-2">
-                                    <Image
-                                        source={product.avatarUrl ? { uri: product.avatarUrl } : require("../assets/images/avatar.jpg")}
-                                        style={{ width: 50, height: 50, borderRadius: 25 }}
-                                    />
+                                <View className="flex-row justify-between items-center w-full">
+                                    <View className="flex-row gap-2">
+                                        <Image
+                                            source={product.avatarUrl ? { uri: product.avatarUrl } : require("../assets/images/avatar.jpg")}
+                                            style={{ width: 50, height: 50, borderRadius: 25 }}
+                                        />
+                                        <View>
+                                            <Text className="font-medium text-[14px]">Người bán</Text>
+                                            <Text className="font-bold text-[16px]">
+                                                {product.nameUser}
+                                            </Text>
+                                        </View>
+                                    </View>
                                     <View>
-                                        <Text className="font-medium text-[14px]">Người bán</Text>
-                                        <Text className="font-bold text-[16px]">
-                                            {product.nameUser}
-                                        </Text>
+                                        <Icon name="comments" size={30} color="#9661D9" />
                                     </View>
                                 </View>
-                                <View>
-                                    <Icon name="comments" size={30} color="#9661D9" />
+                            </View>
+                            {reportVisible && selectedProductId === product.id && (
+                                <View className="bg-[#F4E9FF] p-4 rounded-lg mt-2">
+                                    <Text className="text-[#000] font-bold text-[18px]">Chọn lý do báo cáo:</Text>
+                                    {reportReasons.map((reason, index) => (
+                                        <TouchableHighlight key={index} underlayColor="#9661D9" onPress={() => handleReasonSelect(reason)}>
+                                            <Text className="text-[#9661D9] mt-2 text-[16px] font-medium">{reason}</Text>
+                                        </TouchableHighlight>
+                                    ))}
                                 </View>
-                            </View>
+                            )}
                         </View>
-                        {reportVisible && selectedProductId === product.id && (
-                            <View className="bg-[#F4E9FF] p-4 rounded-lg mt-2">
-                                <Text className="text-[#000] font-bold text-[18px]">Chọn lý do báo cáo:</Text>
-                                {reportReasons.map((reason, index) => (
-                                    <TouchableHighlight key={index} underlayColor="#9661D9" onPress={() => handleReasonSelect(reason)}>
-                                        <Text className="text-[#9661D9] mt-2 text-[16px] font-medium">{reason}</Text>
-                                    </TouchableHighlight>
-                                ))}
-                            </View>
-                        )}
-                    </View>
-                ))}
-            </ScrollView>
+                    ))}
+                </ScrollView>
+            ) : (
+                <View className="flex-1 justify-center items-center">
+                    <Text className="text-gray-500 text-[16px] font-medium">
+                        Không có kết quả phù hợp với "{searchTerm}"
+                    </Text>
+                    <Image className="w-48 h-48" source={require('../assets/images/cute-shiba-inu-dog-sleeping-with-coffee-blanket-cartoon-vector-icon-illustration-animal-nature.png')} />
+                </View>
+            )}
         </View>
     );
 }
