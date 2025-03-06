@@ -1,21 +1,51 @@
-import { Text, View, Image, StyleSheet, TouchableHighlight, TouchableOpacity, ScrollView } from "react-native";
-import React, { useState } from "react";
+import { Text, View, StyleSheet, TouchableHighlight, TouchableOpacity, ScrollView } from "react-native";
+import React, { useState, useContext } from "react";
 import { LinearGradient } from "expo-linear-gradient";
-import Icon from "react-native-vector-icons/FontAwesome";
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import Notification from "@/components/Notification";
+import { NotificationContext } from "@/context/NotificationContext";
+import axios from 'axios';
 
 export default function HiddenPosts() {
+    const { id } = useLocalSearchParams();
     const options = [
         { id: '1', label: 'Không muốn bán nữa' },
-        { id: '2', label: 'Đã bán qua trang chợ tốt' },
+        { id: '2', label: 'Đã bán qua trang của 2HAND MARKET' },
         { id: '3', label: 'Đã bán qua các kênh khác' },
         { id: '4', label: 'Tôi bị làm phiền vì môi giới/dịch vụ đăng tin' },
         { id: '5', label: 'Khác' },
     ];
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
+    const { notifications, showNotification } = useContext(NotificationContext);
+    const router = useRouter();
+    const toggleHiddenPosts = async () => {
+        if (!selectedOption) {
+            showNotification('Vui lòng chọn lí do ẩn tin', 'error');
+            return;
+        }
+
+        try {
+            const reason = options.find(op => op.id === selectedOption)?.label;
+            const response = await axios.patch(`http://10.0.2.2:5000/api/products/hiddenPost/${id}`, { reason });
+
+            showNotification('Ẩn tin thành công.', 'success');
+            setTimeout(() => {
+                router.back();
+            }, 500);
+        } catch (err) {
+            showNotification(err || "Có lỗi xảy ra", 'error');
+        }
+    }
+
     return (
-        <View className="w-full h-full bg-white p-4 flex-col">
+        <View className="relative w-full h-full bg-white p-4 flex-col">
+            <Notification
+                message={notifications.message}
+                type={notifications.type}
+                visible={notifications.visible}
+            />
             <View style={{ flex: 1 }}>
-                <Text className="text-[20px]">Khi bạn đã bán được hàng, hoặc không muốn tin xuất hiện trên Chợ Tốt, hãy chọn "Ẩn tin".</Text>
+                <Text className="text-[20px]">Khi bạn đã bán được hàng, hoặc không muốn tin xuất hiện trên <Text className="font-bold">2HAND MARKET</Text>, hãy chọn "Ẩn tin".</Text>
                 <Text className="font-bold text-[18px] mt-4 mb-6">Vui lòng chọn lí do ẩn tin</Text>
                 <ScrollView>
                     {options.map(option => (
@@ -38,7 +68,9 @@ export default function HiddenPosts() {
                         <Text className="font-bold text-[18px] text-[#333]">Hủy</Text>
                     </View>
                 </TouchableHighlight>
-                <TouchableHighlight className="rounded-lg w-1/2 ">
+                <TouchableHighlight
+                    onPress={toggleHiddenPosts}
+                    className="rounded-lg w-1/2 ">
                     <LinearGradient
                         colors={['#523471', '#9C62D7']}
                         start={{ x: 1, y: 0 }}

@@ -10,5 +10,6 @@ router.put('/:id', productController.updateProduct);
 router.delete('/:id', productController.deleteProduct);
 router.get('/search/ketquatimkiem', productController.searchProducts);
 router.get('/edit/:id', productController.getProductForEdit);
+router.patch('/hiddenPost/:id', productController.toggleHideProduct);
 
 module.exports = router; 

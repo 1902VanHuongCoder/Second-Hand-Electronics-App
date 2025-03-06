@@ -366,3 +366,27 @@ exports.searchProducts = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
+exports.toggleHideProduct = async (req, res) => {
+    const { reason } = req.body;
+    const { id } = req.params;
+    try {
+        const product = await Product.findById(id);
+
+        if (!product) {
+            return res.status(404).json({ message: 'Không có sản phẩm trùng khớp.' });
+        }
+
+        product.isHidden = !product.isHidden;
+        product.hiddenReason = product.isHidden ? reason : '';
+        await product.save();
+
+        return res.status(200).json({ 
+            isHidden: product.isHidden,
+            hiddenReason: product.hiddenReason
+        })
+    } catch (err) {
+        console.log(err)
+        return res.status(500).json({ message: err.message });
+    }
+}
