@@ -88,6 +88,7 @@ export default function HomePage() {
       try {
         const response = await axios.get<Product[]>('http://10.0.2.2:5000/api/home');
         setProducts(response.data);
+        console.log(response.data)
         setAllProducts(response.data);
       } catch (error) {
         console.error('Error fetching products:', error);
