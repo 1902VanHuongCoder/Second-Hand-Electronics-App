@@ -75,6 +75,7 @@ export default function HomePage() {
     checkAuth();
   }
 
+
   const priceRanges = [
     { label: "Dưới 5 triệu", min: 0, max: 5000000 },
     { label: "5 - 10 triệu", min: 5000000, max: 10000000 },

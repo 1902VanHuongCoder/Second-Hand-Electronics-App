@@ -392,3 +392,44 @@ exports.toggleHideProduct = async (req, res) => {
         return res.status(500).json({ message: err.message });
     }
 }
+
+// Cập nhật trường videos của sản phẩm
+exports.updateProductVideo = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { videos } = req.body;
+
+        console.log(`Updating video for product ${id} to: "${videos}"`);
+
+        // Kiểm tra xem sản phẩm có tồn tại không
+        const product = await Product.findById(id);
+        if (!product) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Không tìm thấy sản phẩm' 
+            });
+        }
+
+        // Cập nhật trường videos
+        const updatedProduct = await Product.findByIdAndUpdate(
+            id,
+            { videos },
+            { new: true }
+        );
+
+        console.log('Product video updated successfully');
+        
+        res.status(200).json({
+            success: true,
+            message: 'Cập nhật video thành công',
+            product: updatedProduct
+        });
+    } catch (error) {
+        console.error('Error updating product video:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Lỗi khi cập nhật video sản phẩm',
+            error: error.message
+        });
+    }
+};
