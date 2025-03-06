@@ -388,111 +388,123 @@ export default function PostCreation() {
     // Thêm state để theo dõi trạng thái tải dữ liệu
     const [pageLoading, setPageLoading] = useState(false);
     
-    // Fetch dữ liệu sản phẩm nếu đang ở chế độ edit
-    useEffect(() => {
-        if (!id) return; // Nếu không có id, tức là đang ở chế độ tạo mới
-        
-        const fetchProductData = async () => {
-            try {
-                setPageLoading(true);
-                // Sửa lỗi: Thêm token xác thực và xử lý lỗi chi tiết hơn
-                const token = await AsyncStorage.getItem('token');
-                const response = await axios.get(`http://10.0.2.2:5000/api/products/edit/${id}`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                });
-                
-                console.log("Dữ liệu sản phẩm nhận được:", response.data);
-                const productData = response.data;
-                
-                // Cập nhật các state với dữ liệu sản phẩm
-                setSelectedCategory(productData.categoryId);
-                setSelectedBrand(productData.brandId);
-                setSelectedVersion(productData.versionId);
-                setSelectedCondition(productData.conditionId);
-                setSelectedStorage(productData.storageId);
-                setSelectedRam(productData.ramId);
-                setTitle(productData.title);
-                setDescription(productData.description);
-                setPrice(productData.price.toString());
-                setSelectedWarranty(productData.warranty);
-                setSelectedPostType(productData.isVip ? "Đăng tin trả phí" : "Đăng tin thường");
-                setAvatarUrls(productData.images || []);
-                setVideoUrl(productData.videos || null);
-                
-                // Cập nhật thông tin chi tiết
-                if (productData.cpuId) setSelectedCpu(productData.cpuId);
-                if (productData.gpuId) setSelectedGpu(productData.gpuId);
-                if (productData.screenId) setSelectedScreen(productData.screenId);
-                if (productData.storageTypeId) setSelectedStorageType(productData.storageTypeId);
-                if (productData.battery) setBattery(productData.battery);
-                if (productData.origin) setSelectedOrigin(productData.origin);
-                
-                // Cập nhật thông tin địa chỉ
-                if (productData.location) {
-                    setSelectedProvince(productData.location.provinceCode || "");
-                    setSelectedDistrict(productData.location.districtCode || "");
-                    setSelectedWard(productData.location.wardCode || "");
-                    setDetailAddress(productData.location.detailAddress || "");
-                    setSelectedLocation(productData.location.fullAddress || "");
-                    
-                    // Fetch districts và wards dựa trên province và district đã chọn
-                    if (productData.location.provinceCode) {
-                        const provinceResponse = await axios.get(`https://provinces.open-api.vn/api/p/${productData.location.provinceCode}?depth=2`);
-                        setDistricts(provinceResponse.data.districts);
-                        
-                        if (productData.location.districtCode) {
-                            const districtResponse = await axios.get(`https://provinces.open-api.vn/api/d/${productData.location.districtCode}?depth=2`);
-                            setWards(districtResponse.data.wards);
-                        }
-                    }
-                }
-                
-                // Nếu có video, tạo thumbnail
-                if (productData.videos) {
-                    try {
-                        const { uri } = await VideoThumbnails.getThumbnailAsync(productData.videos, { time: 1000 });
-                        setThumbnail(uri);
-                    } catch (err) {
-                        console.error("Thumbnail generation error:", err);
-                    }
-                }
-            } catch (error) {
-                console.error('Lỗi khi lấy dữ liệu sản phẩm:', error.response?.data || error.message);
-                Alert.alert('Lỗi', 'Không thể lấy thông tin sản phẩm. Vui lòng thử lại sau.');
-            } finally {
-                setPageLoading(false);
-            }
-        };
-        
-        fetchProductData();
-    }, [id]);
+    // Thêm state để lưu trữ ảnh ban đầu khi edit
+    const [initialImages, setInitialImages] = useState<string[]>([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
-    const handleSubmit = async () => {
-        if (!user) {
-            Alert.alert('Thông báo', 'Vui lòng đăng nhập để đăng tin');
-            return;
+    // Hàm xóa một ảnh cụ thể
+    const handleDeleteImage = async (imageUrl: string) => {
+        try {
+            console.log('Deleting image:', imageUrl);
+            
+            // Kiểm tra xem URL có hợp lệ không
+            if (!imageUrl || !imageUrl.includes('cloudinary.com')) {
+                console.error('Invalid image URL:', imageUrl);
+                Alert.alert('Lỗi', 'URL ảnh không hợp lệ');
+                return;
+            }
+            
+            // Xóa ảnh khỏi UI ngay lập tức để trải nghiệm người dùng tốt hơn
+            setAvatarUrls(prevUrls => prevUrls.filter(url => url !== imageUrl));
+            
+            // Hiển thị thông báo đang xử lý (chỉ log, không hiển thị cho người dùng)
+            console.log('Sending delete request to server...');
+            
+            // Gửi request xóa ảnh đến server
+            const response = await axios.post('http://10.0.2.2:5000/api/upload/deleteImage', {
+                imageUrl
+            }, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            console.log('Delete response:', response.data);
+            
+            if (response.data && response.data.success) {
+                console.log('Image deleted successfully on server');
+            } else {
+                console.log('Server reported issue with deletion:', response.data?.message || 'Unknown error');
+                // Không hiển thị thông báo lỗi cho người dùng vì ảnh đã được xóa khỏi UI
+            }
+        } catch (error: any) {
+            // Xử lý lỗi mà không hiển thị thông báo cho người dùng
+            if (error.response && error.response.status === 404) {
+                console.log('404 error - image not found on server, already removed from UI');
+                // Không cần làm gì vì ảnh đã được xóa khỏi UI ở đầu hàm
+            } else {
+                console.error('Lỗi khi xóa ảnh:', error);
+                const errorMessage = error.response 
+                    ? `Lỗi ${error.response.status}: ${error.response.data?.message || error.message}` 
+                    : error.message || 'Không thể xóa ảnh. Vui lòng thử lại sau.';
+                
+                console.log('Error details:', errorMessage);
+                
+                // Chỉ hiển thị thông báo lỗi nếu không phải lỗi 404
+                if (!error.response || error.response.status !== 404) {
+                    Alert.alert('Lỗi', errorMessage);
+                }
+            }
         }
-        
+    };
+
+    // Validate form
+    const validateForm = () => {
         // Validate các trường bắt buộc
         if (!selectedCategory || !selectedBrand || !selectedCondition ||
             !selectedStorage || !selectedWarranty || !selectedOrigin ||
             !title || !description || !price || !selectedPostType ||
             !selectedRam) {
             Alert.alert('Thông báo', 'Vui lòng nhập đầy đủ thông tin sản phẩm');
-            return;
+            return false;
         }
         
         if (avatarUrls.length === 0) {
             Alert.alert('Thông báo', 'Vui lòng chọn ảnh sản phẩm');
-            return;
+            return false;
         } else if (avatarUrls.length > 6) {
             Alert.alert('Thông báo', 'Vui lòng chọn tối đa 6 ảnh sản phẩm');
+            return false;
+        }
+
+        return true;
+    };
+
+    // Cập nhật hàm handleSubmit
+    const handleSubmit = async () => {
+        if (!user) {
+            Alert.alert('Thông báo', 'Vui lòng đăng nhập để đăng tin');
             return;
         }
-        
+
+        if (!validateForm()) return;
+
         try {
+            setIsSubmitting(true);
+
+            // Upload ảnh và video mới (nếu có)
+            if (images.length > 0) {
+                await uploadImages();
+            }
+            if (video) {
+                await uploadVideo();
+            }
+
+            // Nếu đang ở chế độ edit, xóa các ảnh không còn sử dụng
+            if (isEditMode && initialImages.length > 0) {
+                try {
+                    console.log('Ảnh ban đầu:', initialImages);
+                    console.log('Ảnh hiện tại:', avatarUrls);
+                    await axios.post('http://10.0.2.2:5000/api/deleteUnusedImages', {
+                        oldImageUrls: initialImages,
+                        newImageUrls: avatarUrls
+                    });
+                } catch (error) {
+                    console.error('Lỗi khi xóa ảnh không sử dụng:', error);
+                }
+            }
+
             const productData = {
                 userId: user.id,
                 categoryId: selectedCategory,
@@ -515,24 +527,16 @@ export default function PostCreation() {
                     detailAddress: detailAddress,
                     fullAddress: selectedLocation
                 },
-                images: avatarUrls
+                images: avatarUrls,
+                cpuId: selectedCpu,
+                gpuId: selectedGpu,
+                ramId: selectedRam,
+                screenId: selectedScreen,
+                battery: battery || "0",
+                origin: selectedOrigin,
+                storageTypeId: selectedStorageType
             };
-            
-            // Thêm thông tin chi tiết dựa vào loại sản phẩm
-            const category = categories.find(cat => cat._id === selectedCategory);
-            if (category?.categoryName.toLowerCase() === 'laptop') {
-                productData.cpuId = selectedCpu;
-                productData.gpuId = selectedGpu;
-                productData.ramId = selectedRam;
-                productData.screenId = selectedScreen;
-                productData.battery = battery || "0";
-                productData.origin = selectedOrigin;
-            } else {
-                productData.ramId = selectedRam;
-                productData.battery = battery || "0";
-                productData.origin = selectedOrigin;
-            }
-            
+
             let response;
             if (isEditMode) {
                 // Gọi API cập nhật sản phẩm
@@ -547,11 +551,101 @@ export default function PostCreation() {
                     { text: 'OK', onPress: () => router.back() }
                 ]);
             }
+
         } catch (error) {
-            console.error('Lỗi khi xử lý tin:', error.response?.data || error.message);
+            console.error('Lỗi khi xử lý tin:', error);
             Alert.alert('Lỗi', `Có lỗi xảy ra khi ${isEditMode ? 'cập nhật' : 'đăng'} tin`);
+        } finally {
+            setIsSubmitting(false);
         }
     };
+
+    // Cập nhật useEffect để lấy dữ liệu sản phẩm
+    useEffect(() => {
+        const fetchProductData = async () => {
+            if (!isEditMode || !id) return;
+
+            try {
+                setPageLoading(true);
+                const token = await AsyncStorage.getItem('token');
+                const response = await axios.get(`http://10.0.2.2:5000/api/products/edit/${id}`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+                
+                const productData = response.data;
+                console.log("Dữ liệu sản phẩm nhận được:", productData);
+
+                // Lưu danh sách ảnh ban đầu và hiện tại
+                if (productData.images && Array.isArray(productData.images)) {
+                    console.log("Ảnh sản phẩm:", productData.images);
+                    setInitialImages([...productData.images]);
+                    setAvatarUrls([...productData.images]);
+                }
+
+                // Cập nhật các state khác
+                setSelectedCategory(productData.categoryId);
+                setSelectedBrand(productData.brandId);
+                setSelectedVersion(productData.versionId);
+                setSelectedCondition(productData.conditionId);
+                setSelectedStorage(productData.storageId);
+                setSelectedRam(productData.ramId);
+                setTitle(productData.title);
+                setDescription(productData.description);
+                setPrice(productData.price.toString());
+                setSelectedWarranty(productData.warranty);
+                setSelectedPostType(productData.isVip ? "Đăng tin trả phí" : "Đăng tin thường");
+                setVideoUrl(productData.videos || null);
+
+                // Cập nhật thông tin chi tiết
+                if (productData.cpuId) setSelectedCpu(productData.cpuId);
+                if (productData.gpuId) setSelectedGpu(productData.gpuId);
+                if (productData.screenId) setSelectedScreen(productData.screenId);
+                if (productData.storageTypeId) setSelectedStorageType(productData.storageTypeId);
+                if (productData.battery) setBattery(productData.battery);
+                if (productData.origin) setSelectedOrigin(productData.origin);
+
+                // Cập nhật thông tin địa chỉ
+                if (productData.location) {
+                    setSelectedProvince(productData.location.provinceCode || "");
+                    setSelectedDistrict(productData.location.districtCode || "");
+                    setSelectedWard(productData.location.wardCode || "");
+                    setDetailAddress(productData.location.detailAddress || "");
+                    setSelectedLocation(productData.location.fullAddress || "");
+
+                    // Fetch districts và wards dựa trên province và district đã chọn
+                    if (productData.location.provinceCode) {
+                        const provinceResponse = await axios.get(`https://provinces.open-api.vn/api/p/${productData.location.provinceCode}?depth=2`);
+                        setDistricts(provinceResponse.data.districts);
+
+                        if (productData.location.districtCode) {
+                            const districtResponse = await axios.get(`https://provinces.open-api.vn/api/d/${productData.location.districtCode}?depth=2`);
+                            setWards(districtResponse.data.wards);
+                        }
+                    }
+                }
+
+                // Nếu có video, tạo thumbnail
+                if (productData.videos) {
+                    try {
+                        const { uri } = await VideoThumbnails.getThumbnailAsync(productData.videos, { time: 1000 });
+                        setThumbnail(uri);
+                    } catch (err) {
+                        console.error("Thumbnail generation error:", err);
+                    }
+                }
+
+            } catch (error) {
+                console.error('Lỗi khi lấy dữ liệu sản phẩm:', error);
+                Alert.alert('Lỗi', 'Không thể lấy thông tin sản phẩm. Vui lòng thử lại sau.');
+            } finally {
+                setPageLoading(false);
+            }
+        };
+
+        fetchProductData();
+    }, [isEditMode, id]);
 
     const handleCategoryChange = async (itemValue: string) => {
         console.log('Selected Category ID:', itemValue);
@@ -1084,11 +1178,7 @@ export default function PostCreation() {
                                                 justifyContent: 'center',
                                                 alignItems: 'center'
                                             }}
-                                            onPress={() => {
-                                                const newUrls = [...avatarUrls];
-                                                newUrls.splice(index, 1);
-                                                setAvatarUrls(newUrls);
-                                            }}
+                                            onPress={() => handleDeleteImage(url)}
                                         >
                                             <Text style={{ color: 'white', fontWeight: 'bold' }}>X</Text>
                                         </TouchableOpacity>

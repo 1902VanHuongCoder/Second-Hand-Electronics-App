@@ -44,5 +44,9 @@ router.post('/uploadmultiple', upload.array('images', 6), uploadController.uploa
 
 // Route to handle video uploads
 router.post('/uploadvideo', uploadVideoMiddleware.single('video'), uploadVideo);
-
+router.post('/deleteImages', uploadController.deleteImages);
+router.post('/deleteUnusedImages', uploadController.deleteUnusedImages);
+// Thêm route mới để xóa một ảnh cụ thể
+router.post('/deleteImage', uploadController.deleteImage);
+// Loại bỏ tất cả các route DELETE không cần thiết
 module.exports = router;
