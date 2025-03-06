@@ -355,37 +355,12 @@ exports.searchProducts = async (req, res) => {
 
         const searchRegex = new RegExp(searchTerm, 'i');
 
-        const products = await Product.find({
-            $or: [
-                { title: searchRegex },
-                { description: searchRegex },
-                { 'location.fullAddress': searchRegex }
-            ]
-        })
+        const products = await Product.find({ title: searchRegex })
             .populate('categoryId', 'categoryName')
             .populate('versionId', 'versionName')
             .populate('userId', 'name avatarUrl')
             .sort({ createdAt: -1 });
 
-        res.status(200).json(products);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-}
-
-exports.getProductsByBrand = async (req, res) => {
-    try {
-        const { brandId } = req.params;
-
-        const versions = await Version.find({ brandId }).select("_id");
-        const versionIds = versions.map((version) => version._id);
-
-        const products = await Product.find({ versionId: { $in: versionIds } })
-            .populate({
-                path: "versionId",
-                populate: { path: "brandId", model: "Brand" },
-            })
-            .exec();
         res.status(200).json(products);
     } catch (error) {
         res.status(500).json({ message: error.message });

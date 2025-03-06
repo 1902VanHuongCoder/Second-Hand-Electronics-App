@@ -97,3 +97,44 @@ exports.getHomeProducts = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }; 
+
+exports.getProductsByBrand = async (req, res) => {
+    try {
+        const { brandId } = req.params;
+
+        // Lấy tất cả các phiên bản thuộc brand
+        const versions = await Version.find({ brandId }).select("_id");
+        const versionIds = versions.map((version) => version._id);
+
+        // Lấy tất cả sản phẩm thuộc brand đó
+        const products = await Product.find({ versionId: { $in: versionIds } })
+            .populate({
+                path: "versionId",
+                populate: { path: "brandId", model: "Brand" },
+            })
+            .exec();
+
+        // Thêm thông tin người bán vào sản phẩm
+        const productsWithUser = await Promise.all(
+            products.map(async (product) => {
+                const user = await User.findById(product.userId);
+                return {
+                    id: product._id,
+                    title: product.title,
+                    images: product.images,
+                    price: product.price,
+                    description: product.description,
+                    address: product.location?.fullAddress || "Không có địa chỉ",
+                    postingDate: product.createdAt,
+                    nameUser: user ? user.name : "Không rõ",
+                    avatarUrl: user ? user.avatarUrl : null,
+                    brandName: product.versionId.brandId?.brandName || "Không rõ",
+                };
+            })
+        );
+
+        res.status(200).json(productsWithUser);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
