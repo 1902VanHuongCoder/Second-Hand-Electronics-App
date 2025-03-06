@@ -6,8 +6,9 @@ import {
   ScrollView,
   TextInput,
   StyleSheet,
+  Button,
 } from "react-native";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useLayoutEffect, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { Link, useRouter } from "expo-router";
@@ -35,24 +36,64 @@ interface Product {
   storageType?: string | null; // Thêm storageType// Sẽ sử dụng fullAddress từ backend
   images: string[];
   avatarUrl: string;
+  userId: string;
 }
-
+import socket from '../utils/socket';
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 // Định nghĩa kiểu cho người dùng
 interface User {
   _id: string;
   name: string; // Thêm các thuộc tính cần thiết khác
 }
 
+interface MessageProps {
+  id: string,
+  text: string,
+  time: string,
+  user: string,
+}
+
+interface Room {
+  id: string;
+  name: string;
+  messages: MessageProps[];
+  // Add other properties of Room if needed
+}
+
+
+
 export default function HomePage() {
   const router = useRouter();
   const { notifications, showNotification } = useContext(NotificationContext);
+  const { user } = useSelector((state: RootState) => state.auth);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [reportVisible, setReportVisible] = useState(false); // State để theo dõi trạng thái hiển thị menu báo cáo
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null); // Chỉ định kiểu cho selectedProductId
   const [selectedReason, setSelectedReason] = useState<string | null>(null); // State để lưu lý do đã chọn
   const checkAuth = useAuthCheck();
   const [products, setProducts] = useState<Product[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
   // const [users, setUsers] = useState<{ [key: string]: User }>({}); // Sử dụng kiểu User cho các giá trị
+  const [isConnected, setIsConnected] = useState(false);
+
+  useEffect(() => {
+    socket.on('connect', () => {
+      setIsConnected(true);
+      console.log('Connected to server');
+    });
+
+    socket.on('disconnect', () => {
+      setIsConnected(false);
+      console.log('Disconnected from server');
+    });
+
+    return () => {
+      socket.off('connect');
+      socket.off('disconnect');
+    };
+  }, []);
+
   const checkLogin = () => {
     checkAuth();
   }
@@ -62,10 +103,8 @@ export default function HomePage() {
       try {
         const response = await axios.get<Product[]>('http://10.0.2.2:5000/api/home');
 
-        console.log("Post data", response.data);
-        
         setProducts(response.data);
-        console.log(response.data)
+
 
         // Lấy thông tin người dùng cho từng sản phẩm
         // const userIds = response.data.map(product => product.userId);
@@ -121,8 +160,41 @@ export default function HomePage() {
     router.push(`/searchResults?searchTerm=${encodeURIComponent(searchTerm.trim())}`);
   };
 
+  const handleCreateChat = (receiverName: string, receiverId: string, receiverAvatar: string, productImage: string, productTitle: string, productPrice: number ) => {
+
+   
+    if (user) {
+      const senderId = user.id;
+      const senderName = user.name;
+      const senderAvatar = user.avatarUrl;
+      if(senderId !== receiverId){
+        socket.emit("createRoom", receiverName, receiverId, receiverAvatar, senderId, senderName, senderAvatar, productImage, productTitle, productPrice);
+        router.push({
+          pathname: '/chat',
+          params: {
+            roomCode: `${receiverId}-${senderId}`,
+          }
+        }); 
+      }
+    } else {
+      showNotification("User not logged in", "error");
+    }
+  };
+
+  useLayoutEffect(() => {
+    if (user) {
+        socket.auth = { userId: user.id, userName: user.name };
+        socket.connect();
+    }
+}, [user]);
+
+
   return (
     <View className="p-4 relative" style={{ flex: 1 }}>
+      <View>
+        <Text>{isConnected ? 'Connected to server' : 'Disconnected from server'}</Text>
+        <Button title="Test Connection" onPress={() => socket.emit('test', 'Hello Server')} />
+      </View>
       <View className="flex-row justify-between items-center border-b-2 pb-6 pt-2 border-[#D9D9D9]">
         <TextInput
           className="border-2 border-[#D9D9D9] w-2/3 px-2 py-4 text-[#000] rounded-lg font-semibold"
@@ -151,10 +223,12 @@ export default function HomePage() {
             <Text className="uppercase font-extrabold text-white text-[18px]">
               2Hand Market
             </Text>
+            <TouchableHighlight onPress={() => router.push('/test-chat-panel')}>
+              <Text className="text-[14px] text-white font-medium">
+                Buôn bán các thiết bị hiện tại và uy tính.
+              </Text>
+            </TouchableHighlight>
 
-            <Text className="text-[14px] text-white font-medium">
-              Buôn bán các thiết bị hiện tại và uy tính.
-            </Text>
           </View>
           <Image
             style={{ width: 150, height: 150 }}
@@ -216,7 +290,7 @@ export default function HomePage() {
                     </Text>
                   </View>
                   <View className="flex-row gap-2 items-center">
-                    <Icon name="clock-o" size={20} color="#9661D9" />
+                    <Icon name="clock-o" className="bg-red-500" size={20} color="#9661D9" />
                     <Text className="font-bold text-[14px]">
                       {new Date(product.postingDate).toLocaleDateString()}
                     </Text>
@@ -228,14 +302,17 @@ export default function HomePage() {
                   <Image
                     style={{ width: 50, height: 50 }}
                     className="rounded-full"
-                    source={{uri: product.avatarUrl}} 
+                    source={{ uri: product.avatarUrl }}
                   />
-                  <View>
-                    <Text className="font-medium text-[14px]">Người bán</Text>
-                    <Text className="font-bold text-[16px]">
-                      {product.nameUser}
-                    </Text>
-                  </View>
+                  <TouchableHighlight onPress={() => product.nameUser && handleCreateChat(product.nameUser, product.userId, product.avatarUrl, product.images[0], product.title, product.price)}>
+                    <View >
+                      <Text className="font-medium text-[14px]">Người bán</Text>
+                      <Text className="font-bold text-[16px]">
+                        {product.nameUser}
+                      </Text>
+                    </View>
+                  </TouchableHighlight>
+
                 </View>
                 <TouchableHighlight underlayColor='#fff' onPress={checkLogin}>
                   <Ionicons name="chatbubbles-outline" size={30} color="#9661D9" />
