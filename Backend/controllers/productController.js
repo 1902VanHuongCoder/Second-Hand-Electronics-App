@@ -299,6 +299,7 @@ exports.getProductDetails = async (req, res) => {
                 postingDate: product.createdAt,
                 battery: laptop ? laptop.battery : null,
                 nameUser: user ? user.name : null,
+                isPhoneHidden: user ? user.isPhoneHidden : false,
                 versionName: version ? version.versionName : null,
                 brandName: brand ? brand.brandName : null,
                 ramCapacity: ram ? ram.ramCapacity : null,
@@ -327,6 +328,7 @@ exports.getProductDetails = async (req, res) => {
                 address: formattedAddress,
                 postingDate: product.createdAt,
                 nameUser: user ? user.name : null,
+                isPhoneHidden: user ? user.isPhoneHidden : false,
                 versionName: version ? version.versionName : null,
                 brandName: brand ? brand.brandName : null,
                 ramCapacity: ram ? ram.ramCapacity : null,
@@ -364,5 +366,29 @@ exports.searchProducts = async (req, res) => {
         res.status(200).json(products);
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+}
+
+exports.toggleHideProduct = async (req, res) => {
+    const { reason } = req.body;
+    const { id } = req.params;
+    try {
+        const product = await Product.findById(id);
+
+        if (!product) {
+            return res.status(404).json({ message: 'Không có sản phẩm trùng khớp.' });
+        }
+
+        product.isHidden = !product.isHidden;
+        product.hiddenReason = product.isHidden ? reason : '';
+        await product.save();
+
+        return res.status(200).json({ 
+            isHidden: product.isHidden,
+            hiddenReason: product.hiddenReason
+        })
+    } catch (err) {
+        console.log(err)
+        return res.status(500).json({ message: err.message });
     }
 }

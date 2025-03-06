@@ -22,7 +22,7 @@ exports.getHomeProducts = async (req, res) => {
         // Kết hợp thông tin sản phẩm từ laptop
         const laptopProducts = await Promise.all(
             laptops.map(async (laptop) => {
-                const product = await Product.findById(laptop.productId);
+                const product = await Product.findOne({ _id: laptop.productId, isHidden: false });
                 if (!product) return null;
 
                 const ram = await Ram.findById(laptop.ramId);
@@ -63,7 +63,7 @@ exports.getHomeProducts = async (req, res) => {
         // Kết hợp thông tin sản phẩm từ điện thoại
         const phoneProducts = await Promise.all(
             phones.map(async (phone) => {
-                const product = await Product.findById(phone.productId);
+                const product = await Product.findOne({ _id: phone.productId, isHidden: false });
                 if (!product) return null;
 
                 const ram = await Ram.findById(phone.ramId);
@@ -107,7 +107,7 @@ exports.getProductsByBrand = async (req, res) => {
         const versionIds = versions.map((version) => version._id);
 
         // Lấy tất cả sản phẩm thuộc brand đó
-        const products = await Product.find({ versionId: { $in: versionIds } })
+        const products = await Product.find({ versionId: { $in: versionIds }, isHidden: false })
             .populate({
                 path: "versionId",
                 populate: { path: "brandId", model: "Brand" },
