@@ -348,27 +348,77 @@ const getPublicIdFromUrl = (url) => {
     // Kiểm tra xem có phải là URL Cloudinary không
     if (decodedUrl.includes('cloudinary.com')) {
       // Tìm folder từ URL
-      let folder = '';
-      for (let i = parts.length - 2; i >= 0; i--) {
-        if (parts[i] === 'upload' || parts[i].match(/^v\d+$/)) {
-          continue;
-        }
-        if (parts[i].includes('cloudinary.com')) {
-          break;
-        }
-        folder = parts[i] + '/' + folder;
-      }
+      const folderMatch = decodedUrl.match(/\/([^\/]+)\/[^\/]+$/);
+      const folder = folderMatch ? folderMatch[1] : '';
       
-      const fullPublicId = folder + filenameWithoutExt;
-      console.log('Alternative method - extracted publicId:', fullPublicId);
-      return fullPublicId.replace(/\/$/, ''); // Loại bỏ dấu / ở cuối nếu có
+      const publicId = folder ? `${folder}/${filenameWithoutExt}` : filenameWithoutExt;
+      console.log('Extracted publicId (alternative method):', publicId);
+      return publicId;
     }
     
-    // Nếu không thể trích xuất publicId, thử trả về tên file
-    console.log('Could not extract publicId from URL, returning filename:', filenameWithoutExt);
-    return filenameWithoutExt;
+    return null;
   } catch (error) {
     console.error('Error extracting publicId from URL:', error);
+    return null;
+  }
+};
+
+// Hàm trích xuất publicId từ URL video
+const getPublicIdFromVideoUrl = (url) => {
+  try {
+    // Giải mã URL nếu nó đã được mã hóa
+    const decodedUrl = decodeURIComponent(url);
+    console.log('Decoding video URL for publicId extraction:', decodedUrl);
+    
+    // Kiểm tra xem URL có phải là URL Cloudinary không
+    if (!decodedUrl.includes('cloudinary.com')) {
+      console.log('Not a Cloudinary URL:', decodedUrl);
+      return null;
+    }
+    
+    // Xử lý URL video
+    // Format: https://res.cloudinary.com/cloudname/video/upload/v1234567890/videos/filename.mp4
+    
+    // Trích xuất phần sau /upload/ từ URL
+    const uploadIndex = decodedUrl.indexOf('/upload/');
+    if (uploadIndex !== -1) {
+      const pathAfterUpload = decodedUrl.substring(uploadIndex + 8); // +8 để bỏ qua '/upload/'
+      console.log('Path after /upload/ (video):', pathAfterUpload);
+      
+      // Loại bỏ phần version nếu có (v1234567890/)
+      const versionRegex = /^v\d+\//;
+      const pathWithoutVersion = pathAfterUpload.replace(versionRegex, '');
+      console.log('Path without version (video):', pathWithoutVersion);
+      
+      // Loại bỏ phần mở rộng file (.mp4, etc.)
+      const extensionIndex = pathWithoutVersion.lastIndexOf('.');
+      const publicIdWithoutExt = extensionIndex !== -1 
+        ? pathWithoutVersion.substring(0, extensionIndex) 
+        : pathWithoutVersion;
+      
+      console.log('Extracted publicId for video:', publicIdWithoutExt);
+      return publicIdWithoutExt;
+    }
+    
+    // Thử phương pháp khác nếu không tìm thấy /upload/
+    const parts = decodedUrl.split('/');
+    const filename = parts[parts.length - 1];
+    const filenameWithoutExt = filename.split('.')[0];
+    
+    // Kiểm tra xem có phải là URL Cloudinary không và có chứa /video/ không
+    if (decodedUrl.includes('cloudinary.com') && decodedUrl.includes('/video/')) {
+      // Tìm folder từ URL
+      const folderMatch = decodedUrl.match(/\/([^\/]+)\/[^\/]+$/);
+      const folder = folderMatch ? folderMatch[1] : '';
+      
+      const publicId = folder ? `${folder}/${filenameWithoutExt}` : filenameWithoutExt;
+      console.log('Extracted video publicId (alternative method):', publicId);
+      return publicId;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error extracting publicId from video URL:', error);
     return null;
   }
 };
@@ -426,19 +476,81 @@ const deleteCloudinaryImage = async (imageUrl) => {
             return result4;
           }
         }
-        
-        // Nếu tất cả các cách đều không thành công, trả về kết quả ban đầu
-        console.log('All attempts failed, returning original result');
-        return result;
       }
       
       return result;
-    } catch (cloudinaryError) {
-      console.error('Cloudinary API error:', cloudinaryError);
-      return { result: 'error', error: cloudinaryError.message };
+    } catch (error) {
+      console.error('Error deleting from Cloudinary:', error);
+      return { result: 'error', error: error.message };
     }
   } catch (error) {
     console.error('Error in deleteCloudinaryImage:', error);
+    return { result: 'error', error: error.message };
+  }
+};
+
+// Hàm xóa video trên Cloudinary
+const deleteCloudinaryVideo = async (videoUrl) => {
+  try {
+    console.log('Attempting to delete video from Cloudinary:', videoUrl);
+    
+    const publicId = getPublicIdFromVideoUrl(videoUrl);
+    console.log('Video Public ID extracted:', publicId);
+    
+    if (!publicId) {
+      console.error('Could not extract public ID from video URL:', videoUrl);
+      return { result: 'error', error: 'Invalid video public ID' };
+    }
+    
+    try {
+      console.log('Calling cloudinary.uploader.destroy with video publicId:', publicId);
+      const result = await cloudinary.uploader.destroy(publicId, { resource_type: 'video' });
+      console.log('Cloudinary delete video result:', result);
+      
+      if (result.result === 'not found') {
+        // Thử lại với một số biến thể của publicId
+        console.log('Video resource not found, trying alternative public ID formats...');
+        
+        // Thử với tên file không có đường dẫn
+        const filename = publicId.split('/').pop();
+        console.log('Trying with video filename only:', filename);
+        const result2 = await cloudinary.uploader.destroy(filename, { resource_type: 'video' });
+        console.log('Second attempt result for video (filename only):', result2);
+        
+        if (result2.result === 'ok') {
+          return result2;
+        }
+        
+        // Thử với đường dẫn đầy đủ với prefix videos
+        console.log('Trying with videos prefix...');
+        const fullPath = publicId.includes('/') ? publicId : `videos/${publicId}`;
+        const result3 = await cloudinary.uploader.destroy(fullPath, { resource_type: 'video' });
+        console.log('Third attempt result for video (with videos prefix):', result3);
+        
+        if (result3.result === 'ok') {
+          return result3;
+        }
+        
+        // Thử với đường dẫn không có videos prefix
+        if (publicId.includes('videos/')) {
+          console.log('Trying without videos prefix...');
+          const withoutPrefix = publicId.replace('videos/', '');
+          const result4 = await cloudinary.uploader.destroy(withoutPrefix, { resource_type: 'video' });
+          console.log('Fourth attempt result for video (without videos prefix):', result4);
+          
+          if (result4.result === 'ok') {
+            return result4;
+          }
+        }
+      }
+      
+      return result;
+    } catch (error) {
+      console.error('Error deleting video from Cloudinary:', error);
+      return { result: 'error', error: error.message };
+    }
+  } catch (error) {
+    console.error('Error in deleteCloudinaryVideo:', error);
     return { result: 'error', error: error.message };
   }
 };
@@ -626,6 +738,87 @@ exports.deleteImageWithBody = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Lỗi khi xóa ảnh',
+      error: error.message
+    });
+  }
+};
+
+// Hàm xóa video từ Cloudinary
+exports.deleteVideo = async (req, res) => {
+  try {
+    console.log('Delete video request received:', req.body);
+    const { videoUrl } = req.body;
+    
+    if (!videoUrl || typeof videoUrl !== 'string') {
+      console.error('Invalid video URL:', videoUrl);
+      return res.status(400).json({
+        success: false,
+        message: 'URL video không hợp lệ'
+      });
+    }
+
+    console.log('Attempting to delete video:', videoUrl);
+    
+    // Kiểm tra xem URL có phải là URL Cloudinary không
+    if (!videoUrl.includes('cloudinary.com')) {
+      console.error('Not a Cloudinary URL:', videoUrl);
+      return res.status(400).json({
+        success: false,
+        message: 'URL không phải là URL Cloudinary'
+      });
+    }
+    
+    // Xử lý URL nếu cần
+    let processedUrl = videoUrl;
+    // Nếu URL không bắt đầu bằng http hoặc https, thêm vào
+    if (!processedUrl.startsWith('http')) {
+      processedUrl = `https://${processedUrl}`;
+    }
+    
+    console.log('Processed video URL:', processedUrl);
+    
+    const result = await deleteCloudinaryVideo(processedUrl);
+    console.log('Delete video result:', result);
+    
+    // Xử lý các trường hợp kết quả khác nhau
+    if (result) {
+      if (result.result === 'ok') {
+        console.log('Video deleted successfully');
+        return res.json({
+          success: true,
+          message: 'Đã xóa video thành công',
+          result: result
+        });
+      } 
+      
+      if (result.result === 'not found') {
+        console.log('Video not found on Cloudinary, but considering it as deleted');
+        return res.json({
+          success: true,
+          message: 'Video không tồn tại trên Cloudinary',
+          result: result
+        });
+      }
+      
+      // Trường hợp lỗi khác
+      console.error('Failed to delete video:', result);
+      return res.status(400).json({
+        success: false,
+        message: 'Không thể xóa video',
+        result: result
+      });
+    } else {
+      console.error('No result returned from deleteCloudinaryVideo');
+      return res.status(500).json({
+        success: false,
+        message: 'Lỗi khi xóa video: Không có kết quả từ Cloudinary'
+      });
+    }
+  } catch (error) {
+    console.error('Error in deleteVideo controller:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi khi xóa video',
       error: error.message
     });
   }

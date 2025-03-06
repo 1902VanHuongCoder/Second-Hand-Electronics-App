@@ -130,9 +130,11 @@ export default function PostCreation() {
     const [avatarUrls, setAvatarUrls] = useState<string[]>([]);
     const [video, setVideo] = useState<string | null>(null);
     const [videoUrl, setVideoUrl] = useState<string | null>(null);
+    const [initialVideoUrl, setInitialVideoUrl] = useState<string | null>(null);
     const [thumbnail, setThumbnail] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [videoloading, setVideoLoading] = useState(false);
+    const [deletingVideo, setDeletingVideo] = useState(false);
     // States cho các trường select
     const checkAuth = useAuthCheck();
     const [selectedCategory, setSelectedCategory] = useState("");
@@ -429,23 +431,69 @@ export default function PostCreation() {
                 // Không hiển thị thông báo lỗi cho người dùng vì ảnh đã được xóa khỏi UI
             }
         } catch (error: any) {
-            // Xử lý lỗi mà không hiển thị thông báo cho người dùng
-            if (error.response && error.response.status === 404) {
-                console.log('404 error - image not found on server, already removed from UI');
-                // Không cần làm gì vì ảnh đã được xóa khỏi UI ở đầu hàm
-            } else {
-                console.error('Lỗi khi xóa ảnh:', error);
-                const errorMessage = error.response 
-                    ? `Lỗi ${error.response.status}: ${error.response.data?.message || error.message}` 
-                    : error.message || 'Không thể xóa ảnh. Vui lòng thử lại sau.';
-                
-                console.log('Error details:', errorMessage);
-                
-                // Chỉ hiển thị thông báo lỗi nếu không phải lỗi 404
-                if (!error.response || error.response.status !== 404) {
-                    Alert.alert('Lỗi', errorMessage);
-                }
+            console.error('Lỗi khi xóa ảnh:', error);
+            // Không hiển thị thông báo lỗi cho người dùng vì ảnh đã được xóa khỏi UI
+        }
+    };
+
+    // Hàm xóa video
+    const handleDeleteVideo = async () => {
+        try {
+            // Kiểm tra xem URL có hợp lệ không
+            if (!videoUrl || !videoUrl.includes('cloudinary.com')) {
+                console.error('Invalid video URL:', videoUrl);
+                Alert.alert('Lỗi', 'URL video không hợp lệ');
+                return;
             }
+            
+            // Hiển thị trạng thái đang xóa
+            setDeletingVideo(true);
+            
+            // Hiển thị thông báo đang xử lý (chỉ log, không hiển thị cho người dùng)
+            console.log('Sending delete request to server for video...');
+            console.log('Video URL to delete:', videoUrl);
+            
+            // Gửi request xóa video đến server
+            const response = await axios.post('http://10.0.2.2:5000/api/deleteVideo', {
+                videoUrl
+            }, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            console.log('Delete video response:', response.data);
+            
+            if (response.data && response.data.success) {
+                console.log('Video deleted successfully on server');
+                // Xóa video khỏi UI sau khi xóa thành công trên server
+                setVideoUrl(null);
+                setThumbnail(null);
+                
+                // Nếu đang ở chế độ chỉnh sửa, cập nhật trường videos của sản phẩm
+                if (isEditMode && id) {
+                    try {
+                        // Gửi request cập nhật sản phẩm để xóa trường videos
+                        await axios.patch(`http://10.0.2.2:5000/api/products/${id}/update-video`, {
+                            videos: ''
+                        });
+                        console.log('Product video field updated to empty');
+                    } catch (updateError) {
+                        console.error('Error updating product video field:', updateError);
+                    }
+                }
+                
+                Alert.alert('Thành công', 'Đã xóa video thành công');
+            } else {
+                console.log('Server reported issue with video deletion:', response.data?.message || 'Unknown error');
+                Alert.alert('Lỗi', 'Không thể xóa video. Vui lòng thử lại sau.');
+            }
+        } catch (error: any) {
+            console.error('Lỗi khi xóa video:', error);
+            console.error('Error details:', error.response ? error.response.data : error.message);
+            Alert.alert('Lỗi', 'Không thể xóa video. Vui lòng thử lại sau.');
+        } finally {
+            setDeletingVideo(false);
         }
     };
 
@@ -502,6 +550,18 @@ export default function PostCreation() {
                     });
                 } catch (error) {
                     console.error('Lỗi khi xóa ảnh không sử dụng:', error);
+                }
+            }
+
+            // Kiểm tra nếu đang ở chế độ edit và video đã bị xóa
+            if (isEditMode && initialVideoUrl && !videoUrl) {
+                try {
+                    console.log('Video đã bị xóa, cập nhật trường videos thành rỗng');
+                    await axios.patch(`http://10.0.2.2:5000/api/products/${id}/update-video`, {
+                        videos: ''
+                    });
+                } catch (error) {
+                    console.error('Lỗi khi cập nhật trường videos:', error);
                 }
             }
 
@@ -615,6 +675,7 @@ export default function PostCreation() {
                 setSelectedWarranty(productData.warranty);
                 setSelectedPostType(productData.isVip ? "Đăng tin trả phí" : "Đăng tin thường");
                 setVideoUrl(productData.videos || null);
+                setInitialVideoUrl(productData.videos || null);
 
                 // Cập nhật thông tin chi tiết
                 if (productData.cpuId) setSelectedCpu(productData.cpuId);
@@ -1011,8 +1072,10 @@ export default function PostCreation() {
         setSelectedPostType("Đăng tin thường");
         setImages([]);
         setAvatarUrls([]);
+        setInitialImages([]);
         setVideo(null);
         setVideoUrl(null);
+        setInitialVideoUrl(null);
         setThumbnail(null);
         
         // Reset location data
@@ -1234,11 +1297,12 @@ export default function PostCreation() {
                                                     { 
                                                         text: "Xóa", 
                                                         style: "destructive",
-                                                        onPress: () => setVideoUrl(null) 
+                                                        onPress: handleDeleteVideo
                                                     }
                                                 ]
                                             );
                                         }}
+                                        disabled={deletingVideo}
                                     >
                                         <Text style={{ color: 'red', fontWeight: 'bold' }}>Xóa video</Text>
                                     </TouchableOpacity>
@@ -1286,6 +1350,21 @@ export default function PostCreation() {
                                         useNativeControls
                                         resizeMode={ResizeMode.CONTAIN}
                                     />
+                                    {deletingVideo && (
+                                        <View style={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: 0,
+                                            right: 0,
+                                            bottom: 0,
+                                            backgroundColor: 'rgba(0,0,0,0.5)',
+                                            justifyContent: 'center',
+                                            alignItems: 'center'
+                                        }}>
+                                            <ActivityIndicator size="large" color="#fff" />
+                                            <Text style={{ color: '#fff', marginTop: 10 }}>Đang xóa video...</Text>
+                                        </View>
+                                    )}
                                 </View>
                             )}
                             {videoloading && <ActivityIndicator size="large" color="blue" style={{ marginVertical: 10 }}/>}
@@ -1293,15 +1372,15 @@ export default function PostCreation() {
                                 <Button 
                                     title="Chọn video" 
                                     onPress={selectVideo} 
-                                    disabled={videoUrl !== null}
+                                    disabled={videoUrl !== null || deletingVideo}
                                 />
                                 <Button 
-                                    disabled={video === null} 
+                                    disabled={video === null || deletingVideo} 
                                     title="Tải video lên" 
                                     onPress={uploadVideo} 
                                 />
                             </View>
-                            {videoUrl && (
+                            {videoUrl && !deletingVideo && (
                                 <Text style={{ color: 'green', marginTop: 5, textAlign: 'center' }}>
                                     Video đã được tải lên thành công
                                 </Text>

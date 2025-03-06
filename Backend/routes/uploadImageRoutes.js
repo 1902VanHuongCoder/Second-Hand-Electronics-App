@@ -48,5 +48,7 @@ router.post('/deleteImages', uploadController.deleteImages);
 router.post('/deleteUnusedImages', uploadController.deleteUnusedImages);
 // Thêm route mới để xóa một ảnh cụ thể
 router.post('/deleteImage', uploadController.deleteImage);
+// Thêm route mới để xóa video
+router.post('/deleteVideo', uploadController.deleteVideo);
 // Loại bỏ tất cả các route DELETE không cần thiết
 module.exports = router;
