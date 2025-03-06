@@ -17,6 +17,7 @@ interface Product {
   postingDate: string;
   battery: string;
   nameUser: string | null;
+  isPhoneHidden: boolean;
   versionName: string | null;
   brandName: string;
   type: 'laptop' | 'phone';
@@ -45,6 +46,7 @@ export default function PostDetailsScreen() {
       try {
         const response = await axios.get(`http://10.0.2.2:5000/api/products/details/${id}`);
         setProduct(response.data as Product);
+        console.log(response.data)
       } catch (error) {
         console.error('Error fetching product details:', error);
       }
@@ -78,7 +80,7 @@ export default function PostDetailsScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      <MediaCarousel data={media}/>
+      <MediaCarousel data={media} />
       <View style={styles.content}>
         <Text style={styles.postName}>{product.title}</Text>
         <Text style={styles.price}>{formatCurrency(product.price)} đ</Text>
@@ -94,13 +96,13 @@ export default function PostDetailsScreen() {
         </TouchableOpacity>
         {expanded && (
           <Text style={styles.expandedText} className='text-justify'>
-            { <Text style={styles.description}>{product.configuration}</Text>}
+            {<Text style={styles.description}>{product.configuration}</Text>}
           </Text>
         )}
         <Text style={styles.specs} className='font-bold uppercase'>Thông số kỹ thuật</Text>
         <View style={styles.specsContainer}>
           <View style={styles.specItem}>
-            <Ionicons name="hardware-chip-outline" size={24} color="black" className='font-bold'/>
+            <Ionicons name="hardware-chip-outline" size={24} color="black" className='font-bold' />
             <Text style={styles.specText} className='font-bold'>CPU: <Text className='font-normal'>{product.cpuName}</Text></Text>
           </View>
           <View style={styles.specItem}>
@@ -121,28 +123,34 @@ export default function PostDetailsScreen() {
           </View>
         </View>
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.buttonWrapper} onPress={checkAuth}>
-            <LinearGradient
-              colors={['rgba(156,98,215,1)', 'rgba(82,52,113,1)']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.button} 
-            >
-              <Ionicons name="chatbubble-ellipses-outline" size={24} color="white" />
-             <Text style={styles.buttonText}>NHẮN TIN</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-          <Pressable style={styles.buttonWrapper} onPress={checkAuth}>
+          <TouchableOpacity style={[
+            styles.buttonWrapper,
+            product.isPhoneHidden ? { width: '100%' } : { width: '48%' }
+          ]} onPress={checkAuth}>
             <LinearGradient
               colors={['rgba(156,98,215,1)', 'rgba(82,52,113,1)']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.button}
             >
-              <Ionicons name="call-outline" size={24} color="white"/>
+              <Ionicons name="chatbubble-ellipses-outline" size={24} color="white" />
+              <Text style={styles.buttonText}>NHẮN TIN</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+          <TouchableOpacity style={[
+            styles.buttonWrapper,
+            product.isPhoneHidden ? { display: 'none' } : { width: '48%' }
+          ]} onPress={checkAuth}>
+            <LinearGradient
+              colors={['rgba(156,98,215,1)', 'rgba(82,52,113,1)']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.button}
+            >
+              <Ionicons name="call-outline" size={24} color="white" />
               <Text style={styles.buttonText}>GỌI ĐIỆN</Text>
             </LinearGradient>
-          </Pressable>
+          </TouchableOpacity>
         </View>
       </View>
     </ScrollView>
@@ -203,11 +211,11 @@ const MediaCarousel: React.FC<MediaCarouselProps> = ({ data }) => {
         keyExtractor={(item, index) => index.toString()}
         horizontal
         pagingEnabled
-        // showsHorizontalScrollIndicator={true}
-        // // onMomentumScrollEnd={(event) => {
-        // //   const index = Math.floor(event.nativeEvent.contentOffset.x / width);
-        // //   setActiveIndex(index);
-        // // }}
+      // showsHorizontalScrollIndicator={true}
+      // // onMomentumScrollEnd={(event) => {
+      // //   const index = Math.floor(event.nativeEvent.contentOffset.x / width);
+      // //   setActiveIndex(index);
+      // // }}
       />
       <View style={styles.paginationContainer}>
         {data.map((_, index) => (
@@ -319,9 +327,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   buttonContainer: {
-    marginTop:20,
+    marginTop: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 10,
   },
   button: {
@@ -344,8 +353,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    width: '48%',
+    justifyContent: 'center'
   },
   buttonText: {
     color: 'white',

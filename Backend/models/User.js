@@ -32,6 +32,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: 'user',
   },
+  isPhoneHidden: { type: Boolean, default: false },
   createdAt: {
     type: Date,
     default: Date.now,

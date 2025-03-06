@@ -37,7 +37,9 @@ exports.getUserPosts = async (req, res) => {
                 brandName: brand ? brand.brandName : null,
                 status: product.isSold ? 'Đã bán' : 'Đang bán',
                 address: address, // Sử dụng địa chỉ đã được xử lý
-                location: product.location || null // Gửi toàn bộ object location nếu cần
+                location: product.location || null, // Gửi toàn bộ object location nếu cần
+                isHidden: product.isHidden,
+                hiddenReason: product.hiddenReason
             };
         }));
 

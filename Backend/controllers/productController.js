@@ -299,6 +299,7 @@ exports.getProductDetails = async (req, res) => {
                 postingDate: product.createdAt,
                 battery: laptop ? laptop.battery : null,
                 nameUser: user ? user.name : null,
+                isPhoneHidden: user ? user.isPhoneHidden : false,
                 versionName: version ? version.versionName : null,
                 brandName: brand ? brand.brandName : null,
                 ramCapacity: ram ? ram.ramCapacity : null,
@@ -327,6 +328,7 @@ exports.getProductDetails = async (req, res) => {
                 address: formattedAddress,
                 postingDate: product.createdAt,
                 nameUser: user ? user.name : null,
+                isPhoneHidden: user ? user.isPhoneHidden : false,
                 versionName: version ? version.versionName : null,
                 brandName: brand ? brand.brandName : null,
                 ramCapacity: ram ? ram.ramCapacity : null,
@@ -355,13 +357,7 @@ exports.searchProducts = async (req, res) => {
 
         const searchRegex = new RegExp(searchTerm, 'i');
 
-        const products = await Product.find({
-            $or: [
-                { title: searchRegex },
-                { description: searchRegex },
-                { 'location.fullAddress': searchRegex }
-            ]
-        })
+        const products = await Product.find({ title: searchRegex })
             .populate('categoryId', 'categoryName')
             .populate('versionId', 'versionName')
             .populate('userId', 'name avatarUrl')
@@ -373,22 +369,27 @@ exports.searchProducts = async (req, res) => {
     }
 }
 
-exports.getProductsByBrand = async (req, res) => {
+exports.toggleHideProduct = async (req, res) => {
+    const { reason } = req.body;
+    const { id } = req.params;
     try {
-        const { brandId } = req.params;
+        const product = await Product.findById(id);
 
-        const versions = await Version.find({ brandId }).select("_id");
-        const versionIds = versions.map((version) => version._id);
+        if (!product) {
+            return res.status(404).json({ message: 'Không có sản phẩm trùng khớp.' });
+        }
 
-        const products = await Product.find({ versionId: { $in: versionIds } })
-            .populate({
-                path: "versionId",
-                populate: { path: "brandId", model: "Brand" },
-            })
-            .exec();
-        res.status(200).json(products);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+        product.isHidden = !product.isHidden;
+        product.hiddenReason = product.isHidden ? reason : '';
+        await product.save();
+
+        return res.status(200).json({ 
+            isHidden: product.isHidden,
+            hiddenReason: product.hiddenReason
+        })
+    } catch (err) {
+        console.log(err)
+        return res.status(500).json({ message: err.message });
     }
 }
 
