@@ -542,13 +542,31 @@ export default function PostCreation() {
                 // Gọi API cập nhật sản phẩm
                 response = await axios.put(`http://10.0.2.2:5000/api/products/${id}`, productData);
                 Alert.alert('Thành công', 'Cập nhật tin thành công', [
-                    { text: 'OK', onPress: () => router.back() }
+                    { 
+                        text: 'OK', 
+                        onPress: () => {
+                            // Chuyển về trang quản lý tin
+                            router.replace('/postManagement');
+                            
+                            // Sau đó chuyển về form đăng tin mới (không phải ở chế độ edit)
+                            setTimeout(() => {
+                                resetForm(); // Reset form về trạng thái ban đầu
+                                router.replace('/postCreation'); // Chuyển đến trang đăng tin mới
+                            }, 100);
+                        } 
+                    }
                 ]);
             } else {
                 // Gọi API tạo sản phẩm mới
                 response = await axios.post('http://10.0.2.2:5000/api/products', productData);
                 Alert.alert('Thành công', 'Đăng tin thành công', [
-                    { text: 'OK', onPress: () => router.back() }
+                    { 
+                        text: 'OK', 
+                        onPress: () => {
+                            resetForm(); // Reset form về trạng thái ban đầu
+                            router.replace('/postManagement'); // Chuyển đến trang quản lý tin
+                        } 
+                    }
                 ]);
             }
 
