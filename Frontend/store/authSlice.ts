@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import socket from '@/utils/socket';
 
 // Define types
 interface User {
@@ -83,6 +84,7 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       AsyncStorage.removeItem('token');
+      socket.disconnect(); 
     },
   },
   extraReducers: (builder) => {

@@ -21,7 +21,6 @@ const phoneRoutes = require('./routes/phoneRoutes');
 const postManagementRoutes = require('./routes/postManagementRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const paypal = require('paypal-rest-sdk');
-const ChatRoom = require('./models/Chat');
 
 const app = express();
 dotenv.config();
@@ -45,82 +44,41 @@ app.use(cors(
 	}
 ));
 
-// const generateID = () => Math.random().toString(36).substring(2, 10); // Generate a random ID
-
-socketIO.use((socket, next) => {
-    const { userId, userName } = socket.handshake.auth;
-    if (!userId || !userName) {
-        return next(new Error("Authentication error"));
-    }
-    socket.userId = userId;
-    socket.userName = userName;
-    next();
-});
-
+const generateID = () => Math.random().toString(36).substring(2, 10); // Generate a random ID
+let chatRooms = [];
 
 socketIO.on("connection", (socket) => {
 	console.log(`⚡: ${socket.id} user just connected!`);
 
-	socket.on("createRoom", async (receiverName, receiverId, receiverAvatar, senderId, senderName, senderAvatar, productImage, productTitle, productPrice) => {
-		const roomCode = `${receiverId}-${senderId}`;
-		socket.join(roomCode);
-		let chatRoom = await ChatRoom.findOne({ roomCode: roomCode });
-		
-		if (!chatRoom) {
-			chatRoom = new ChatRoom({
-				roomCode,
-				senderId,
-				receiverId,
-				senderName,
-				receiverName,
-				senderAvatar,
-				receiverAvatar,
-				productImage,
-				productTitle,
-				productPrice,
-				messages: []
-			});
-			await chatRoom.save();
-		}
-		socket.emit("createdRoom", chatRoom);
-	})
-
-	socket.on("findRoom", async (roomCode) => {
-		try {
-			let chatRoom = await ChatRoom.findOne({ roomCode: roomCode });
-			if (chatRoom) {
-				socket.emit("foundRoom", chatRoom);
-			} else {
-				console.log("Room not found");
-			}
-		} catch (error) {
-			console.error("Error finding room:", error);
-		}
+	socket.on("createRoom", (name) => {
+		socket.join(name);
+		chatRooms.unshift({ id: generateID(), name, messages: [] });
+		socket.emit("roomsList", chatRooms);
 	});
 
-	socket.on("newMessage", async (data) => {
-		const { roomCode, senderId, text, senderN} = data;
-		console.log(data);
-		try {
-			let chatRoom = await ChatRoom.findOne({ roomCode: roomCode });
-			if (chatRoom) {
-				const newMessage = {
-					senderId: senderId,
-					text: text,
-					senderN: senderN,
-					time: new Date()
-				};
-				chatRoom.messages.push(newMessage);
-				await chatRoom.save();
-				socket.to(roomCode).emit("receiveMessage", newMessage);
-			} else {
-				console.log("Room not found");
-			}
-		} catch (error) {
-			console.error("Error adding new message:", error);
-		}
+	socket.on("findRoom", (id) => {
+		let result = chatRooms.filter((room) => room.id == id);
+		// console.log(chatRooms);
+		socket.emit("foundRoom", result[0].messages);
+		// console.log("Messages Form", result[0].messages);
 	});
 
+	socket.on("newMessage", (data) => {
+		const { room_id, message, user, timestamp } = data;
+		let result = chatRooms.filter((room) => room.id == room_id);
+		const newMessage = {
+			id: generateID(),
+			text: message,
+			user,
+			time: `${timestamp.hour}:${timestamp.mins}`,
+		};
+		console.log("New Message", newMessage);
+		socket.to(result[0].name).emit("roomMessage", newMessage);
+		result[0].messages.push(newMessage);
+
+		socket.emit("roomsList", chatRooms);
+		socket.emit("foundRoom", result[0].messages);
+	});
 	socket.on("disconnect", () => {
 		socket.disconnect();
 		console.log("🔥: A user disconnected");
@@ -133,14 +91,8 @@ app.use((req, res, next) => {
 	next();
 });
 
-app.get("/api/chat", async (req, res) => {
-	try {
-		const chatRooms = await ChatRoom.find();
-		res.json(chatRooms);
-	} catch (error) {
-		console.error("Error fetching chat rooms:", error);
-		res.status(500).json({ error: "Internal Server Error" });
-	}
+app.get("/api/chat", (req, res) => {
+	res.json(chatRooms);
 });
 
 // Route mặc định cho đường dẫn gốc
