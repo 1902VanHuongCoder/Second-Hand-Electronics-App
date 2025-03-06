@@ -22,7 +22,7 @@ const productSchema = new mongoose.Schema({
         },
         provinceName: {
             type: String,
-            required: true
+            required: false
         },
         districtCode: {
             type: String,
@@ -30,7 +30,7 @@ const productSchema = new mongoose.Schema({
         },
         districtName: {
             type: String,
-            required: true
+            required: false
         },
         wardCode: {
             type: String,
@@ -38,17 +38,19 @@ const productSchema = new mongoose.Schema({
         },
         wardName: {
             type: String,
-            required: true
+            required: false
         },
         detailAddress: {
             type: String,
-            required: true
+            required: false
         },
         fullAddress: {
             type: String,
-            required: true
+            required: false
         }
     },
+    isHidden: { type: Boolean, default: false },
+    hiddenReason: { type: String, default: '' },
     newsPushDay: { type: Date },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }

@@ -1,4 +1,4 @@
-import { Text, View, ScrollView, ActivityIndicator, TextInput, TouchableHighlight, Button, Image, Alert } from 'react-native'
+import { Text, View, ScrollView, ActivityIndicator, TextInput, TouchableHighlight, Button, Image, Alert, TouchableOpacity } from 'react-native'
 
 import React, { useState, useEffect, useMemo } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -14,6 +14,7 @@ import * as VideoThumbnails from 'expo-video-thumbnails';
 import { Video, ResizeMode } from 'expo-av';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system';
 
 
 const API_URL = "http://10.0.2.2:5000/api/uploadmultiple";
@@ -129,9 +130,11 @@ export default function PostCreation() {
     const [avatarUrls, setAvatarUrls] = useState<string[]>([]);
     const [video, setVideo] = useState<string | null>(null);
     const [videoUrl, setVideoUrl] = useState<string | null>(null);
+    const [initialVideoUrl, setInitialVideoUrl] = useState<string | null>(null);
     const [thumbnail, setThumbnail] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [videoloading, setVideoLoading] = useState(false);
+    const [deletingVideo, setDeletingVideo] = useState(false);
     // States cho các trường select
     const checkAuth = useAuthCheck();
     const [selectedCategory, setSelectedCategory] = useState("");
@@ -387,111 +390,181 @@ export default function PostCreation() {
     // Thêm state để theo dõi trạng thái tải dữ liệu
     const [pageLoading, setPageLoading] = useState(false);
     
-    // Fetch dữ liệu sản phẩm nếu đang ở chế độ edit
-    useEffect(() => {
-        if (!id) return; // Nếu không có id, tức là đang ở chế độ tạo mới
-        
-        const fetchProductData = async () => {
-            try {
-                setPageLoading(true);
-                // Sửa lỗi: Thêm token xác thực và xử lý lỗi chi tiết hơn
-                const token = await AsyncStorage.getItem('token');
-                const response = await axios.get(`http://10.0.2.2:5000/api/products/edit/${id}`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                });
-                
-                console.log("Dữ liệu sản phẩm nhận được:", response.data);
-                const productData = response.data;
-                
-                // Cập nhật các state với dữ liệu sản phẩm
-                setSelectedCategory(productData.categoryId);
-                setSelectedBrand(productData.brandId);
-                setSelectedVersion(productData.versionId);
-                setSelectedCondition(productData.conditionId);
-                setSelectedStorage(productData.storageId);
-                setSelectedRam(productData.ramId);
-                setTitle(productData.title);
-                setDescription(productData.description);
-                setPrice(productData.price.toString());
-                setSelectedWarranty(productData.warranty);
-                setSelectedPostType(productData.isVip ? "Đăng tin trả phí" : "Đăng tin thường");
-                setAvatarUrls(productData.images || []);
-                setVideoUrl(productData.videos || null);
-                
-                // Cập nhật thông tin chi tiết
-                if (productData.cpuId) setSelectedCpu(productData.cpuId);
-                if (productData.gpuId) setSelectedGpu(productData.gpuId);
-                if (productData.screenId) setSelectedScreen(productData.screenId);
-                if (productData.storageTypeId) setSelectedStorageType(productData.storageTypeId);
-                if (productData.battery) setBattery(productData.battery);
-                if (productData.origin) setSelectedOrigin(productData.origin);
-                
-                // Cập nhật thông tin địa chỉ
-                if (productData.location) {
-                    setSelectedProvince(productData.location.provinceCode || "");
-                    setSelectedDistrict(productData.location.districtCode || "");
-                    setSelectedWard(productData.location.wardCode || "");
-                    setDetailAddress(productData.location.detailAddress || "");
-                    setSelectedLocation(productData.location.fullAddress || "");
-                    
-                    // Fetch districts và wards dựa trên province và district đã chọn
-                    if (productData.location.provinceCode) {
-                        const provinceResponse = await axios.get(`https://provinces.open-api.vn/api/p/${productData.location.provinceCode}?depth=2`);
-                        setDistricts(provinceResponse.data.districts);
-                        
-                        if (productData.location.districtCode) {
-                            const districtResponse = await axios.get(`https://provinces.open-api.vn/api/d/${productData.location.districtCode}?depth=2`);
-                            setWards(districtResponse.data.wards);
-                        }
-                    }
-                }
-                
-                // Nếu có video, tạo thumbnail
-                if (productData.videos) {
-                    try {
-                        const { uri } = await VideoThumbnails.getThumbnailAsync(productData.videos, { time: 1000 });
-                        setThumbnail(uri);
-                    } catch (err) {
-                        console.error("Thumbnail generation error:", err);
-                    }
-                }
-            } catch (error) {
-                console.error('Lỗi khi lấy dữ liệu sản phẩm:', error.response?.data || error.message);
-                Alert.alert('Lỗi', 'Không thể lấy thông tin sản phẩm. Vui lòng thử lại sau.');
-            } finally {
-                setPageLoading(false);
-            }
-        };
-        
-        fetchProductData();
-    }, [id]);
+    // Thêm state để lưu trữ ảnh ban đầu khi edit
+    const [initialImages, setInitialImages] = useState<string[]>([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
-    const handleSubmit = async () => {
-        if (!user) {
-            Alert.alert('Thông báo', 'Vui lòng đăng nhập để đăng tin');
-            return;
+    // Hàm xóa một ảnh cụ thể
+    const handleDeleteImage = async (imageUrl: string) => {
+        try {
+            console.log('Deleting image:', imageUrl);
+            
+            // Kiểm tra xem URL có hợp lệ không
+            if (!imageUrl || !imageUrl.includes('cloudinary.com')) {
+                console.error('Invalid image URL:', imageUrl);
+                Alert.alert('Lỗi', 'URL ảnh không hợp lệ');
+                return;
+            }
+            
+            // Xóa ảnh khỏi UI ngay lập tức để trải nghiệm người dùng tốt hơn
+            setAvatarUrls(prevUrls => prevUrls.filter(url => url !== imageUrl));
+            
+            // Hiển thị thông báo đang xử lý (chỉ log, không hiển thị cho người dùng)
+            console.log('Sending delete request to server...');
+            
+            // Gửi request xóa ảnh đến server
+            const response = await axios.post('http://10.0.2.2:5000/api/upload/deleteImage', {
+                imageUrl
+            }, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            console.log('Delete response:', response.data);
+            
+            if (response.data && response.data.success) {
+                console.log('Image deleted successfully on server');
+            } else {
+                console.log('Server reported issue with deletion:', response.data?.message || 'Unknown error');
+                // Không hiển thị thông báo lỗi cho người dùng vì ảnh đã được xóa khỏi UI
+            }
+        } catch (error: any) {
+            console.error('Lỗi khi xóa ảnh:', error);
+            // Không hiển thị thông báo lỗi cho người dùng vì ảnh đã được xóa khỏi UI
         }
-        
+    };
+
+    // Hàm xóa video
+    const handleDeleteVideo = async () => {
+        try {
+            // Kiểm tra xem URL có hợp lệ không
+            if (!videoUrl || !videoUrl.includes('cloudinary.com')) {
+                console.error('Invalid video URL:', videoUrl);
+                Alert.alert('Lỗi', 'URL video không hợp lệ');
+                return;
+            }
+            
+            // Hiển thị trạng thái đang xóa
+            setDeletingVideo(true);
+            
+            // Hiển thị thông báo đang xử lý (chỉ log, không hiển thị cho người dùng)
+            console.log('Sending delete request to server for video...');
+            console.log('Video URL to delete:', videoUrl);
+            
+            // Gửi request xóa video đến server
+            const response = await axios.post('http://10.0.2.2:5000/api/deleteVideo', {
+                videoUrl
+            }, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            console.log('Delete video response:', response.data);
+            
+            if (response.data && response.data.success) {
+                console.log('Video deleted successfully on server');
+                // Xóa video khỏi UI sau khi xóa thành công trên server
+                setVideoUrl(null);
+                setThumbnail(null);
+                
+                // Nếu đang ở chế độ chỉnh sửa, cập nhật trường videos của sản phẩm
+                if (isEditMode && id) {
+                    try {
+                        // Gửi request cập nhật sản phẩm để xóa trường videos
+                        await axios.patch(`http://10.0.2.2:5000/api/products/${id}/update-video`, {
+                            videos: ''
+                        });
+                        console.log('Product video field updated to empty');
+                    } catch (updateError) {
+                        console.error('Error updating product video field:', updateError);
+                    }
+                }
+                
+                Alert.alert('Thành công', 'Đã xóa video thành công');
+            } else {
+                console.log('Server reported issue with video deletion:', response.data?.message || 'Unknown error');
+                Alert.alert('Lỗi', 'Không thể xóa video. Vui lòng thử lại sau.');
+            }
+        } catch (error: any) {
+            console.error('Lỗi khi xóa video:', error);
+            console.error('Error details:', error.response ? error.response.data : error.message);
+            Alert.alert('Lỗi', 'Không thể xóa video. Vui lòng thử lại sau.');
+        } finally {
+            setDeletingVideo(false);
+        }
+    };
+
+    // Validate form
+    const validateForm = () => {
         // Validate các trường bắt buộc
         if (!selectedCategory || !selectedBrand || !selectedCondition ||
             !selectedStorage || !selectedWarranty || !selectedOrigin ||
             !title || !description || !price || !selectedPostType ||
             !selectedRam) {
             Alert.alert('Thông báo', 'Vui lòng nhập đầy đủ thông tin sản phẩm');
-            return;
+            return false;
         }
         
         if (avatarUrls.length === 0) {
             Alert.alert('Thông báo', 'Vui lòng chọn ảnh sản phẩm');
-            return;
+            return false;
         } else if (avatarUrls.length > 6) {
             Alert.alert('Thông báo', 'Vui lòng chọn tối đa 6 ảnh sản phẩm');
+            return false;
+        }
+
+        return true;
+    };
+
+    // Cập nhật hàm handleSubmit
+    const handleSubmit = async () => {
+        if (!user) {
+            Alert.alert('Thông báo', 'Vui lòng đăng nhập để đăng tin');
             return;
         }
-        
+
+        if (!validateForm()) return;
+
         try {
+            setIsSubmitting(true);
+
+            // Upload ảnh và video mới (nếu có)
+            if (images.length > 0) {
+                await uploadImages();
+            }
+            if (video) {
+                await uploadVideo();
+            }
+
+            // Nếu đang ở chế độ edit, xóa các ảnh không còn sử dụng
+            if (isEditMode && initialImages.length > 0) {
+                try {
+                    console.log('Ảnh ban đầu:', initialImages);
+                    console.log('Ảnh hiện tại:', avatarUrls);
+                    await axios.post('http://10.0.2.2:5000/api/deleteUnusedImages', {
+                        oldImageUrls: initialImages,
+                        newImageUrls: avatarUrls
+                    });
+                } catch (error) {
+                    console.error('Lỗi khi xóa ảnh không sử dụng:', error);
+                }
+            }
+
+            // Kiểm tra nếu đang ở chế độ edit và video đã bị xóa
+            if (isEditMode && initialVideoUrl && !videoUrl) {
+                try {
+                    console.log('Video đã bị xóa, cập nhật trường videos thành rỗng');
+                    await axios.patch(`http://10.0.2.2:5000/api/products/${id}/update-video`, {
+                        videos: ''
+                    });
+                } catch (error) {
+                    console.error('Lỗi khi cập nhật trường videos:', error);
+                }
+            }
+
             const productData = {
                 userId: user.id,
                 categoryId: selectedCategory,
@@ -514,43 +587,144 @@ export default function PostCreation() {
                     detailAddress: detailAddress,
                     fullAddress: selectedLocation
                 },
-                images: avatarUrls
+                images: avatarUrls,
+                cpuId: selectedCpu,
+                gpuId: selectedGpu,
+                ramId: selectedRam,
+                screenId: selectedScreen,
+                battery: battery || "0",
+                origin: selectedOrigin,
+                storageTypeId: selectedStorageType
             };
-            
-            // Thêm thông tin chi tiết dựa vào loại sản phẩm
-            const category = categories.find(cat => cat._id === selectedCategory);
-            if (category?.categoryName.toLowerCase() === 'laptop') {
-                productData.cpuId = selectedCpu;
-                productData.gpuId = selectedGpu;
-                productData.ramId = selectedRam;
-                productData.screenId = selectedScreen;
-                productData.battery = battery || "0";
-                productData.origin = selectedOrigin;
-            } else {
-                productData.ramId = selectedRam;
-                productData.battery = battery || "0";
-                productData.origin = selectedOrigin;
-            }
-            
+
             let response;
             if (isEditMode) {
                 // Gọi API cập nhật sản phẩm
                 response = await axios.put(`http://10.0.2.2:5000/api/products/${id}`, productData);
                 Alert.alert('Thành công', 'Cập nhật tin thành công', [
-                    { text: 'OK', onPress: () => router.back() }
+                    { 
+                        text: 'OK', 
+                        onPress: () => {
+                            // Chuyển về trang quản lý tin
+                            router.replace('/postManagement');
+                            
+                            // Sau đó chuyển về form đăng tin mới (không phải ở chế độ edit)
+                            setTimeout(() => {
+                                resetForm(); // Reset form về trạng thái ban đầu
+                                router.replace('/postCreation'); // Chuyển đến trang đăng tin mới
+                            }, 100);
+                        } 
+                    }
                 ]);
             } else {
                 // Gọi API tạo sản phẩm mới
                 response = await axios.post('http://10.0.2.2:5000/api/products', productData);
                 Alert.alert('Thành công', 'Đăng tin thành công', [
-                    { text: 'OK', onPress: () => router.back() }
+                    { 
+                        text: 'OK', 
+                        onPress: () => {
+                            resetForm(); // Reset form về trạng thái ban đầu
+                            router.replace('/postManagement'); // Chuyển đến trang quản lý tin
+                        } 
+                    }
                 ]);
             }
+
         } catch (error) {
-            console.error('Lỗi khi xử lý tin:', error.response?.data || error.message);
+            console.error('Lỗi khi xử lý tin:', error);
             Alert.alert('Lỗi', `Có lỗi xảy ra khi ${isEditMode ? 'cập nhật' : 'đăng'} tin`);
+        } finally {
+            setIsSubmitting(false);
         }
     };
+
+    // Cập nhật useEffect để lấy dữ liệu sản phẩm
+    useEffect(() => {
+        const fetchProductData = async () => {
+            if (!isEditMode || !id) return;
+
+            try {
+                setPageLoading(true);
+                const token = await AsyncStorage.getItem('token');
+                const response = await axios.get(`http://10.0.2.2:5000/api/products/edit/${id}`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+                
+                const productData = response.data;
+                console.log("Dữ liệu sản phẩm nhận được:", productData);
+
+                // Lưu danh sách ảnh ban đầu và hiện tại
+                if (productData.images && Array.isArray(productData.images)) {
+                    console.log("Ảnh sản phẩm:", productData.images);
+                    setInitialImages([...productData.images]);
+                    setAvatarUrls([...productData.images]);
+                }
+
+                // Cập nhật các state khác
+                setSelectedCategory(productData.categoryId);
+                setSelectedBrand(productData.brandId);
+                setSelectedVersion(productData.versionId);
+                setSelectedCondition(productData.conditionId);
+                setSelectedStorage(productData.storageId);
+                setSelectedRam(productData.ramId);
+                setTitle(productData.title);
+                setDescription(productData.description);
+                setPrice(productData.price.toString());
+                setSelectedWarranty(productData.warranty);
+                setSelectedPostType(productData.isVip ? "Đăng tin trả phí" : "Đăng tin thường");
+                setVideoUrl(productData.videos || null);
+                setInitialVideoUrl(productData.videos || null);
+
+                // Cập nhật thông tin chi tiết
+                if (productData.cpuId) setSelectedCpu(productData.cpuId);
+                if (productData.gpuId) setSelectedGpu(productData.gpuId);
+                if (productData.screenId) setSelectedScreen(productData.screenId);
+                if (productData.storageTypeId) setSelectedStorageType(productData.storageTypeId);
+                if (productData.battery) setBattery(productData.battery);
+                if (productData.origin) setSelectedOrigin(productData.origin);
+
+                // Cập nhật thông tin địa chỉ
+                if (productData.location) {
+                    setSelectedProvince(productData.location.provinceCode || "");
+                    setSelectedDistrict(productData.location.districtCode || "");
+                    setSelectedWard(productData.location.wardCode || "");
+                    setDetailAddress(productData.location.detailAddress || "");
+                    setSelectedLocation(productData.location.fullAddress || "");
+
+                    // Fetch districts và wards dựa trên province và district đã chọn
+                    if (productData.location.provinceCode) {
+                        const provinceResponse = await axios.get(`https://provinces.open-api.vn/api/p/${productData.location.provinceCode}?depth=2`);
+                        setDistricts(provinceResponse.data.districts);
+
+                        if (productData.location.districtCode) {
+                            const districtResponse = await axios.get(`https://provinces.open-api.vn/api/d/${productData.location.districtCode}?depth=2`);
+                            setWards(districtResponse.data.wards);
+                        }
+                    }
+                }
+
+                // Nếu có video, tạo thumbnail
+                if (productData.videos) {
+                    try {
+                        const { uri } = await VideoThumbnails.getThumbnailAsync(productData.videos, { time: 1000 });
+                        setThumbnail(uri);
+                    } catch (err) {
+                        console.error("Thumbnail generation error:", err);
+                    }
+                }
+
+            } catch (error) {
+                console.error('Lỗi khi lấy dữ liệu sản phẩm:', error);
+                Alert.alert('Lỗi', 'Không thể lấy thông tin sản phẩm. Vui lòng thử lại sau.');
+            } finally {
+                setPageLoading(false);
+            }
+        };
+
+        fetchProductData();
+    }, [isEditMode, id]);
 
     const handleCategoryChange = async (itemValue: string) => {
         console.log('Selected Category ID:', itemValue);
@@ -625,28 +799,66 @@ export default function PostCreation() {
     }, [checkAuth]);
 
     const selectImages = async () => {
+        // Kiểm tra nếu đã đạt số lượng ảnh tối đa
+        if (avatarUrls.length >= 6) {
+            Alert.alert(
+                "Số lượng ảnh tối đa",
+                "Bạn đã đạt số lượng ảnh tối đa (6 ảnh). Vui lòng xóa bớt ảnh trước khi thêm mới.",
+                [{ text: "OK" }]
+            );
+            return;
+        }
+
         const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
         if (permissionResult.granted === false) {
-            Alert.alert("Permission to access camera roll is required!");
+            Alert.alert("Cần quyền truy cập", "Ứng dụng cần quyền truy cập thư viện ảnh để tiếp tục!");
             return;
         }
+
+        // Tính toán số lượng ảnh còn có thể chọn
+        const remainingImages = 6 - avatarUrls.length;
 
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsMultipleSelection: true,
             quality: 1,
+            selectionLimit: remainingImages, // Giới hạn số lượng ảnh có thể chọn
         });
 
         if (!result.canceled) {
-            const selectedImages = result.assets.map(asset => asset.uri);
-            setImages(selectedImages);
+            // Kiểm tra nếu tổng số ảnh vượt quá giới hạn
+            if (result.assets.length > remainingImages) {
+                Alert.alert(
+                    "Quá nhiều ảnh",
+                    `Bạn chỉ có thể chọn thêm tối đa ${remainingImages} ảnh.`,
+                    [{ text: "OK" }]
+                );
+                // Chỉ lấy số lượng ảnh còn lại được phép
+                const selectedImages = result.assets.slice(0, remainingImages).map(asset => asset.uri);
+                setImages(selectedImages);
+            } else {
+                const selectedImages = result.assets.map(asset => asset.uri);
+                setImages(selectedImages);
+            }
         }
     };
 
     const uploadImages = async () => {
         if (images.length === 0) {
             Alert.alert("Vui lòng chọn ảnh trước");
+            return;
+        }
+
+        // Kiểm tra tổng số ảnh sau khi tải lên không vượt quá 6
+        if (avatarUrls.length + images.length > 6) {
+            Alert.alert(
+                "Quá nhiều ảnh", 
+                `Bạn đã có ${avatarUrls.length} ảnh. Chỉ có thể tải thêm tối đa ${6 - avatarUrls.length} ảnh nữa.`,
+                [
+                    { text: "OK" }
+                ]
+            );
             return;
         }
 
@@ -694,7 +906,12 @@ export default function PostCreation() {
                 return;
             }
 
-            setAvatarUrls(response.data.urls || []);
+            // Giữ lại ảnh cũ và thêm ảnh mới
+            const newUrls = [...avatarUrls, ...(response.data.urls || [])];
+            setAvatarUrls(newUrls);
+            // Xóa ảnh đã chọn sau khi tải lên thành công
+            setImages([]);
+            
             Alert.alert(
                 "Thành công", 
                 "Upload ảnh thành công",
@@ -702,64 +919,99 @@ export default function PostCreation() {
                     { text: "OK", onPress: () => console.log("OK Pressed") }
                 ]
             );
-        } catch (error: any) {
-            console.error("Upload Error:", error);
-            Alert.alert(
-                "Lỗi Upload", 
-                error.response?.data?.message || "Có lỗi xảy ra khi upload ảnh",
-                [
-                    { text: "OK", onPress: () => console.log("OK Pressed") }
-                ]
-            );
+        } catch (error) {
+            // console.error('Lỗi khi upload ảnh:', error);
+            Alert.alert('Phát hiện có ảnh đã được sử dụng , vui lòng chọn ảnh chính chủ hoặc xóa bỏ hình ảnh trùng lắp  ');
         } finally {
             setLoading(false);
         }
     };
 
     const selectVideo = async () => {
-        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-        if (!permissionResult.granted) {
-            Alert.alert("Permission to access camera roll is required!");
+        // Kiểm tra nếu đã có video
+        if (videoUrl) {
+            Alert.alert(
+                "Video đã tồn tại", 
+                "Bạn đã tải lên một video. Vui lòng xóa video hiện tại trước khi chọn video mới.",
+                [{ text: "OK" }]
+            );
             return;
         }
 
-        const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Videos,
-            quality: 1,
-        });
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-        if (!result.canceled) {
-            const videoUri = result.assets[0].uri;
-            const videoInfo = await fetch(videoUri);
-            const videoBlob = await videoInfo.blob();
+        if (permissionResult.granted === false) {
+            Alert.alert("Cần quyền truy cập", "Ứng dụng cần quyền truy cập thư viện để tiếp tục!");
+            return;
+        }
 
-            if (videoBlob.size > MAX_VIDEO_SIZE) {
-                Alert.alert("Video too large", "Please select a video smaller than 50 MB.");
-                return;
+        try {
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+                allowsEditing: true,
+                quality: 1,
+                videoMaxDuration: 60, // Giới hạn thời lượng video tối đa 60 giây
+            });
+
+            if (!result.canceled) {
+                // Kiểm tra kích thước video
+                const fileInfo = await FileSystem.getInfoAsync(result.assets[0].uri);
+                if (fileInfo.size > MAX_VIDEO_SIZE) {
+                    Alert.alert(
+                        "Video quá lớn", 
+                        "Kích thước video vượt quá 50MB. Vui lòng chọn video nhỏ hơn.",
+                        [{ text: "OK" }]
+                    );
+                    return;
+                }
+
+                setVideo(result.assets[0].uri);
+                
+                // Tạo thumbnail cho video
+                try {
+                    const { uri } = await VideoThumbnails.getThumbnailAsync(result.assets[0].uri, { time: 1000 });
+                    setThumbnail(uri);
+                } catch (err) {
+                    console.error("Lỗi khi tạo thumbnail:", err);
+                }
             }
-
-            setVideo(videoUri);
-
-            // Generate video thumbnail
-            try {
-                const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, { time: 1000 });
-                setThumbnail(uri);
-            } catch (err) {
-                console.error("Thumbnail generation error:", err);
-            }
+        } catch (error) {
+            console.error("Lỗi khi chọn video:", error);
+            Alert.alert("Lỗi", "Không thể chọn video. Vui lòng thử lại sau.");
         }
     };
 
     const uploadVideo = async () => {
         if (!video) {
-            Alert.alert("Please select a video first");
+            Alert.alert("Vui lòng chọn video trước");
+            return;
+        }
+
+        // Kiểm tra nếu đã có video
+        if (videoUrl) {
+            Alert.alert(
+                "Video đã tồn tại", 
+                "Bạn đã tải lên một video. Vui lòng xóa video hiện tại trước khi tải lên video mới.",
+                [{ text: "OK" }]
+            );
             return;
         }
 
         setVideoLoading(true);
 
         try {
+            // Kiểm tra kích thước video
+            const fileInfo = await FileSystem.getInfoAsync(video);
+            if (fileInfo.size > MAX_VIDEO_SIZE) {
+                Alert.alert(
+                    "Video quá lớn", 
+                    "Kích thước video vượt quá 50MB. Vui lòng chọn video nhỏ hơn.",
+                    [{ text: "OK" }]
+                );
+                setVideoLoading(false);
+                return;
+            }
+
             const formData = new FormData();
             formData.append("video", {
                 uri: video,
@@ -767,15 +1019,33 @@ export default function PostCreation() {
                 name: "video.mp4",
             } as any);
 
-            const response = await axios.post<{ url: string; success: boolean; message: string }>(API_URL_UPLOAD_VIDEO, formData, {
+            const response = await axios.post(API_URL_UPLOAD_VIDEO, formData, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
 
-            setVideoUrl(response.data.url);
-            Alert.alert("Upload Successful", "Video uploaded successfully");
+            if (response.data && response.data.success) {
+                setVideoUrl(response.data.url);
+                setVideo(null); // Xóa video đã chọn sau khi tải lên thành công
+                
+                Alert.alert(
+                    "Thành công", 
+                    "Upload video thành công",
+                    [{ text: "OK" }]
+                );
+            } else {
+                Alert.alert(
+                    "Upload Thất Bại", 
+                    response.data?.message || "Không thể tải lên video. Vui lòng thử lại sau.",
+                    [{ text: "OK" }]
+                );
+            }
         } catch (error) {
-            console.error("Upload Error:", error);
-            Alert.alert("Upload Failed", "Something went wrong.");
+            console.error('Lỗi khi upload video:', error);
+            Alert.alert(
+                "Lỗi", 
+                "Không thể tải lên video. Vui lòng thử lại sau.",
+                [{ text: "OK" }]
+            );
         } finally {
             setVideoLoading(false);
         }
@@ -802,8 +1072,10 @@ export default function PostCreation() {
         setSelectedPostType("Đăng tin thường");
         setImages([]);
         setAvatarUrls([]);
+        setInitialImages([]);
         setVideo(null);
         setVideoUrl(null);
+        setInitialVideoUrl(null);
         setThumbnail(null);
         
         // Reset location data
@@ -908,46 +1180,211 @@ export default function PostCreation() {
                     <Text className='font-bold text-[16px] uppercase'>Thông tin chi tiết</Text>
                     <View className='flex-col gap-2'>
                         <View className='border-2 border-[#D9D9D9] rounded-lg p-3 flex-col items-center'>
-                            <Text className='text-[#9661D9] font-semibold self-end'>Đăng từ 01 đến 06 hình</Text>
-                            <View style={{display: images.length > 0 ? 'none' : 'flex', marginTop: 10 }}> <Icon name='camera'  size={40} color='#9661D9' /></View>
-                            {images.length > 0 && <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 20, marginTop: 20, marginBottom: 20 }}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 10 }}>
+                                <Text className='text-[#9661D9] font-semibold'>Đăng từ 01 đến 06 hình</Text>
+                                {avatarUrls.length > 0 && (
+                                    <TouchableOpacity 
+                                        onPress={() => {
+                                            Alert.alert(
+                                                "Xác nhận",
+                                                "Bạn có chắc muốn xóa tất cả ảnh đã tải lên?",
+                                                [
+                                                    { text: "Hủy", style: "cancel" },
+                                                    { 
+                                                        text: "Xóa tất cả", 
+                                                        style: "destructive",
+                                                        onPress: () => setAvatarUrls([]) 
+                                                    }
+                                                ]
+                                            );
+                                        }}
+                                    >
+                                        <Text style={{ color: 'red', fontWeight: 'bold' }}>Xóa tất cả</Text>
+                                    </TouchableOpacity>
+                                )}
+                            </View>
+                            <View style={{display: images.length > 0 || avatarUrls.length > 0 ? 'none' : 'flex', marginTop: 10 }}> 
+                                <Icon name='camera' size={40} color='#9661D9' />
+                            </View>
+                            {(avatarUrls.length > 0 || images.length > 0) && (
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginVertical: 5 }}>
+                                    <Text style={{ color: '#666' }}>
+                                        Đã tải lên: {avatarUrls.length}/6 ảnh
+                                    </Text>
+                                    <Text style={{ color: avatarUrls.length >= 6 ? 'red' : '#666' }}>
+                                        Còn lại: {6 - avatarUrls.length} ảnh
+                                    </Text>
+                                </View>
+                            )}
+                            {images.length > 0 && <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 10, marginTop: 10, marginBottom: 10 }}>
                                 {images.map((image, index) => (
-                                    <Image key={index} source={{ uri: image }} style={{ width: 100, height: 100, borderRadius: 5, margin: 10 }} />
-                                ))}
-                            </View>}
-                            {/* {avatarUrls.length > 0 && <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 20, marginTop: 20, marginBottom: 20 }}>
-                                {avatarUrls.map((url, index) => (
-                                    <View key={index} style={{ alignItems: "center" }}>
-                                        <Image source={{ uri: url }} style={{ width: 100, height: 100, borderRadius: 5 }} />
+                                    <View key={index} style={{ position: 'relative', margin: 5 }}>
+                                        <Image source={{ uri: image }} style={{ width: 100, height: 100, borderRadius: 5 }} />
+                                        <TouchableOpacity 
+                                            style={{ 
+                                                position: 'absolute', 
+                                                top: -5, 
+                                                right: -5, 
+                                                backgroundColor: 'rgba(255,0,0,0.7)', 
+                                                borderRadius: 10,
+                                                width: 20,
+                                                height: 20,
+                                                justifyContent: 'center',
+                                                alignItems: 'center'
+                                            }}
+                                            onPress={() => {
+                                                const newImages = [...images];
+                                                newImages.splice(index, 1);
+                                                setImages(newImages);
+                                            }}
+                                        >
+                                            <Text style={{ color: 'white', fontWeight: 'bold' }}>X</Text>
+                                        </TouchableOpacity>
                                     </View>
                                 ))}
-                            </View>} */}
+                            </View>}
+                            {avatarUrls.length > 0 && <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 10, marginTop: 10, marginBottom: 10 }}>
+                                {avatarUrls.map((url, index) => (
+                                    <View key={index} style={{ position: 'relative', margin: 5 }}>
+                                        <Image source={{ uri: url }} style={{ width: 100, height: 100, borderRadius: 5 }} />
+                                        <TouchableOpacity 
+                                            style={{ 
+                                                position: 'absolute', 
+                                                top: -5, 
+                                                right: -5, 
+                                                backgroundColor: 'rgba(255,0,0,0.7)', 
+                                                borderRadius: 10,
+                                                width: 20,
+                                                height: 20,
+                                                justifyContent: 'center',
+                                                alignItems: 'center'
+                                            }}
+                                            onPress={() => handleDeleteImage(url)}
+                                        >
+                                            <Text style={{ color: 'white', fontWeight: 'bold' }}>X</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                ))}
+                            </View>}
                             {loading && <ActivityIndicator size="large" color="blue" style={{ marginTop: 10, marginBottom: 10 }} />}
-                            <View style={{ flexDirection: "row", justifyContent: "center", gap: 20, marginBottom: 20, marginTop: images.length > 0 ? 0 : 20 }}>
+                            <View style={{ flexDirection: "row", justifyContent: "center", gap: 20, marginBottom: 10, marginTop: 10 }}>
                                 <Button title="Chọn ảnh" onPress={selectImages} />
-                                <Button title="Tải ảnh lên" onPress={uploadImages} disabled={images.length > 0 ? false : true} />
+                                <Button 
+                                    title="Tải ảnh lên" 
+                                    onPress={uploadImages} 
+                                    disabled={images.length === 0 || avatarUrls.length >= 6} 
+                                />
                             </View>
-                            {/* </ScrollView> */}
+                            {avatarUrls.length >= 6 && (
+                                <Text style={{ color: 'red', marginTop: 5, textAlign: 'center' }}>
+                                    Đã đạt số lượng ảnh tối đa (6 ảnh)
+                                </Text>
+                            )}
                         </View>
                     </View>
                     <View className='flex-col gap-2'>
                         <View className='border-2 border-[#D9D9D9] rounded-lg p-3 flex-col items-center'>
-                            <Text className='text-[#9661D9] font-semibold self-end'>Đăng tối đa 1 video dưới 50MB</Text>
-                            {!video && <Icon className='mt-4' name='video-camera' size={40} color='#9661D9' />}
-                            {video && (
-                                <Video
-                                    source={{ uri: video }}
-                                    style={{ width: 300, height: 200, marginTop: 10 }}
-                                    useNativeControls
-                                    resizeMode={ResizeMode.CONTAIN}
-                                />
-                            )}
-                            {videoloading && <ActivityIndicator size="large" color="blue" style={{ marginBottom: 20, }}/>}
-                            <View style={{ flexDirection: "row", justifyContent: "center", gap: 20, marginBottom: 20, marginTop: images.length > 0 ? 0 : 20 }}>
-                                <Button title="Chọn video" onPress={selectVideo} />
-                                <Button disabled={video ? false : true} title="Tải video lên" onPress={uploadVideo} />
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 10 }}>
+                                <Text className='text-[#9661D9] font-semibold'>Đăng tối đa 1 video dưới 50MB</Text>
+                                {videoUrl && (
+                                    <TouchableOpacity 
+                                        onPress={() => {
+                                            Alert.alert(
+                                                "Xác nhận",
+                                                "Bạn có chắc muốn xóa video đã tải lên?",
+                                                [
+                                                    { text: "Hủy", style: "cancel" },
+                                                    { 
+                                                        text: "Xóa", 
+                                                        style: "destructive",
+                                                        onPress: handleDeleteVideo
+                                                    }
+                                                ]
+                                            );
+                                        }}
+                                        disabled={deletingVideo}
+                                    >
+                                        <Text style={{ color: 'red', fontWeight: 'bold' }}>Xóa video</Text>
+                                    </TouchableOpacity>
+                                )}
                             </View>
-
+                            {!video && !videoUrl && <Icon className='mt-4' name='video-camera' size={40} color='#9661D9' />}
+                            {videoUrl && (
+                                <Text style={{ marginTop: 5, color: '#666', marginBottom: 5 }}>
+                                    Đã tải lên video
+                                </Text>
+                            )}
+                            {video && (
+                                <View style={{ position: 'relative', marginVertical: 10 }}>
+                                    <Video
+                                        source={{ uri: video }}
+                                        style={{ width: 300, height: 200 }}
+                                        useNativeControls
+                                        resizeMode={ResizeMode.CONTAIN}
+                                    />
+                                    <TouchableOpacity 
+                                        style={{ 
+                                            position: 'absolute', 
+                                            top: 5, 
+                                            right: 5, 
+                                            backgroundColor: 'rgba(255,0,0,0.7)', 
+                                            borderRadius: 10,
+                                            width: 20,
+                                            height: 20,
+                                            justifyContent: 'center',
+                                            alignItems: 'center'
+                                        }}
+                                        onPress={() => {
+                                            setVideo(null);
+                                        }}
+                                    >
+                                        <Text style={{ color: 'white', fontWeight: 'bold' }}>X</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+                            {videoUrl && !video && (
+                                <View style={{ position: 'relative', marginVertical: 10 }}>
+                                    <Video
+                                        source={{ uri: videoUrl }}
+                                        style={{ width: 300, height: 200 }}
+                                        useNativeControls
+                                        resizeMode={ResizeMode.CONTAIN}
+                                    />
+                                    {deletingVideo && (
+                                        <View style={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: 0,
+                                            right: 0,
+                                            bottom: 0,
+                                            backgroundColor: 'rgba(0,0,0,0.5)',
+                                            justifyContent: 'center',
+                                            alignItems: 'center'
+                                        }}>
+                                            <ActivityIndicator size="large" color="#fff" />
+                                            <Text style={{ color: '#fff', marginTop: 10 }}>Đang xóa video...</Text>
+                                        </View>
+                                    )}
+                                </View>
+                            )}
+                            {videoloading && <ActivityIndicator size="large" color="blue" style={{ marginVertical: 10 }}/>}
+                            <View style={{ flexDirection: "row", justifyContent: "center", gap: 20, marginVertical: 10 }}>
+                                <Button 
+                                    title="Chọn video" 
+                                    onPress={selectVideo} 
+                                    disabled={videoUrl !== null || deletingVideo}
+                                />
+                                <Button 
+                                    disabled={video === null || deletingVideo} 
+                                    title="Tải video lên" 
+                                    onPress={uploadVideo} 
+                                />
+                            </View>
+                            {videoUrl && !deletingVideo && (
+                                <Text style={{ color: 'green', marginTop: 5, textAlign: 'center' }}>
+                                    Video đã được tải lên thành công
+                                </Text>
+                            )}
                         </View>
                     </View>
                     <View className='flex-col gap-2'>

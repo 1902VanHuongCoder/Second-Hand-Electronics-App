@@ -128,3 +128,19 @@ exports.updateUser = async (req, res) => {
     res.status(500).json({ success: false, message: 'Lỗi server' });
   }
 }; 
+
+exports.togglePhoneVisibility = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    console.log('User ID:', userId);
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.isPhoneHidden = !user.isPhoneHidden;
+    await user.save();
+
+    res.status(200).json({ isPhoneHidden: user.isPhoneHidden });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

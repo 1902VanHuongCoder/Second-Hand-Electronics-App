@@ -24,6 +24,7 @@ interface Product {
   configuration: string;
   price: number;
   address: string;
+  description: string;
   postingDate: string;
   nameUser: string | null;
   brandName: string; // Lấy brandName từ brand
@@ -47,6 +48,7 @@ interface User {
   name: string; // Thêm các thuộc tính cần thiết khác
 }
 
+
 interface MessageProps {
   id: string,
   text: string,
@@ -63,6 +65,21 @@ interface Room {
 
 
 
+interface Category {
+  _id: string;
+  categoryName: string;
+}
+
+interface CategoryResponse {
+  categories: Category[];
+}
+
+interface Brand {
+  _id: string;
+  brandName: string;
+}
+
+
 export default function HomePage() {
   const router = useRouter();
   const { notifications, showNotification } = useContext(NotificationContext);
@@ -73,6 +90,7 @@ export default function HomePage() {
   const [selectedReason, setSelectedReason] = useState<string | null>(null); // State để lưu lý do đã chọn
   const checkAuth = useAuthCheck();
   const [products, setProducts] = useState<Product[]>([]);
+
   const [rooms, setRooms] = useState<Room[]>([]);
   // const [users, setUsers] = useState<{ [key: string]: User }>({}); // Sử dụng kiểu User cho các giá trị
   const [isConnected, setIsConnected] = useState(false);
@@ -94,38 +112,48 @@ export default function HomePage() {
     };
   }, []);
 
+
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [categories, setCategory] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [filteredProductsByCategory, setFilteredProductsByCategory] = useState<Product[]>([]);
+
   const checkLogin = () => {
     checkAuth();
   }
+
+
+  const priceRanges = [
+    { label: "Dưới 5 triệu", min: 0, max: 5000000 },
+    { label: "5 - 10 triệu", min: 5000000, max: 10000000 },
+    { label: "10 - 20 triệu", min: 10000000, max: 20000000 },
+    { label: "Trên 20 triệu", min: 20000000, max: Infinity }
+  ];
+
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get<Product[]>('http://10.0.2.2:5000/api/home');
-
         setProducts(response.data);
-
-
-        // Lấy thông tin người dùng cho từng sản phẩm
-        // const userIds = response.data.map(product => product.userId);
-        // const uniqueUserIds = [...new Set(userIds)]; // Lấy danh sách userId duy nhất
-
-        // const userResponses = await Promise.all(
-        //   uniqueUserIds.map(userId => axios.get<User>(`http://10.0.2.2:5000/api/users/${userId}`))
-        // );
-
-        // const usersData = userResponses.reduce<{ [key: string]: User }>((acc, userResponse) => {
-        //   acc[userResponse.data._id] = userResponse.data; // Lưu thông tin người dùng theo userId
-        //   return acc;
-        // }, {});
-
-        // setUsers(usersData); // Cập nhật state với thông tin người dùng
-
+        console.log(response.data)
+        setAllProducts(response.data);
       } catch (error) {
         console.error('Error fetching products:', error);
       }
     };
 
+    const fetchCategory = async () => {
+      try {
+        const response = await axios.get<CategoryResponse>('http://10.0.2.2:5000/api/allcategory');
+        setCategory(response.data.categories);
+
+      } catch (err) {
+        console.log("Error fetching category: ", err)
+      }
+    }
+
+    fetchCategory();
     fetchProducts();
   }, []);
 
@@ -137,15 +165,46 @@ export default function HomePage() {
     "Khác",
   ];
 
+  const getAllProducts = async () => {
+    setBrands([]);
+    try {
+      const response = await axios.get<Product[]>('http://10.0.2.2:5000/api/home');
+      setProducts(response.data);
+      setAllProducts(response.data);
+      setFilteredProductsByCategory(response.data); // Reset cả danh sách lọc
+    } catch (error) {
+      console.error('Error fetching all products:', error);
+    }
+  };
+
+  const getBrandsById = async (categoryId: string, categoryName: string) => {
+    try {
+      const response = await axios.get<Brand[]>(`http://10.0.2.2:5000/api/brands/${categoryId}`);
+      setBrands(response.data);
+
+      let filteredProducts = allProducts;
+      if (categoryName.toLowerCase().includes("điện thoại")) {
+        filteredProducts = allProducts.filter(product => product.type === "phone");
+      } else if (categoryName.toLowerCase().includes("laptop")) {
+        filteredProducts = allProducts.filter(product => product.type === "laptop");
+      }
+
+      setFilteredProductsByCategory(filteredProducts);
+      setProducts(filteredProducts);
+    } catch (error) {
+      console.error('Error fetching brands:', error);
+    }
+  };
+
   const handleReportPress = (productId: string) => {
     checkLogin();
     setSelectedProductId(productId);
-    setReportVisible(!reportVisible); // Chuyển đổi trạng thái hiển thị menu báo cáo
+    setReportVisible(!reportVisible);
   };
 
   const handleReasonSelect = (reason: string) => {
     setSelectedReason(reason);
-    alert(`Bạn đã chọn lý do: ${reason}`); // Thực hiện hành động báo cáo ở đây
+    alert(`Bạn đã chọn lý do: ${reason}`);
   };
 
   const formatCurrency = (value: String) => {
@@ -159,6 +218,7 @@ export default function HomePage() {
     }
     router.push(`/searchResults?searchTerm=${encodeURIComponent(searchTerm.trim())}`);
   };
+
 
   const handleCreateChat = (receiverName: string, receiverId: string, receiverAvatar: string, productImage: string, productTitle: string, productPrice: number ) => {
 
@@ -188,6 +248,22 @@ export default function HomePage() {
     }
 }, [user]);
 
+
+  const fetchProductsByBrand = async (brandId: string) => {
+    try {
+      const response = await axios.get<Product[]>(`http://10.0.2.2:5000/api/home/getAllProductByBrands/${brandId}`);
+      setProducts(response.data);
+      console.log(response.data[0].id)
+    } catch (error) {
+      console.error("Error fetching products by brand:", error);
+    }
+  };
+
+  const filterByPrice = (min: number, max: number) => {
+    const sourceProducts = filteredProductsByCategory.length > 0 ? filteredProductsByCategory : allProducts;
+    const filtered = sourceProducts.filter(product => product.price >= min && product.price <= max);
+    setProducts(filtered);
+  };
 
   return (
     <View className="p-4 relative" style={{ flex: 1 }}>
@@ -223,11 +299,9 @@ export default function HomePage() {
             <Text className="uppercase font-extrabold text-white text-[18px]">
               2Hand Market
             </Text>
-            <TouchableHighlight onPress={() => router.push('/test-chat-panel')}>
-              <Text className="text-[14px] text-white font-medium">
-                Buôn bán các thiết bị hiện tại và uy tính.
-              </Text>
-            </TouchableHighlight>
+            <Text className="text-[14px] text-white font-medium">
+              Buôn bán các thiết bị hiện tại và uy tính.
+            </Text>
 
           </View>
           <Image
@@ -236,30 +310,72 @@ export default function HomePage() {
           />
         </LinearGradient>
         <View className="flex-row gap-4 mt-6 items-center justify-center">
-          <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
+          <TouchableHighlight underlayColor="#D9D9D9" onPress={() => getAllProducts()} className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
             <View className="flex-row items-center justify-center gap-2">
               <Ionicons name="logo-slack" className="text-[]" size={22} color="#9661D9" />
               <Text className="font-bold text-[18px] text-[#9661D9]">All</Text>
             </View>
           </TouchableHighlight>
-          <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
-            <View className="flex-row items-center justify-center gap-2">
-              <Icon name="mobile" size={24} color="#9661D9" />
-              <Text className="font-bold text-[18px] text-[#9661D9]">
-                Điện thoại
-              </Text>
-            </View>
-          </TouchableHighlight>
-          <TouchableHighlight className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
-            <View className="flex-row items-center justify-center gap-2">
-              <Icon name="laptop" size={22} color="#9661D9" />
-              <Text className="font-bold text-[18px] text-[#9661D9]">Laptop</Text>
-            </View>
-          </TouchableHighlight>
+          {categories.map((category) => {
+            const iconName = category.categoryName === "Điện thoại" ? "mobile" :
+              category.categoryName === "Laptop" ? "laptop" : "question-circle";
+            return (
+              <TouchableHighlight
+                underlayColor="#D9D9D9"
+                key={category._id}
+                onPress={() => getBrandsById(category._id, category.categoryName)}
+                className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center"
+              >
+                <View className="flex-row items-center justify-center gap-2">
+                  <Icon name={iconName} size={24} color="#9661D9" />
+                  <Text className="font-bold text-[18px] text-[#9661D9]">
+                    {category.categoryName}
+                  </Text>
+                </View>
+              </TouchableHighlight>
+            );
+          })}
         </View>
-        {products.map((product) => (
+        {brands.length > 0 && (
+          <View className="mt-4">
+            <ScrollView horizontal className="flex-row gap-4">
+              <View className="flex flex-row gap-4 justify-center items-center">
+                {brands.map((brand) => (
+                  <TouchableHighlight
+                    onPress={() => fetchProductsByBrand(brand._id)}
+                    underlayColor="#D9D9D9"
+                    key={brand._id}
+                    className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center"
+                  >
+                    <Text className="font-bold text-[18px] text-[#9661D9]">
+                      {brand.brandName}
+                    </Text>
+                  </TouchableHighlight>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
+        )}
+        <View className="mt-4">
+          <Text className="font-bold text-[18px] mb-2">Lọc theo giá</Text>
+          <ScrollView horizontal className="flex-row gap-4">
+            <View className="flex flex-row gap-4 justify-center items-center">
+              {priceRanges.map((range, index) => (
+                <TouchableHighlight
+                  key={index}
+                  underlayColor="#D9D9D9"
+                  onPress={() => filterByPrice(range.min, range.max)}
+                  className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center"
+                >
+                  <Text className="font-bold text-[16px] text-[#9661D9]">{range.label}</Text>
+                </TouchableHighlight>
+              ))}
+            </View>
+          </ScrollView>
+        </View>
+        {products.map((product, index) => (
           <View
-            key={product.id}
+            key={index}
             className="mt-6 flex-col gap-4 border-b border-[#D9D9D9] pb-4"
           >
             <View className="flex-col gap-4">
@@ -279,7 +395,7 @@ export default function HomePage() {
                       <Icon name="ellipsis-v" size={18} color="#9661D9" />
                     </TouchableHighlight>
                   </View>
-                  <Text className="text-[12px]">{product.configuration}</Text>
+                  <Text className="text-[12px]">{product.description || product.configuration}</Text>
                   <Text className="font-bold text-[#9661D9] text-[16px]">
                     {formatCurrency(product.price.toString())} đ
                   </Text>
@@ -300,9 +416,8 @@ export default function HomePage() {
               <View className="flex-row justify-between items-center w-full">
                 <View className="flex-row gap-2 items-center">
                   <Image
-                    style={{ width: 50, height: 50 }}
-                    className="rounded-full"
-                    source={{ uri: product.avatarUrl }}
+                    source={product.avatarUrl ? { uri: product.avatarUrl } : require("../assets/images/avatar.jpg")}
+                    style={{ width: 50, height: 50, borderRadius: 25 }}
                   />
                   <TouchableHighlight onPress={() => product.nameUser && handleCreateChat(product.nameUser, product.userId, product.avatarUrl, product.images[0], product.title, product.price)}>
                     <View >
@@ -342,66 +457,3 @@ const styles = StyleSheet.create({
     padding: 20,
   },
 })
-
-//npm install react-native-linear-gradient sử dụng này để gradient background
-//npm install react-native-vector-icons cài icon
-
-// const styles = StyleSheet.create({
-//     container: {
-//         padding: 16,
-//     },
-//     card: {
-//         backgroundColor: '#fff',
-//         borderRadius: 8,
-//         padding: 16,
-//         marginBottom: 16,
-//         shadowColor: '#000',
-//         shadowOffset: {
-//             width: 0,
-//             height: 2,
-//         },
-//         shadowOpacity: 0.1,
-//         shadowRadius: 4,
-//         elevation: 2,
-//     },
-//     cardContent: {
-//         flexDirection: 'column',
-//     },
-//     title: {
-//         fontWeight: 'bold',
-//         fontSize: 18,
-//     },
-//     battery: {
-//         fontSize: 14,
-//         color: '#666',
-//     },
-//     ram: {
-//         fontSize: 14,
-//         color: '#666',
-//     },
-//     screen: {
-//         fontSize: 14,
-//         color: '#666',
-//     },
-//     productTitle: {
-//         fontWeight: 'bold',
-//         fontSize: 16,
-//         marginTop: 8,
-//     },
-//     description: {
-//         fontSize: 14,
-//         color: '#333',
-//     },
-//     price: {
-//         fontWeight: 'bold',
-//         fontSize: 16,
-//         color: '#9661D9',
-//         marginTop: 4,
-//     },
-//     loading: {
-//         textAlign: 'center',
-//         marginTop: 20,
-//         fontSize: 16,
-//         color: '#999',
-//     },
-// });

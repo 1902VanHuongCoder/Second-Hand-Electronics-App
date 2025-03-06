@@ -1,5 +1,5 @@
 const express = require('express');
-const { addBrand, getBrands } = require('../controllers/brandController');
+const { addBrand, getBrands, getBrandsById } = require('../controllers/brandController');
 
 const router = express.Router();
 
@@ -7,6 +7,8 @@ const router = express.Router();
 router.post('/brands', addBrand);
 
 // Route để lấy danh sách Brand
-router.get('/brands', getBrands);  
+router.get('/brands', getBrands); 
+
+router.get('/brands/:categoryId', getBrandsById);
 
 module.exports = router; 

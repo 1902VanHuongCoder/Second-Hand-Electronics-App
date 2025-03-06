@@ -8,6 +8,7 @@ import { StyleSheet } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { logout, updateUser } from '../../store/authSlice';
 import { useAuthCheck } from '../../store/checkLogin';
+import axios from 'axios';
 
 export default function UserProfile() {
     const dispatch = useDispatch<AppDispatch>();
@@ -16,6 +17,7 @@ export default function UserProfile() {
     const [email, setEmail] = useState(user?.email || '');
     const [phone, setPhone] = useState(user?.phone || '');
     const [address, setAddress] = useState(user?.address || '');
+    const [isPhoneHidden, setIsPhoneHidden] = useState(false);
     const router = useRouter();
     const checkAuth = useAuthCheck();
     const handleUpdate = () => {
@@ -25,6 +27,18 @@ export default function UserProfile() {
             console.error("User is null");
         }
     };
+
+    const togglePhoneVisibility = async () => {
+        try {
+            const response = await axios.put('http://10.0.2.2:5000/api/toggle-phone-visibility', {
+                userId: user?.id,
+            });
+            console.log(response.data)
+            setIsPhoneHidden(response.data.isPhoneHidden)
+        } catch (err) {
+            console.log('Error: ', err);
+        }
+    }
 
     const logoutUser = () => {
         dispatch(logout());
@@ -40,7 +54,6 @@ export default function UserProfile() {
             setAddress(user.address);
         }
     }, [user, checkAuth]);
-    console.log(user);
     return (
         <View className='bg-white w-full min-h-screen'>
             <View className='bg-[#9661D9] w-full h-[200px] flex justify-center items-center'>
@@ -82,8 +95,11 @@ export default function UserProfile() {
                         </View>
                         <View className='mt-4 flex-row gap-4 items-center justify-between w-full'>
                             <Text className='font-bold text-[16px]'>Điện thoại: </Text>
-                            <View className='border-2 border-[#D9D9D9] p-2 rounded-lg w-2/3'>
-                                <Text className='p-2 text-[14px] font-medium'>{user?.phone ? user.phone : 'Chưa cập nhật'}</Text>
+                            <View className='border-2 border-[#D9D9D9] p-2 rounded-lg w-2/3 flex-row justify-between items-center'>
+                                <Text className='p-2 text-[14px] font-medium'>{isPhoneHidden ? '**********' : user?.phone || 'Chưa cập nhật'}</Text>
+                                <TouchableHighlight onPress={togglePhoneVisibility}>
+                                    <Icon name={isPhoneHidden ? "eye" : "eye-slash"} size={22} color={'#9C62D7'} />
+                                </TouchableHighlight>
                             </View>
                         </View>
                         <View className='mt-4 flex-row gap-4 items-center justify-between w-full'>
