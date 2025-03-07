@@ -31,7 +31,7 @@ export default function HiddenPosts() {
             showNotification('Ẩn tin thành công.', 'success');
             setTimeout(() => {
                 router.back();
-            }, 500);
+            }, 1000);
         } catch (err) {
             showNotification(err || "Có lỗi xảy ra", 'error');
         }

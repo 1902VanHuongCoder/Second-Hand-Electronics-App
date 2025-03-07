@@ -7,6 +7,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Link } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { NotificationContext } from '@/context/NotificationContext';
+import { useRouter } from "expo-router";
+import Notification from "@/components/Notification";
 
 export default function SignUpScreen() {
   const [username, setUsername] = useState('');
@@ -17,7 +19,7 @@ export default function SignUpScreen() {
   const [isLoading, setIsLoading] = useState(false);
 
   const { notifications, showNotification } = useContext(NotificationContext);
-
+  const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const { loading, error, user } = useSelector((state: RootState) => state.auth);
 
@@ -47,18 +49,14 @@ export default function SignUpScreen() {
       const resultAction = await dispatch(signupUser({ name: username, phone, password }));
 
       if (resultAction.type === 'auth/signupUser/fulfilled') {
-
-// <!--         showNotification("Đăng ký thành công", "success");
-//         setTimeout(() => {
-//           router.push("/login");
-//         }, 3000);
-//         setUsername(''); -->
-
-        alert("Đăng ký thành công");
+        showNotification("Đăng ký thành công", "success");
         setPhone('');
         setPassword('');
+        setTimeout(() => {
+          router.push("/login");
+        }, 1000);
       } else {
-        alert(resultAction.payload);
+        showNotification(resultAction.payload, "error");
       }
       setIsLoading(false);
     }
@@ -66,6 +64,11 @@ export default function SignUpScreen() {
 
   return (
     <View className='relative bg-white h-screen items-center px-10'>
+      <Notification
+        message={notifications.message}
+        type={notifications.type}
+        visible={notifications.visible}
+      />
       <View className='relative z-20 flex justify-center items-center w-full p-5 h-screen'>
         <Text className='text-4xl font-bold w-full '>ĐĂNG KÝ</Text>
         <Text className='mt-8 w-full text-left text-lg'>Tên người dùng</Text>
@@ -106,7 +109,7 @@ export default function SignUpScreen() {
         </View>
         {validateInput.passwordError !== '' && <Text className='w-full py-3 text-[#DC143C] font-semibold'>{validateInput.passwordError}</Text>}
 
-        {error && <Text className='w-full py-3 text-red-500'>{error} </Text>}
+        {/* {error && <Text className='w-full py-3 text-red-500'>{error} </Text>} */}
         {loading ? (
           <ActivityIndicator size="large" color="#0000ff" />
         ) : (
