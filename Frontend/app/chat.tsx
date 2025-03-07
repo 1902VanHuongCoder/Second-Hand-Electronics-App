@@ -73,6 +73,9 @@ export default function Chat() {
     }, [roomCode]);
 
     useLayoutEffect(() => {
+        socket.on('createdRoom', (roomChats: MessageProps) => {
+            setChatInfo(roomChats);
+        });
         socket.on("foundRoom", (roomChats: MessageProps) => setChatInfo(roomChats));
         socket.on("receiveMessage", (newMessage: MessageItemProps) => {
             console.log("Socket runnnnnnnnnn");
@@ -94,7 +97,7 @@ export default function Chat() {
     }, [socket]);
 
     return (
-        <View className="w-full h-full bg-white p-4 flex flex-col flex-1">
+        <View className="w-full h-full bg-[#F9F6FB] p-4 flex flex-col flex-1">
             <View className="flex flex-row gap-4 item-centers border-b-2 border-[#D9D9D9] pb-4">
                 <TouchableOpacity onPress={() => handleImagePress(chatInfo?.productImage || '')}>
                     <Image
@@ -112,20 +115,27 @@ export default function Chat() {
             <ScrollView ref={scrollViewRef}>
                 <View style={{ flex: 1, marginTop: 20, gap: 16 }} className="w-full flex-col items-center">
                     {chatInfo && chatInfo.messages.map((msg, index) => (
-                        <View key={index} style={{ alignSelf: msg.senderId === user?.id ? "flex-end" : "flex-start" }} className="flex-col gap-1">
-                            <Text className={msg.senderId === chatInfo.senderId ? "bg-[#9661D9] rounded-lg py-2 px-3 font-bold text-white w-auto" : "bg-[#D9D9D9] rounded-lg py-2 px-3 font-bold w-auto"}>
-                                {msg.text}
-                            </Text>
-                            <Text style={{ alignSelf: msg.senderId === chatInfo.senderId ? "flex-start" : "flex-end" }} className="font-semibold text-[#808080] text-[12px]">
-                                {msg.senderN} - {new Date(msg.time).toLocaleTimeString()}
-                            </Text>
+                        <View key={index} style={{ alignSelf: msg.senderId === user?.id ? "flex-end" : "flex-start", flexDirection: msg.senderId === user?.id ? "row-reverse" : "row" }} className="flex-row gap-2 items-center">
+                            <Image
+                                style={{ width: 40, height: 40 }}
+                                className="rounded-full"
+                                source={{ uri: msg.senderId === chatInfo.senderId ? chatInfo.senderAvatar : chatInfo.receiverAvatar }}
+                            />
+                            <View className="flex-col gap-1">
+                                <Text className={msg.senderId === chatInfo.senderId ? "bg-white rounded-lg py-2 px-3 font-bold w-auto shadow-md" : "bg-white rounded-lg py-2 px-3 font-bold w-auto shadow-md"}>
+                                    {msg.text}
+                                </Text>
+                                <Text style={{ alignSelf: msg.senderId !== chatInfo.senderId ? "flex-start" : "flex-end" }} className="font-semibold text-[#808080] text-[12px]">
+                                    {msg.senderN} - {new Date(msg.time).toLocaleTimeString()}
+                                </Text>
+                            </View>
                         </View>
                     ))}
                 </View>
             </ScrollView>
             <View className="flex flex-row items-center justify-between drop-shadow-lg py-4">
                 <TextInput style={{ width: '90%' }}
-                    className="bg-[#D9D9D9] p-4 px-4 text-[#000] rounded-lg font-semibold"
+                    className="bg-white p-4 px-4 text-[#000] rounded-lg font-semibold focus:border-[3px] focus:border-[#9661D9] focus:outline-none"
                     onChangeText={onChangeText}
                     value={text}
                     placeholder="Nhắn tin ..."
