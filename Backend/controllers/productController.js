@@ -55,6 +55,14 @@ exports.createProduct = async (req, res) => {
             location: req.body.location
         };
 
+        // Thiết lập ngày hết hạn là 60 ngày sau ngày tạo
+        const createdAt = req.body.createdAt || Date.now();
+        productData.createdAt = createdAt;
+        
+        const expirationDate = new Date(createdAt);
+        expirationDate.setDate(expirationDate.getDate() + 60);
+        productData.expirationDate = expirationDate;
+
         const product = new Product(productData);
         const savedProduct = await product.save();
 
@@ -212,6 +220,14 @@ exports.updateProduct = async (req, res) => {
             updatedAt: Date.now()
         };
 
+        // Nếu cập nhật lại ngày tạo, cũng cập nhật lại ngày hết hạn
+        if (req.body.createdAt) {
+            productData.createdAt = req.body.createdAt;
+            const expirationDate = new Date(req.body.createdAt);
+            expirationDate.setDate(expirationDate.getDate() + 60);
+            productData.expirationDate = expirationDate;
+        }
+
         const updatedProduct = await Product.findByIdAndUpdate(req.params.id, productData, { new: true });
 
         // Cập nhật thông tin chi tiết (laptop hoặc phone)
@@ -297,6 +313,7 @@ exports.getProductDetails = async (req, res) => {
                 price: product.price,
                 address: formattedAddress,
                 postingDate: product.createdAt,
+                expirationDate: product.expirationDate,
                 battery: laptop ? laptop.battery : null,
                 nameUser: user ? user.name : null,
                 isPhoneHidden: user ? user.isPhoneHidden : false,
@@ -327,6 +344,7 @@ exports.getProductDetails = async (req, res) => {
                 price: product.price,
                 address: formattedAddress,
                 postingDate: product.createdAt,
+                expirationDate: product.expirationDate,
                 nameUser: user ? user.name : null,
                 isPhoneHidden: user ? user.isPhoneHidden : false,
                 versionName: version ? version.versionName : null,
