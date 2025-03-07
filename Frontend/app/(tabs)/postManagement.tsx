@@ -77,7 +77,7 @@ export default function PostManagement() {
             />
             <ScrollView className='mt-6 px-4 pb-8 border-[#D9D9D9]'>
                 <View className='flex-row gap-10 items-center justify-center'>
-                    {['Đang hiển thị', 'Tin đã ẩn'].map((tab, index) => (
+                    {['Đang hiển thị', 'Tin đã ẩn', 'Tin hết hạn'].map((tab, index) => (
                         <TouchableHighlight
                             key={index}
                             underlayColor="#D9D9D9"
@@ -162,7 +162,7 @@ export default function PostManagement() {
                 </ScrollView>
             ) : (
                 <View className="flex-1 items-center">
-                    <Text className="text-gray-500 text-[16px] font-medium">
+                    <Text className="text-gray-500 text-[16px] font-bold">
                         Không có kết quả phù hợp
                     </Text>
                     <Image className="w-48 h-48" source={require('../../assets/images/cute-shiba-inu-dog-sleeping-with-coffee-blanket-cartoon-vector-icon-illustration-animal-nature.png')} />
