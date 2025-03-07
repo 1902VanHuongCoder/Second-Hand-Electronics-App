@@ -394,6 +394,7 @@ export default function PostCreation() {
     const [initialImages, setInitialImages] = useState<string[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [deletingImageId, setDeletingImageId] = useState<string | null>(null);
 
     // Hàm xóa một ảnh cụ thể
     const handleDeleteImage = async (imageUrl: string) => {
@@ -407,6 +408,9 @@ export default function PostCreation() {
                 return;
             }
             
+            // Đặt trạng thái đang xóa cho ảnh này
+            setDeletingImageId(imageUrl);
+            
             // Xóa ảnh khỏi UI ngay lập tức để trải nghiệm người dùng tốt hơn
             setAvatarUrls(prevUrls => prevUrls.filter(url => url !== imageUrl));
             
@@ -414,7 +418,7 @@ export default function PostCreation() {
             console.log('Sending delete request to server...');
             
             // Gửi request xóa ảnh đến server
-            const response = await axios.post('http://10.0.2.2:5000/api/upload/deleteImage', {
+            const response = await axios.post('http://10.0.2.2:5000/api/deleteImage', {
                 imageUrl
             }, {
                 headers: {
@@ -430,9 +434,15 @@ export default function PostCreation() {
                 console.log('Server reported issue with deletion:', response.data?.message || 'Unknown error');
                 // Không hiển thị thông báo lỗi cho người dùng vì ảnh đã được xóa khỏi UI
             }
+            
+            // Đặt lại trạng thái xóa
+            setDeletingImageId(null);
         } catch (error: any) {
             console.error('Lỗi khi xóa ảnh:', error);
             // Không hiển thị thông báo lỗi cho người dùng vì ảnh đã được xóa khỏi UI
+            
+            // Đặt lại trạng thái xóa
+            setDeletingImageId(null);
         }
     };
 
@@ -1260,8 +1270,13 @@ export default function PostCreation() {
                                                 alignItems: 'center'
                                             }}
                                             onPress={() => handleDeleteImage(url)}
+                                            disabled={deletingImageId === url}
                                         >
-                                            <Text style={{ color: 'white', fontWeight: 'bold' }}>X</Text>
+                                            {deletingImageId === url ? (
+                                                <ActivityIndicator size="small" color="white" />
+                                            ) : (
+                                                <Text style={{ color: 'white', fontWeight: 'bold' }}>X</Text>
+                                            )}
                                         </TouchableOpacity>
                                     </View>
                                 ))}
