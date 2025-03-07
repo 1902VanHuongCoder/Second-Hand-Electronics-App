@@ -72,9 +72,9 @@ export default function LoginScreen() {
       showNotification("Đăng nhập thành công", "success");
       setTimeout(() => {
         router.push("/(tabs)");
-      }, 500);
+      }, 1000);
     } else {
-      alert(resultAction.payload);
+      showNotification(resultAction.payload, "error");
     }
   }
   return (
@@ -125,7 +125,7 @@ export default function LoginScreen() {
           </Text>
         )}
 
-        {error && <Text className="w-full py-3 text-[#DC143C] font-semibold">{error} </Text>}
+        {/* {error && <Text className="w-full py-3 text-[#DC143C] font-semibold">{error} </Text>} */}
         {loading ? (
           <ActivityIndicator size="large" color="#0000ff" className="mt-5" />
         ) : (

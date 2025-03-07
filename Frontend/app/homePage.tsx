@@ -7,8 +7,9 @@ import {
   TextInput,
   StyleSheet,
   Button,
+  Alert
 } from "react-native";
-import React, { useContext, useEffect, useLayoutEffect, useState } from "react";
+import React, { useContext, useEffect, useLayoutEffect, useState, useRef } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { Link, useRouter } from "expo-router";
@@ -48,7 +49,6 @@ interface User {
   name: string; // Thêm các thuộc tính cần thiết khác
 }
 
-
 interface MessageProps {
   id: string,
   text: string,
@@ -63,8 +63,6 @@ interface Room {
   // Add other properties of Room if needed
 }
 
-
-
 interface Category {
   _id: string;
   categoryName: string;
@@ -78,7 +76,6 @@ interface Brand {
   _id: string;
   brandName: string;
 }
-
 
 export default function HomePage() {
   const router = useRouter();
@@ -112,7 +109,6 @@ export default function HomePage() {
     };
   }, []);
 
-
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [categories, setCategory] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -122,14 +118,12 @@ export default function HomePage() {
     checkAuth();
   }
 
-
   const priceRanges = [
     { label: "Dưới 5 triệu", min: 0, max: 5000000 },
     { label: "5 - 10 triệu", min: 5000000, max: 10000000 },
     { label: "10 - 20 triệu", min: 10000000, max: 20000000 },
     { label: "Trên 20 triệu", min: 20000000, max: Infinity }
   ];
-
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -213,28 +207,25 @@ export default function HomePage() {
 
   const handleSearch = () => {
     if (!searchTerm.trim()) {
-      showNotification("Vui lòng nhập từ khóa tìm kiếm", "error");
+      Alert.alert("Thông báo", "Vui lòng nhập thông tin tìm kiếm.");
       return;
     }
     router.push(`/searchResults?searchTerm=${encodeURIComponent(searchTerm.trim())}`);
   };
 
-
-  const handleCreateChat = (receiverName: string, receiverId: string, receiverAvatar: string, productImage: string, productTitle: string, productPrice: number ) => {
-
-   
+  const handleCreateChat = (receiverName: string, receiverId: string, receiverAvatar: string, productImage: string, productTitle: string, productPrice: number) => {
     if (user) {
       const senderId = user.id;
       const senderName = user.name;
       const senderAvatar = user.avatarUrl;
-      if(senderId !== receiverId){
+      if (senderId !== receiverId) {
         socket.emit("createRoom", receiverName, receiverId, receiverAvatar, senderId, senderName, senderAvatar, productImage, productTitle, productPrice);
         router.push({
           pathname: '/chat',
           params: {
             roomCode: `${receiverId}-${senderId}`,
           }
-        }); 
+        });
       }
     } else {
       showNotification("User not logged in", "error");
@@ -243,11 +234,10 @@ export default function HomePage() {
 
   useLayoutEffect(() => {
     if (user) {
-        socket.auth = { userId: user.id, userName: user.name };
-        socket.connect();
+      socket.auth = { userId: user.id, userName: user.name };
+      socket.connect();
     }
-}, [user]);
-
+  }, [user]);
 
   const fetchProductsByBrand = async (brandId: string) => {
     try {
@@ -267,6 +257,11 @@ export default function HomePage() {
 
   return (
     <View className="p-4 relative" style={{ flex: 1 }}>
+      <Notification
+        message={notifications.message}
+        type={notifications.type}
+        visible={notifications.visible}
+      />
       <View>
         <Text>{isConnected ? 'Connected to server' : 'Disconnected from server'}</Text>
         <Button title="Test Connection" onPress={() => socket.emit('test', 'Hello Server')} />
@@ -338,6 +333,7 @@ export default function HomePage() {
         </View>
         {brands.length > 0 && (
           <View className="mt-4">
+            <Text className="font-bold text-[18px] mb-2">Danh sách hãng</Text>
             <ScrollView horizontal className="flex-row gap-4">
               <View className="flex flex-row gap-4 justify-center items-center">
                 {brands.map((brand) => (
@@ -406,7 +402,7 @@ export default function HomePage() {
                     </Text>
                   </View>
                   <View className="flex-row gap-2 items-center">
-                    <Icon name="clock-o" className="bg-red-500" size={20} color="#9661D9" />
+                    <Icon name="clock-o" size={20} color="#9661D9" />
                     <Text className="font-bold text-[14px]">
                       {new Date(product.postingDate).toLocaleDateString()}
                     </Text>
@@ -447,7 +443,6 @@ export default function HomePage() {
           </View>
         ))}
       </ScrollView>
-      <Notification message={notifications.message} type={notifications.type} visible={notifications.visible} />
     </View>
   );
 }

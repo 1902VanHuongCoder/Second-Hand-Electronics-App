@@ -11,7 +11,6 @@ router.delete('/:id', productController.deleteProduct);
 router.get('/search/ketquatimkiem', productController.searchProducts);
 router.get('/edit/:id', productController.getProductForEdit);
 
-router.get('/products-by-brand/:brandId', productController.getProductsByBrand);
 router.patch('/:id/update-video', productController.updateProductVideo);
 
 router.patch('/hiddenPost/:id', productController.toggleHideProduct);
