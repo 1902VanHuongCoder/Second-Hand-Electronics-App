@@ -35,6 +35,12 @@ const socketIO = require("socket.io")(http, {
 	},
 });
 
+paypal.configure({
+  mode: process.env.PAYPAL_MODE || 'sandbox',
+  client_id: process.env.PAYPAL_CLIENT_ID,
+  client_secret: process.env.PAYPAL_CLIENT_SECRET
+});
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors(

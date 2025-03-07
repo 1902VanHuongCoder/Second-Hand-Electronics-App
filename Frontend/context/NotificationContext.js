@@ -1,8 +1,8 @@
-import {createContext, useState} from 'react';
+import { createContext, useState } from 'react';
 
-const NotificationContext = createContext(); 
+const NotificationContext = createContext();
 
-const NotificationProvider = ({children}) => {
+const NotificationProvider = ({ children }) => {
     const [notifications, setNotifications] = useState({
         visible: false,
         message: '',
@@ -17,15 +17,15 @@ const NotificationProvider = ({children}) => {
         });
 
         setTimeout(() => {
-            setNotifications((prev) => ({ ...prev, visible: false })); // Ẩn thông báo sau 3 giây
-          }, 500);
+            setNotifications((prev) => ({ ...prev, visible: false }));
+        }, 1000);
     };
     return (
-    <NotificationContext.Provider value={{ notifications, showNotification }}> 
-        {children}
-    </NotificationContext.Provider>
+        <NotificationContext.Provider value={{ notifications, showNotification }}>
+            {children}
+        </NotificationContext.Provider>
     )
-  
+
 }
 
 export { NotificationProvider, NotificationContext };
