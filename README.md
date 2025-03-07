@@ -1,5 +1,5 @@
 TechMarketApplication
-TechMarketApplication is a comprehensive web and mobile application designed for buying and selling tech products. The project is built using React Native for the frontend and Node.js for the backend. It features user authentication, product listings, detailed product views, and real-time chat functionality.
+TechMarketApplication is a comprehensive mobile application designed for buying and selling tech products. The project is built using React Native for the frontend and Node.js for the backend. It features user authentication, product listings, detailed product views, and real-time chat functionality.
 
 Features
 User Authentication
