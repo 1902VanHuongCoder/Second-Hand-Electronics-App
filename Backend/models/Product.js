@@ -53,7 +53,15 @@ const productSchema = new mongoose.Schema({
     hiddenReason: { type: String, default: '' },
     newsPushDay: { type: Date },
     createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now }
+    updatedAt: { type: Date, default: Date.now },
+    expirationDate: { 
+        type: Date, 
+        default: function() {
+            const date = new Date(this.createdAt || Date.now());
+            date.setDate(date.getDate() + 60);
+            return date;
+        }
+    }
 });
 
 module.exports = mongoose.model('Product', productSchema);
