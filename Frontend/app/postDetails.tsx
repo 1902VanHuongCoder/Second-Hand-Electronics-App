@@ -175,7 +175,7 @@ const MediaCarousel: React.FC<MediaCarouselProps> = ({ data }) => {
     return (
       <View style={styles.itemContainer}>
         {item.type === 'image' ? (
-          <Image source={{ uri: item.uri }} style={styles.image} />
+          <Image source={{ uri: item.uri }} style={styles.image} resizeMode="contain" />
         ) : (
           <Video
             source={{ uri: item.uri }}
