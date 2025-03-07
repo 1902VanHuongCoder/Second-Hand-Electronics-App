@@ -35,11 +35,13 @@ const socketIO = require("socket.io")(http, {
 	},
 });
 
+
 paypal.configure({
   mode: process.env.PAYPAL_MODE || 'sandbox',
   client_id: process.env.PAYPAL_CLIENT_ID,
   client_secret: process.env.PAYPAL_CLIENT_SECRET
 });
+
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -106,7 +108,6 @@ socketIO.on("connection", (socket) => {
 
 	socket.on("newMessage", async (data) => {
 		const { roomCode, senderId, text, senderN} = data;
-		console.log(data);
 		try {
 			let chatRoom = await ChatRoom.findOne({ roomCode: roomCode });
 			if (chatRoom) {
@@ -118,7 +119,11 @@ socketIO.on("connection", (socket) => {
 				};
 				chatRoom.messages.push(newMessage);
 				await chatRoom.save();
-				socket.to(roomCode).emit("receiveMessage", newMessage);
+				socket.emit("receiveMessage", newMessage);
+				console.log("New message added");
+
+				const updateMessageList = await ChatRoom.find(); // Update message list
+				socket.emit("newMessageCreated",updateMessageList);
 			} else {
 				console.log("Room not found");
 			}

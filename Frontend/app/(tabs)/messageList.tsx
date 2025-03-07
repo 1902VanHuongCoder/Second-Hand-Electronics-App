@@ -1,10 +1,13 @@
 import { Text, View, TouchableHighlight, TextInput, Image, ScrollView } from 'react-native';
-import React, { useEffect, useLayoutEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuthCheck } from '../../store/checkLogin';
 import socket from '@/utils/socket';
 import { useRouter } from 'expo-router';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
+
+// Import a default user icon
+const defaultUserIcon = require('../../assets/images/defaultUserIcon.png'); // Adjust the path as needed
 
 interface MessageItemProps {
     senderId: string;
@@ -18,8 +21,8 @@ interface MessageProps {
     receiverId: string;
     senderName: string;
     receiverName: string;
-    senderAvatar: string;
-    receiverAvatar: string;
+    senderAvatar: string | null;
+    receiverAvatar: string | null;
     productImage: string;
     productTitle: string;
     productPrice: string;
@@ -49,21 +52,27 @@ export default function MessageList() {
                 })
                 .catch((err) => console.error(err));
         }
-        fetchGroups();
-        console.log("RUNNNNNNNNNNNN");
-    }, []);
+        if (user) {
+            fetchGroups();
+        }
+    }, [user]);
 
-    // useEffect(() => {
-    //     socket.on("createdRoom", (rooms: MessageProps[]) => {
-    //         if (user) {
-    //             const filteredRooms = rooms.filter((room: MessageProps) => room.senderId === user.id || room.receiverId === user.id);
-    //             setRooms(filteredRooms);
-    //         }
-    //     });
-    //     return () => {
-    //         socket.off("createdRoom");
-    //     };
-    // }, [socket, user]);
+    useEffect(() => {
+        socket.on("createdRoom", (newRoom: MessageProps) => {
+            if (user && (newRoom.senderId === user.id || newRoom.receiverId === user.id)) {
+                setRooms((prevRooms) => [...prevRooms, newRoom]);
+            }
+        });
+        socket.on("newMessageCreated", (updateMessageList: MessageProps[]) => {
+            if (user) {
+                const filteredRooms = updateMessageList.filter((room: MessageProps) => room.senderId === user.id || room.receiverId === user.id);
+                setRooms(filteredRooms);
+            }
+        })
+        return () => {
+            socket.off("createdRoom");
+        };
+    }, [socket, user]);
 
     return (
         <View className='bg-white w-full h-full p-4'>
@@ -89,9 +98,15 @@ export default function MessageList() {
                     >
                         <View className='flex-row justify-between border-b-2 border-[#D9D9D9] pb-4 mb-4'>
                             <View className='flex-row gap-2'>
-                                <Image style={{ width: 70, height: 70 }} className='rounded-full' source={{ uri: room.receiverAvatar }} />
+                                <Image
+                                    style={{ width: 70, height: 70 }}
+                                    className='rounded-full'
+                                    source={room.senderId === user?.id ? 
+                                        (room.receiverAvatar ? { uri: room.receiverAvatar } : defaultUserIcon) : 
+                                        (room.senderAvatar ? { uri: room.senderAvatar } : defaultUserIcon)}
+                                />
                                 <View className='flex-col gap-1'>
-                                    <Text className='font-bold text-[18px]'>{room.receiverName}</Text>
+                                    <Text className='font-bold text-[18px]'>{room.senderId === user?.id ? room.receiverName : room.senderName}</Text>
                                     <Text className='text-[14px] text-[#808080] font-bold'>{room.productTitle}</Text>
                                     <Text className='text-[12px] text-[#808080] font-medium'>{room.messages.length > 0 ? room.messages[room.messages.length - 1].text : "No messages yet"}</Text>
                                 </View>
