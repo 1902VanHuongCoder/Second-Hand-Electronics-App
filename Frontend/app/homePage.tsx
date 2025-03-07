@@ -213,17 +213,16 @@ export default function HomePage() {
     router.push(`/searchResults?searchTerm=${encodeURIComponent(searchTerm.trim())}`);
   };
 
-  const handleCreateChat = (receiverName: string, receiverId: string, receiverAvatar: string, productImage: string, productTitle: string, productPrice: number) => {
+  const handleCreateChat = (receiverId: string, productId: string) => {
     if (user) {
       const senderId = user.id;
-      const senderName = user.name;
-      const senderAvatar = user.avatarUrl;
       if (senderId !== receiverId) {
-        socket.emit("createRoom", receiverName, receiverId, receiverAvatar, senderId, senderName, senderAvatar, productImage, productTitle, productPrice);
+        const roomCode = `${receiverId}-${senderId}-${productId}`;
+        socket.emit("createRoom", receiverId, senderId, productId, roomCode);
         router.push({
           pathname: '/chat',
           params: {
-            roomCode: `${receiverId}-${senderId}`,
+            roomCode: roomCode,
           }
         });
       }
@@ -263,11 +262,6 @@ export default function HomePage() {
         type={notifications.type}
         visible={notifications.visible}
       />
-      <View>
-        <Text>{isConnected ? 'Connected to server' : 'Disconnected from server'}</Text>
-        <Button title="Test Connection" onPress={() => socket.emit('test', 'Hello Server')} />
-      </View>
-
       <View className="flex-row justify-between items-center border-b-2 pb-6 pt-2 border-[#D9D9D9]">
         <TextInput
           className="border-2 border-[#D9D9D9] w-2/3 px-2 py-4 text-[#000] rounded-lg font-semibold"
@@ -417,17 +411,17 @@ export default function HomePage() {
                     source={product.avatarUrl ? { uri: product.avatarUrl } : require("../assets/images/avatar.jpg")}
                     style={{ width: 50, height: 50, borderRadius: 25 }}
                   />
-                  <TouchableHighlight onPress={() => product.nameUser && handleCreateChat(product.nameUser, product.userId, product.avatarUrl, product.images[0], product.title, product.price)}>
-                    <View >
-                      <Text className="font-medium text-[14px]">Người bán</Text>
-                      <Text className="font-bold text-[16px]">
-                        {product.nameUser}
-                      </Text>
-                    </View>
-                  </TouchableHighlight>
+
+                  <View >
+                    <Text className="font-medium text-[14px]">Người bán</Text>
+                    <Text className="font-bold text-[16px]">
+                      {product.nameUser}
+                    </Text>
+                  </View>
+
 
                 </View>
-                <TouchableHighlight underlayColor='#fff' onPress={checkLogin}>
+                <TouchableHighlight underlayColor='#fff' onPress={() => product.nameUser && handleCreateChat(product.userId, product.id)}>
                   <Ionicons name="chatbubbles-outline" size={30} color="#9661D9" />
                 </TouchableHighlight>
               </View>

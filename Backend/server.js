@@ -22,6 +22,8 @@ const postManagementRoutes = require('./routes/postManagementRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const paypal = require('paypal-rest-sdk');
 const ChatRoom = require('./models/Chat');
+const User = require('./models/User');
+const Product = require('./models/Product');
 
 const app = express();
 dotenv.config();
@@ -69,28 +71,32 @@ socketIO.use((socket, next) => {
 socketIO.on("connection", (socket) => {
 	console.log(`⚡: ${socket.id} user just connected!`);
 
-	socket.on("createRoom", async (receiverName, receiverId, receiverAvatar, senderId, senderName, senderAvatar, productImage, productTitle, productPrice) => {
-		const roomCode = `${receiverId}-${senderId}`;
+	socket.on("createRoom", async (receiverId, senderId, productId, roomCode) => {
 		socket.join(roomCode);
+		const receiver = await User.findById(receiverId);
+		const sender = await User.findById(senderId);
+		const product = await Product.findById(productId);
 		let chatRoom = await ChatRoom.findOne({ roomCode: roomCode });
-		
+
+		console.log(chatRoom);
+
 		if (!chatRoom) {
 			chatRoom = new ChatRoom({
 				roomCode,
 				senderId,
 				receiverId,
-				senderName,
-				receiverName,
-				senderAvatar,
-				receiverAvatar,
-				productImage,
-				productTitle,
-				productPrice,
+				senderName: sender.name,
+				receiverName: receiver.name,
+				senderAvatar: sender.avatarUrl,
+				receiverAvatar: receiver.avatarUrl,
+				productImage: product.images[0],
+				productTitle: product.title,
+				productPrice: product.price,
 				messages: []
 			});
 			await chatRoom.save();
+			socket.emit("createdRoom", chatRoom);
 		}
-		socket.emit("createdRoom", chatRoom);
 	})
 
 	socket.on("findRoom", async (roomCode) => {
