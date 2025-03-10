@@ -5,6 +5,7 @@ const multer = require('multer');
 const axios = require('axios');
 const fs = require('fs');
 const sharp = require('sharp');
+const ImageHash = require('../models/ImageHash');
 
 // Cấu hình multer storage
 const storage = multer.diskStorage({
@@ -48,14 +49,11 @@ exports.uploadVideoMiddleware = multer({
 // Hàm lấy danh sách ảnh từ Cloudinary
 async function getExistingImages() {
   try {
-    const response = await cloudinary.api.resources({
-      type: 'upload',
-      prefix: 'profile_pictures/',
-      max_results: 500,
-    });
-    return response.resources.map(resource => resource.secure_url);
+    // Lấy danh sách hash từ cơ sở dữ liệu thay vì tải lại từ Cloudinary
+    const imageHashes = await ImageHash.find({}, 'hash imageUrl');
+    return imageHashes.map(item => ({ hash: item.hash, url: item.imageUrl }));
   } catch (error) {
-    console.error('Error fetching images from Cloudinary:', error);
+    console.error('Error fetching image hashes from database:', error);
     return [];
   }
 }
@@ -113,22 +111,9 @@ exports.uploadMulti = async (req, res) => {
     const duplicateFiles = [];
     const seenHashes = new Set();
 
-    // Lấy và tạo hash cho ảnh hiện có
-    const existingImages = await getExistingImages();
-    const existingHashes = [];
-
-    for (const image of existingImages) {
-      try {
-        const response = await axios.get(image, { responseType: 'arraybuffer' });
-        const tempPath = `./uploads/temp_${Date.now()}.jpg`;
-        fs.writeFileSync(tempPath, response.data);
-        tempFiles.push(tempPath); // Thêm vào danh sách file cần xóa
-        const hash = await generatePHash(tempPath);
-        existingHashes.push(hash);
-      } catch (error) {
-        console.error('Error generating hash for existing image:', error);
-      }
-    }
+    // Lấy hash từ cơ sở dữ liệu thay vì tạo lại
+    const existingImageData = await getExistingImages();
+    const existingHashes = existingImageData.map(item => item.hash);
 
     // Kiểm tra trùng lặp trước khi upload
     for (const file of files) {
@@ -190,6 +175,16 @@ exports.uploadMulti = async (req, res) => {
           folder: 'profile_pictures',
         });
         urls.push(result.secure_url);
+        
+        // Lưu hash vào cơ sở dữ liệu
+        const hash = await generatePHash(file.path);
+        const publicId = getPublicIdFromUrl(result.secure_url);
+        
+        await ImageHash.create({
+          imageUrl: result.secure_url,
+          publicId: publicId,
+          hash: hash
+        });
       } catch (error) {
         console.error('Error uploading file:', error);
       }
@@ -425,66 +420,81 @@ const getPublicIdFromVideoUrl = (url) => {
 
 // Hàm xóa ảnh trên Cloudinary
 const deleteCloudinaryImage = async (imageUrl) => {
+  console.log('Deleting image from Cloudinary:', imageUrl);
+  
+  if (!imageUrl) {
+    console.error('No image URL provided');
+    return { result: 'error', error: 'No image URL provided' };
+  }
+  
+  // Trích xuất public ID từ URL
+  const publicId = getPublicIdFromUrl(imageUrl);
+  console.log('Public ID extracted:', publicId);
+  
+  if (!publicId) {
+    console.error('Could not extract public ID from URL:', imageUrl);
+    return { result: 'error', error: 'Invalid public ID' };
+  }
+  
   try {
-    console.log('Attempting to delete image from Cloudinary:', imageUrl);
+    console.log('Calling cloudinary.uploader.destroy with publicId:', publicId);
+    const result = await cloudinary.uploader.destroy(publicId);
+    console.log('Cloudinary delete result:', result);
     
-    const publicId = getPublicIdFromUrl(imageUrl);
-    console.log('Public ID extracted:', publicId);
-    
-    if (!publicId) {
-      console.error('Could not extract public ID from URL:', imageUrl);
-      return { result: 'error', error: 'Invalid public ID' };
+    // Xóa hash khỏi cơ sở dữ liệu
+    if (result.result === 'ok') {
+      try {
+        await ImageHash.findOneAndDelete({ imageUrl: imageUrl });
+        console.log('Deleted image hash from database for URL:', imageUrl);
+      } catch (dbError) {
+        console.error('Error deleting image hash from database:', dbError);
+      }
     }
     
-    try {
-      console.log('Calling cloudinary.uploader.destroy with publicId:', publicId);
-      const result = await cloudinary.uploader.destroy(publicId);
-      console.log('Cloudinary delete result:', result);
+    if (result.result === 'not found') {
+      // Thử lại với một số biến thể của publicId
+      console.log('Resource not found, trying alternative public ID formats...');
       
-      if (result.result === 'not found') {
-        // Thử lại với một số biến thể của publicId
-        console.log('Resource not found, trying alternative public ID formats...');
-        
-        // Thử với tên file không có đường dẫn
-        const filename = publicId.split('/').pop();
-        console.log('Trying with filename only:', filename);
-        const result2 = await cloudinary.uploader.destroy(filename);
-        console.log('Second attempt result (filename only):', result2);
-        
-        if (result2.result === 'ok') {
-          return result2;
+      // Thử với tên file không có đường dẫn
+      const filename = publicId.split('/').pop();
+      console.log('Trying with filename only:', filename);
+      const result2 = await cloudinary.uploader.destroy(filename);
+      console.log('Second attempt result (filename only):', result2);
+      
+      if (result2.result === 'ok') {
+        // Xóa hash khỏi cơ sở dữ liệu
+        try {
+          await ImageHash.findOneAndDelete({ imageUrl: imageUrl });
+          console.log('Deleted image hash from database for URL (second attempt):', imageUrl);
+        } catch (dbError) {
+          console.error('Error deleting image hash from database:', dbError);
         }
-        
-        // Thử với đường dẫn đầy đủ không có prefix
-        console.log('Trying with profile_pictures prefix...');
-        const fullPath = publicId.includes('/') ? publicId : `profile_pictures/${publicId}`;
-        const result3 = await cloudinary.uploader.destroy(fullPath);
-        console.log('Third attempt result (with profile_pictures prefix):', result3);
-        
-        if (result3.result === 'ok') {
-          return result3;
+        return result2;
+      }
+      
+      // Thử với đường dẫn đầy đủ không có prefix
+      console.log('Trying with profile_pictures prefix...');
+      const fullPath = publicId.includes('/') ? publicId : `profile_pictures/${publicId}`;
+      const result3 = await cloudinary.uploader.destroy(fullPath);
+      console.log('Third attempt result (with profile_pictures prefix):', result3);
+      
+      if (result3.result === 'ok') {
+        // Xóa hash khỏi cơ sở dữ liệu
+        try {
+          await ImageHash.findOneAndDelete({ imageUrl: imageUrl });
+          console.log('Deleted image hash from database for URL (third attempt):', imageUrl);
+        } catch (dbError) {
+          console.error('Error deleting image hash from database:', dbError);
         }
-        
-        // Thử với đường dẫn không có profile_pictures
-        if (publicId.includes('profile_pictures/')) {
-          console.log('Trying without profile_pictures prefix...');
-          const withoutPrefix = publicId.replace('profile_pictures/', '');
-          const result4 = await cloudinary.uploader.destroy(withoutPrefix);
-          console.log('Fourth attempt result (without profile_pictures prefix):', result4);
-          
-          if (result4.result === 'ok') {
-            return result4;
-          }
-        }
+        return result3;
       }
       
       return result;
-    } catch (error) {
-      console.error('Error deleting from Cloudinary:', error);
-      return { result: 'error', error: error.message };
     }
+    
+    return result;
   } catch (error) {
-    console.error('Error in deleteCloudinaryImage:', error);
+    console.error('Error deleting image from Cloudinary:', error);
     return { result: 'error', error: error.message };
   }
 };
@@ -819,6 +829,85 @@ exports.deleteVideo = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Lỗi khi xóa video',
+      error: error.message
+    });
+  }
+};
+
+// Hàm khởi tạo dữ liệu hash cho các ảnh đã tồn tại
+exports.initializeImageHashes = async (req, res) => {
+  try {
+    // Lấy danh sách ảnh từ Cloudinary
+    const response = await cloudinary.api.resources({
+      type: 'upload',
+      prefix: 'profile_pictures/',
+      max_results: 500,
+    });
+    
+    const existingImages = response.resources.map(resource => resource.secure_url);
+    const results = {
+      total: existingImages.length,
+      processed: 0,
+      success: 0,
+      failed: 0,
+      skipped: 0,
+      errors: []
+    };
+    
+    // Xử lý từng ảnh
+    for (const imageUrl of existingImages) {
+      results.processed++;
+      
+      try {
+        // Kiểm tra xem ảnh đã có hash trong cơ sở dữ liệu chưa
+        const existingHash = await ImageHash.findOne({ imageUrl: imageUrl });
+        if (existingHash) {
+          results.skipped++;
+          continue; // Bỏ qua nếu đã có
+        }
+        
+        // Lấy publicId từ URL
+        const publicId = getPublicIdFromUrl(imageUrl);
+        if (!publicId) {
+          results.failed++;
+          results.errors.push(`Không thể trích xuất publicId cho ${imageUrl}`);
+          continue;
+        }
+        
+        // Tải ảnh về và tạo hash
+        const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+        const tempPath = `./uploads/temp_${Date.now()}.jpg`;
+        fs.writeFileSync(tempPath, response.data);
+        
+        // Tạo hash và lưu vào cơ sở dữ liệu
+        const hash = await generatePHash(tempPath);
+        await ImageHash.create({
+          imageUrl: imageUrl,
+          publicId: publicId,
+          hash: hash
+        });
+        
+        // Xóa file tạm
+        await deleteFile(tempPath);
+        
+        results.success++;
+      } catch (error) {
+        results.failed++;
+        results.errors.push(`Lỗi xử lý ${imageUrl}: ${error.message}`);
+        console.error(`Error processing image ${imageUrl}:`, error);
+      }
+    }
+    
+    res.json({
+      success: true,
+      message: 'Đã khởi tạo dữ liệu hash cho các ảnh hiện có',
+      results: results
+    });
+  } catch (error) {
+    console.error('Error initializing image hashes:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi khi khởi tạo dữ liệu hash',
       error: error.message
     });
   }
