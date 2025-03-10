@@ -42,6 +42,9 @@ router.post('/uploadAvatar', upload.single('image'), uploadController.uploadAvat
 // Route upload nhiều ảnh
 router.post('/uploadmultiple', upload.array('images', 6), uploadController.uploadMulti);
 
+// Route để khởi tạo dữ liệu hash cho các ảnh đã tồn tại
+router.post('/initialize-image-hashes', uploadController.initializeImageHashes);
+
 // Route to handle video uploads
 router.post('/uploadvideo', uploadVideoMiddleware.single('video'), uploadVideo);
 router.post('/deleteImages', uploadController.deleteImages);
