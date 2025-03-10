@@ -1,7 +1,7 @@
 import { Tabs, useNavigation, useRouter } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { Platform, StyleSheet, TouchableOpacity } from 'react-native';
-import { Provider } from 'react-redux';
+import { Provider, useSelector } from 'react-redux';
 import { AuthProvider } from '@/context/AuthContext';
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -11,13 +11,87 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { usePathname } from 'expo-router';
 import Icon from "react-native-vector-icons/FontAwesome";
 import { Ionicons } from '@expo/vector-icons';
-import { store } from '@/store/store';
+import { RootState, store } from '@/store/store';
+import socket from '@/utils/socket';
+
+interface MessageItemProps {
+  senderId: string;
+  text: string;
+  time: Date;
+}
+
+interface MessageProps {
+  roomCode: string;
+  senderId: string;
+  receiverId: string;
+  senderName: string;
+  receiverName: string;
+  senderAvatar: string | null;
+  receiverAvatar: string | null;
+  productImage: string;
+  productTitle: string;
+  productPrice: string;
+  messages: MessageItemProps[];
+  senderMessagesNotRead: [],
+  receiverMessagesNotRead: [],
+}
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const navigation = useNavigation();
+  // const [rooms, setRooms] = useState<MessageProps[]>([]);
+  const [count, setCount] = useState(0);
   const router = useRouter();
+  const { user } = useSelector((state: RootState) => state.auth);
+  useEffect(() => {
+    function fetchGroups() {
+      fetch("http://10.0.2.2:5000/api/chat")
+        .then((res) => res.json())
+        .then((data) => {
+          if (user) {
+            const filteredRooms = data.filter((room: MessageProps) => room.senderId === user.id || room.receiverId === user.id);
+            let count = 0; 
+            filteredRooms.forEach((room: MessageProps) => {
+              if(user.id === room.senderId){
+                count += room.senderMessagesNotRead.length;
+              }else{
+                count += room.receiverMessagesNotRead.length;
+              }
+            });
+            setCount(count);
+          }
+        })
+        .catch((err) => console.error(err));
+    }
+    if (user) {
+      fetchGroups();
+    }
+  }, [user]);
+
+  useLayoutEffect(() => {
+
+    socket.on("deleteNotification",(updateMessageList: MessageProps[]) => {
+        if (user) {
+            const filteredRooms = updateMessageList.filter((room: MessageProps) => room.senderId === user.id || room.receiverId === user.id);
+            let count = 0; 
+            filteredRooms.forEach((room: MessageProps) => {
+              if(user.id === room.senderId){
+                count += room.senderMessagesNotRead.length;
+              }else{
+                count += room.receiverMessagesNotRead.length;
+              }
+            });
+            setCount(count);
+        }
+    })
+    return () => {
+        socket.off("deleteNotification");
+    };
+}, [socket, user]);
+
+
   return (
+
     <Provider store={store}>
       <AuthProvider>
         <Tabs
@@ -96,6 +170,7 @@ export default function TabLayout() {
             options={{
               title: 'Tin nhắn',
               tabBarIcon: ({ color }) => <Icon size={25} name="comments" color={color} />,
+              tabBarBadge: count > 0 ? count : undefined,
             }}
           />
           <Tabs.Screen

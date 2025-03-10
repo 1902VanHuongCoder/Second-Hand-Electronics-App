@@ -18,7 +18,9 @@ const chatRoomSchema = new mongoose.Schema({
     productImage: { type: String, required: true },
     productTitle: { type: String, required: true },
     productPrice: { type: Number, required: true },
-    messages: [messageSchema]
+    messages: [messageSchema],
+    senderMessagesNotRead: [messageSchema], 
+    receiverMessagesNotRead: [messageSchema],
 });
 
 const ChatRoom = mongoose.model('ChatRoom', chatRoomSchema);
