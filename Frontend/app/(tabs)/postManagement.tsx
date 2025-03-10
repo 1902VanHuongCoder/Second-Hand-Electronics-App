@@ -63,10 +63,15 @@ export default function PostManagement() {
     };
 
     const filteredProducts = products.filter(product => {
-        if (selectedTab === 'Đang hiển thị') return !product.isHidden;
+        const today = new Date();
+        const expiration = new Date(product.expirationDate);
+
+        if (selectedTab === 'Đang hiển thị') return !product.isHidden && expiration >= today;
         if (selectedTab === 'Tin đã ẩn') return product.isHidden;
+        if (selectedTab === 'Tin hết hạn') return expiration < today;
         return true;
     });
+
 
     return (
         <View className='w-full h-full bg-white'>
@@ -104,10 +109,10 @@ export default function PostManagement() {
                                 <Text className='font-medium text-[14px]'>Loại: <Text className='font-bold'>{product.type}</Text></Text>
                                 <Text className='font-medium text-[14px]'>Thương hiệu: <Text className='font-bold'>{product.brandName}</Text></Text>
                                 <Text className='font-medium text-[14px]'>Ngày đăng: <Text className='font-bold'>{new Date(product.postingDate).toLocaleDateString('vi-VN')}</Text></Text>
+                                <Text className='font-medium text-[14px]'>Ngày hết hạn: <Text className='font-bold'>{new Date(product.expirationDate).toLocaleDateString('vi-VN')}</Text></Text>
                                 <Text className='font-medium text-[14px]'>Trạng thái: <Text className='font-bold'>{product.status}</Text></Text>
-                                <Text className='font-medium text-[14px]'>Lượt xem: <Text className='font-bold'>{product.views}</Text></Text>
                             </View>
-                            <View className="flex-row px-4 items-center justify-center gap-4">
+                            <View className={`${new Date(product.expirationDate) < new Date() ? 'hidden' : 'flex-row px-4 items-center justify-center gap-4'}`}>
                                 <TouchableHighlight
                                     className="border-2 rounded-md p-3 border-[#808080]"
                                     onPress={() => router.push(`/postCreation?id=${product.id}`)}

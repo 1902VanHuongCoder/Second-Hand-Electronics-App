@@ -30,7 +30,7 @@ exports.getUserPosts = async (req, res) => {
                 name: product.title,
                 price: product.price,
                 postingDate: product.createdAt,
-                expirationDate: product.updatedAt,
+                expirationDate: product.expirationDate,
                 views: product.view,
                 image: product.images[0] || null,
                 type: category ? category.categoryName : null,

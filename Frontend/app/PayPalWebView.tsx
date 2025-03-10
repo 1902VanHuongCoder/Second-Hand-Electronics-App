@@ -49,7 +49,7 @@ export default function PayPalWebView() {
                     Alert.alert("Lỗi", "Xác nhận thanh toán thất bại.");
                 }
             } catch (error) {
-                Alert.alert("Lỗi", "Có lỗi khi xác nhận thanh toán.");
+                Alert.alert("Lỗi", error.response?.data?.message || "Có lỗi khi xác nhận thanh toán.");
             } finally {
                 router.push("/(tabs)/postManagement");
             }
