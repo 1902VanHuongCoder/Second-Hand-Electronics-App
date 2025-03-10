@@ -32,6 +32,8 @@ interface MessageProps {
     productPrice: string;
     messages: MessageItemProps[];
 }
+// Import a default user icon
+const defaultUserIcon = require('../assets/images/defaultUserIcon.png'); // Adjust the path as needed
 
 export default function Chat() {
     const [text, onChangeText] = React.useState("");
@@ -41,8 +43,6 @@ export default function Chat() {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [imageToZoom, setImageToZoom] = useState<string | null>(null);
     const scrollViewRef = useRef<ScrollView>(null); // Create a ref for the ScrollView
-
-    console.log(chatInfo?.messages);
 
     const formatCurrency = (value: String) => {
         if (value) {
@@ -69,6 +69,7 @@ export default function Chat() {
 
     useLayoutEffect(() => {
         socket.emit("findRoom", roomCode);
+        socket.emit("hiddenNotification");
         socket.on("foundRoom", (roomChats: MessageProps) => setChatInfo(roomChats));
     }, [roomCode]);
 
@@ -116,11 +117,10 @@ export default function Chat() {
                 <View style={{ flex: 1, marginTop: 20, gap: 16 }} className="w-full flex-col items-center">
                     {chatInfo && chatInfo.messages.map((msg, index) => (
                         <View key={index} style={{ alignSelf: msg.senderId === user?.id ? "flex-end" : "flex-start", flexDirection: msg.senderId === user?.id ? "row-reverse" : "row" }} className="flex-row gap-2 items-center">
-                            <Image
+                           <Image
                                 style={{ width: 40, height: 40 }}
                                 className="rounded-full"
-                                source={{ uri: msg.senderId === chatInfo.senderId ? chatInfo.senderAvatar : chatInfo.receiverAvatar }}
-                            />
+                                source={msg.senderId === chatInfo.senderId ? (chatInfo.senderAvatar ? { uri: chatInfo.senderAvatar } : defaultUserIcon) : (chatInfo.receiverAvatar ? { uri: chatInfo.receiverAvatar } : defaultUserIcon)}/>
                             <View className="flex-col gap-1">
                                 <Text className={msg.senderId === chatInfo.senderId ? "bg-white rounded-lg py-2 px-3 font-bold w-auto shadow-md" : "bg-white rounded-lg py-2 px-3 font-bold w-auto shadow-md"}>
                                     {msg.text}

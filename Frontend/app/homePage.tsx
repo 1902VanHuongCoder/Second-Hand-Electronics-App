@@ -219,6 +219,7 @@ export default function HomePage() {
       if (senderId !== receiverId) {
         const roomCode = `${receiverId}-${senderId}-${productId}`;
         socket.emit("createRoom", receiverId, senderId, productId, roomCode);
+        // socket.emit("read", roomCode);
         router.push({
           pathname: '/chat',
           params: {
@@ -256,7 +257,6 @@ export default function HomePage() {
 
   return (
     <View className="p-4 relative" style={{ flex: 1 }}>
-
       <Notification
         message={notifications.message}
         type={notifications.type}

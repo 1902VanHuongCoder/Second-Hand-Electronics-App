@@ -39,9 +39,9 @@ const socketIO = require("socket.io")(http, {
 
 
 paypal.configure({
-  mode: process.env.PAYPAL_MODE || 'sandbox',
-  client_id: process.env.PAYPAL_CLIENT_ID,
-  client_secret: process.env.PAYPAL_CLIENT_SECRET
+	mode: process.env.PAYPAL_MODE || 'sandbox',
+	client_id: process.env.PAYPAL_CLIENT_ID,
+	client_secret: process.env.PAYPAL_CLIENT_SECRET
 });
 
 
@@ -58,13 +58,13 @@ app.use(cors(
 // const generateID = () => Math.random().toString(36).substring(2, 10); // Generate a random ID
 
 socketIO.use((socket, next) => {
-    const { userId, userName } = socket.handshake.auth;
-    if (!userId || !userName) {
-        return next(new Error("Authentication error"));
-    }
-    socket.userId = userId;
-    socket.userName = userName;
-    next();
+	const { userId, userName } = socket.handshake.auth;
+	if (!userId || !userName) {
+		return next(new Error("Authentication error"));
+	}
+	socket.userId = userId;
+	socket.userName = userName;
+	next();
 });
 
 
@@ -78,8 +78,6 @@ socketIO.on("connection", (socket) => {
 		const product = await Product.findById(productId);
 		let chatRoom = await ChatRoom.findOne({ roomCode: roomCode });
 
-		console.log(chatRoom);
-
 		if (!chatRoom) {
 			chatRoom = new ChatRoom({
 				roomCode,
@@ -92,10 +90,20 @@ socketIO.on("connection", (socket) => {
 				productImage: product.images[0],
 				productTitle: product.title,
 				productPrice: product.price,
-				messages: []
+				messages: [],
+				senderMessagesNotRead: [],
+				receiverMessagesNotRead: [],
 			});
 			await chatRoom.save();
 			socket.emit("createdRoom", chatRoom);
+		} else {
+			if (chatRoom.senderId === senderId) {
+				chatRoom.senderMessagesNotRead = [];
+				await chatRoom.save(); 
+			}else{
+				chatRoom.receiverMessagesNotRead = [];
+				await chatRoom.save();
+			}
 		}
 	})
 
@@ -113,7 +121,7 @@ socketIO.on("connection", (socket) => {
 	});
 
 	socket.on("newMessage", async (data) => {
-		const { roomCode, senderId, text, senderN} = data;
+		const { roomCode, senderId, text, senderN } = data;
 		try {
 			let chatRoom = await ChatRoom.findOne({ roomCode: roomCode });
 			if (chatRoom) {
@@ -123,13 +131,26 @@ socketIO.on("connection", (socket) => {
 					senderN: senderN,
 					time: new Date()
 				};
+
+				if (chatRoom.senderId === senderId) {
+					chatRoom.senderMessagesNotRead = []; // Clear sender's unread messages
+					chatRoom.receiverMessagesNotRead.push(newMessage);
+				}else{
+					chatRoom.receiverMessagesNotRead = []; // Clear receiver's unread messages
+					chatRoom.senderMessagesNotRead.push(newMessage);
+				}
+				
+			
+
+
 				chatRoom.messages.push(newMessage);
+				chatRoom.haveNewMessage = false;
 				await chatRoom.save();
 				socket.emit("receiveMessage", newMessage);
 				console.log("New message added");
 
 				const updateMessageList = await ChatRoom.find(); // Update message list
-				socket.emit("newMessageCreated",updateMessageList);
+				socket.emit("newMessageCreated", updateMessageList);
 			} else {
 				console.log("Room not found");
 			}
@@ -137,6 +158,36 @@ socketIO.on("connection", (socket) => {
 			console.error("Error adding new message:", error);
 		}
 	});
+
+	socket.on("read", async (roomCode, userId) => {
+		try {
+			let chatRoom = await ChatRoom.findOne({ roomCode: roomCode });
+			if (chatRoom) {
+				if(chatRoom.senderId === userId){
+					chatRoom.senderMessagesNotRead = []; 
+					console.log("Readddddddddddd runnnn"); 
+				}else {
+					chatRoom.receiverMessagesNotRead = [];
+				}
+				await chatRoom.save();
+				socket.emit("newMessageCreated"); 
+				console.log("Message read");
+			} else {
+				console.log("Room not found");
+			}
+		} catch (error) {
+			console.error("Error reading message:", error);
+		}
+	})
+
+	socket.on("hiddenNotification", async () => {
+		try {
+			const updateMessageList = await ChatRoom.find(); // Update message list
+			socket.emit("deleteNotification", updateMessageList);
+		} catch (error) {
+			console.error("Error hiding notification:", error);
+		}
+	})
 
 	socket.on("disconnect", () => {
 		socket.disconnect();
