@@ -36,13 +36,12 @@ exports.confirmPayment = async (req, res) => {
                 const product = await Product.findById(productId);
                 const currentDate = moment();
 
-                if (product.isVip && product.newsPushDay) {
-                    const currentExpirationDate = moment(product.newsPushDay);
+                const currentExpirationDate = moment(product.newsPushDay);
 
-                    if (currentExpirationDate.isAfter(currentDate)) {
-                        return res.status(400).json({ message: "Sản phẩm vẫn còn hiệu lực, không thể đẩy tin." });
-                    }
-                } else {
+                if (currentExpirationDate.isAfter(currentDate)) {
+                    return res.status(400).json({ message: "Sản phẩm vẫn còn hiệu lực, không thể đẩy tin." });
+                }
+                else {
                     // Lưu thông tin đơn hàng
                     const newOrder = new Order({
                         productId,

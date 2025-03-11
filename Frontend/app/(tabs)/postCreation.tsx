@@ -642,7 +642,7 @@ export default function PostCreation() {
 
         } catch (error) {
             console.error('Lỗi khi xử lý tin:', error);
-            Alert.alert('Lỗi', `Có lỗi xảy ra khi ${isEditMode ? 'cập nhật' : 'đăng'} tin`);
+            Alert.alert('Lỗi', error.response?.data?.message || `Có lỗi xảy ra khi ${isEditMode ? 'cập nhật' : 'đăng'} tin`);
         } finally {
             setIsSubmitting(false);
         }

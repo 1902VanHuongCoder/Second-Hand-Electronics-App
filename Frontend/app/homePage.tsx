@@ -371,17 +371,17 @@ export default function HomePage() {
             className="mt-6 flex-col gap-4 border-b border-[#D9D9D9] pb-4"
           >
             <View className="flex-col gap-4">
-              <View className="flex-row gap-2 w-full">
+              <View className="flex-row gap-2 w-[50%]">
                 <Link href={`/postDetails?id=${product.id}`}>
                   <Image
                     style={{ width: 170, height: 170 }}
                     source={{ uri: product.images[0] }}
                   />
                 </Link>
-                <View className="w-[50%] flex-col gap-1">
+                <View className="w-full flex-col gap-1">
                   <View className="flex-row justify-between items-center">
                     <Link href={`/postDetails?id=${product.id}`}>
-                      <Text className="font-bold text-[16px]">{product.title}</Text>
+                      <Text numberOfLines={1} ellipsizeMode="tail" className="font-bold text-[16px]">{product.title}</Text>
                     </Link>
                     <TouchableHighlight onPress={() => handleReportPress(product.id)}>
                       <Icon name="ellipsis-v" size={18} color="#9661D9" />
