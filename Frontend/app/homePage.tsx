@@ -255,6 +255,9 @@ export default function HomePage() {
     setProducts(filtered);
   };
 
+
+  console.log(products); 
+
   return (
     <View className="p-4 relative" style={{ flex: 1 }}>
       <Notification

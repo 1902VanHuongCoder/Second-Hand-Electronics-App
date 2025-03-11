@@ -54,6 +54,9 @@ exports.getHomeProducts = async (req, res) => {
                     cpuName: cpu ? cpu.name : null,
                     screenSize: screen ? screen.screenSize : null,
                     gpuName: gpu ? gpu.name : null,
+                    isVip: product.isVip,
+                    newsPushDay: product.newsPushDay,
+                    pushNews: product.pushNews,
                     storageCapacity: storage ? storage.storageCapacity : null,
                     storageType: storageType ? storageType.storageName : null,
                     type: 'laptop'
@@ -85,6 +88,9 @@ exports.getHomeProducts = async (req, res) => {
                     postingDate: product.createdAt,
                     nameUser: user ? user.name : null,
                     brandName: brand ? brand.brandName : null,
+                    isVip: product.isVip,
+                    newsPushDay: product.newsPushDay,
+                    pushNews: product.pushNews,
                     ramCapacity: ram ? ram.capacity : null,
                     type: 'phone'
                 };
@@ -93,7 +99,40 @@ exports.getHomeProducts = async (req, res) => {
 
         // Lọc ra các sản phẩm không hợp lệ
         const allProducts = [...laptopProducts, ...phoneProducts].filter(product => product !== null);
+        const newsIsVipAndOnTime = [];
+        const newsIsVipAndNotOnTime = []; 
+        const normalNews = [];
+        const currentDate = new Date();
+    
+        const isWithinTimePeriod = (date, startHour, endHour) => {
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const start = new Date(date);
+            start.setHours(startHour, 0, 0, 0);
+            const end = new Date(date);
+            end.setHours(endHour, 59, 59, 999);
+            return date >= start && date <= end;
+        };
 
+        allProducts.forEach((product) => {
+            const pushNewsDate = new Date(product.pushNews);
+            if (product.isVip && new Date(product.newsPushDay) > currentDate) {
+                if (isWithinTimePeriod(pushNewsDate, 5, 11)) {
+                    newsIsVipAndOnTime.unshift(product);
+                } else if (isWithinTimePeriod(pushNewsDate, 12, 16)) {
+                    newsIsVipAndOnTime.unshift(product);
+                } else if (isWithinTimePeriod(pushNewsDate, 17, 23) || isWithinTimePeriod(pushNewsDate, 0, 4)) {
+                    newsIsVipAndOnTime.unshift(product);
+                } else {
+                    newsIsVipAndNotOnTime.push(product);
+                }
+            } else {
+                normalNews.push(product);
+            }
+        });
+
+
+        // console.log("Tin vip", data); 
         res.status(200).json(allProducts);
     } catch (error) {
         res.status(500).json({ message: error.message });
