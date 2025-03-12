@@ -1,48 +1,65 @@
-📱 Tech Market Mobile Application
-This project is a mobile application developed during our practical internship at Thoi So Company. It allows users to post news about selling second-hand laptops and phones.
+<h1>📱 Tech Market Mobile Application</h1>
 
-👨‍💻 Team Members
-👤 Hoài Đức – CTU, Information Technology Major
-👤 Hoàng Anh – CTU, Information Technology Major
-👤 Văn Hưởng – CTU, Information Technology Major
+<p>This project is a mobile application developed during our practical internship at <strong>Thoi So Company</strong>. It allows users to post news about selling second-hand laptops and phones.</p>
 
-🚀 **Tech Stack**
-Frontend: React Native (Expo Framework)
-Backend: Express.js, MongoDB, Socket.IO
+<h2>👨‍💻 Team Members</h2>
+<ul>
+  <li>👤 <strong>Hoài Đức</strong> – CTU, Information Technology Major</li>
+  <li>👤 <strong>Hoàng Anh</strong> – CTU, Information Technology Major</li>
+  <li>👤 <strong>Văn Hưởng</strong> – CTU, Information Technology Major</li>
+</ul>
 
-🎯 **Main Features**
-✅ Authentication: Sign up & Log in 🔑
-✅ Post Listings: Sell second-hand laptops & phones 🖥️📱
-✅ AI-powered Image Recognition: Prevent duplicate images in the database 🖼️⚡
-✅ Duplicate Post Detection: Avoid multiple posts with the same title 🚫📝
-✅ Real-time Chat: Direct messaging between buyers & sellers using Socket.IO 💬
-✅ User Profile Management: Update user information 👤
-✅ Post Management: View, edit, or delete posts 📌
+<h2>🚀 Tech Stack</h2>
+<ul>
+  <li><strong>Frontend:</strong> React Native (Expo Framework)</li>
+  <li><strong>Backend:</strong> Express.js, MongoDB, Socket.IO</li>
+</ul>
 
-⚙️ **Setup Guide**
-1️⃣ Clone the Project
-git clone <repository-url>
+<h2>🎯 Main Features</h2>
+<ul>
+  <li>✅ <strong>Authentication:</strong> Sign up & Log in 🔑</li>
+  <li>✅ <strong>Post Listings:</strong> Sell second-hand laptops & phones 🖥️📱</li>
+  <li>✅ <strong>AI-powered Image Recognition:</strong> Prevent duplicate images in the database 🖼️⚡</li>
+  <li>✅ <strong>Duplicate Post Detection:</strong> Avoid multiple posts with the same title 🚫📝</li>
+  <li>✅ <strong>Real-time Chat:</strong> Direct messaging between buyers & sellers using Socket.IO 💬</li>
+  <li>✅ <strong>User Profile Management:</strong> Update user information 👤</li>
+  <li>✅ <strong>Post Management:</strong> View, edit, or delete posts 📌</li>
+</ul>
+
+<h2>⚙️ Setup Guide</h2>
+
+<h3>1️⃣ Clone the Project</h3>
+<pre><code>
+git clone &lt;repository-url&gt;
 cd Second-Hand-Electronics-App
+</code></pre>
 
-2️⃣ **Open the Project**
-You will find two folders:
-📁 Frontend - React Native (Expo)
-📁 Backend - Express.js (Node.js)
+<h3>2️⃣ Open the Project</h3>
+<p>You will find two folders:</p>
+<ul>
+  <li>📁 <strong>Frontend</strong> - React Native (Expo)</li>
+  <li>📁 <strong>Backend</strong> - Express.js (Node.js)</li>
+</ul>
 
-3️⃣ **Setup Frontend**
+<h3>3️⃣ Setup Frontend</h3>
+<pre><code>
 cd Frontend
 npm install
 npx expo start  # Start the app
+</code></pre>
 
-4️⃣ **Setup Backend**
+<h3>4️⃣ Setup Backend</h3>
+<pre><code>
 cd ..
 cd Backend
 npm install
 npm start  # Run backend server
+</code></pre>
 
-🎉 Now your app is up and running!
+<p>🎉 Now your app is up and running!</p>
 
-🏗 **Project Structure**
+<h2>🏗 Project Structure</h2>
+<pre>
 Tech-Market-Mobile-Application/
 ├── Backend/
 │   ├── .env
@@ -85,36 +102,36 @@ Tech-Market-Mobile-Application/
 ├── README.md
 └── .vscode/
     └── settings.json
+</pre>
 
-🛠 **Additional Notes**
-This project is built with React Native Expo, so no need to set up Xcode, Android Studio for running the app on an emulator.
-Uses Cloudinary for image uploads.
-The backend follows the MVC architecture for better scalability.
-If your computer is too weak, you can use BlueStack software to run app instead using Android Studio (too heavy) 
+<h2>🛠 Additional Notes</h2>
+<ul>
+  <li>✅ This project is built with <strong>React Native Expo</strong>, so no need to set up Xcode, Android Studio for running the app on an emulator.</li>
+  <li>✅ Uses <strong>Cloudinary</strong> for image uploads.</li>
+  <li>✅ The backend follows the <strong>MVC architecture</strong> for better scalability.</li>
+  <li>✅ If your computer is too weak, you can use <strong>BlueStack</strong> software to run the app instead of using Android Studio (which is too heavy).</li>
+</ul>
 
-🛑 **Common Errors & Solutions**
+<h2>🛑 Common Errors & Solutions</h2>
 
-⚠️ Warning: Text strings must be rendered within a <Text> component
-🔹 Cause: This happens when using NativeWind instead of the usual style properties.
-✅ Solution: Wrap text content inside a <Text> component. Example:
+<h3>⚠️ Warning: Text strings must be rendered within a &lt;Text&gt; component</h3>
+<p>🔹 <strong>Cause:</strong> This happens when using <strong>NativeWind</strong> instead of the usual style properties.</p>
+<p>✅ <strong>Solution:</strong> Wrap text content inside a &lt;Text&gt; component. Example:</p>
+
+<pre><code>
 // ❌ Wrong
-<View>{'Hello, World!'}</View>
+&lt;View&gt;{'Hello, World!'}&lt;/View&gt;
 
 // ✅ Correct
-<View><Text>Hello, World!</Text></View>
+&lt;View&gt;&lt;Text&gt;Hello, World!&lt;/Text&gt;&lt;/View&gt;
+</code></pre>
 
-📉 App runs too slow on Android Studio Emulator
-🔹 Cause: Android Studio’s emulator is heavy on system resources.
-✅ Solution: Use BlueStacks instead.
-
-Download and install BlueStacks.
-Install the Expo Go app in BlueStacks.
-Copy the Expo development URL (e.g., exp://192.168.1.9:8081).
-Open Expo Go in BlueStacks and paste the URL to run the app.
-
-
-
-
-
-
-
+<h3>📉 App runs too slow on Android Studio Emulator</h3>
+<p>🔹 <strong>Cause:</strong> Android Studio’s emulator is heavy on system resources.</p>
+<p>✅ <strong>Solution:</strong> Use <strong>BlueStacks</strong> instead.</p>
+<ol>
+  <li>Download and install <strong>BlueStacks</strong>.</li>
+  <li>Install the <strong>Expo Go</strong> app in BlueStacks.</li>
+  <li>Copy the Expo development URL (e.g., <code>exp://192.168.1.9:8081</code>).</li>
+  <li>Open <strong>Expo Go</strong> in BlueStacks and paste the URL to run the app.</li>
+</ol>
