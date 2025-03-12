@@ -1,20 +1,20 @@
 const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
-    categoryId: { type: mongoose.Schema.Types.ObjectId, required: true },
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    versionId: { type: mongoose.Schema.Types.ObjectId, required: true },
-    conditionId: { type: mongoose.Schema.Types.ObjectId, required: true },
-    storageId: { type: mongoose.Schema.Types.ObjectId, required: true },
-    title: { type: String, required: true },
-    description: { type: String, required: true },
-    price: { type: Number, required: true },
-    view: { type: Number, default: 0 },
-    isVip: { type: Boolean, default: false },
-    isSold: { type: Boolean, default: false },
-    warranty: { type: String, default: '' },
-    images: { type: [String], default: [] },
-    videos: { type: String, default: '' },
+    categoryId: { type: mongoose.Schema.Types.ObjectId, required: true }, // ID loại sản phẩm 'Điện thoại' hoặc 'Laptop
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // ID của người đăng bán
+    versionId: { type: mongoose.Schema.Types.ObjectId, required: true }, // ID Loại sản phẩm vd: SamSung galaxy s22...
+    conditionId: { type: mongoose.Schema.Types.ObjectId, required: true }, // ID của tình trạng sản phẩm
+    storageId: { type: mongoose.Schema.Types.ObjectId, required: true }, // ID bộ nhớ
+    title: { type: String, required: true }, // Tên sản phẩm
+    description: { type: String, required: true }, // Mô tả sản phẩm
+    price: { type: Number, required: true }, // Giá sản phẩm
+    view: { type: Number, default: 0 }, // Lượt xem
+    isVip: { type: Boolean, default: false }, // Trạng thái vip khi đẩy tin
+    isSold: { type: Boolean, default: false }, // Đã bán hay chưa
+    warranty: { type: String, default: '' }, // Thời hạn bảo hành
+    images: { type: [String], default: [] }, // Hình ảnh
+    videos: { type: String, default: '' }, // Videos
     location: {
         provinceCode: {
             type: String,
@@ -48,11 +48,11 @@ const productSchema = new mongoose.Schema({
             type: String,
             required: false
         }
-    },
-    isHidden: { type: Boolean, default: false },
-    hiddenReason: { type: String, default: '' },
-    newsPushDay: { type: Date }, // Ngày hết hạn 
-    pushNews: { type: Date },
+    }, // Vị trí và id của vị trí
+    isHidden: { type: Boolean, default: false }, // Trạng thái ẩn tin
+    hiddenReason: { type: String, default: '' }, // Lưu lí do ẩn tin
+    newsPushDay: { type: Date }, // Ngày hết hạn của đẩy tin 
+    pushNews: { type: Date }, // Ngày đẩy tin
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
     expirationDate: { 
@@ -62,7 +62,7 @@ const productSchema = new mongoose.Schema({
             date.setDate(date.getDate() + 60);
             return date;
         }
-    }
+    } // Ngày hết hạn của bài đăng
 });
 
 module.exports = mongoose.model('Product', productSchema);

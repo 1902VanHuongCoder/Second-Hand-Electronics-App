@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: 'user',
   },
-  isPhoneHidden: { type: Boolean, default: false },
+  isPhoneHidden: { type: Boolean, default: false }, // Trạng thái ẩn số điện thoại
   createdAt: {
     type: Date,
     default: Date.now,
