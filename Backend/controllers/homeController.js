@@ -35,8 +35,6 @@ exports.getHomeProducts = async (req, res) => {
                 const storage = await Storage.findById(laptop.storageId);
                 const storageType = storage ? await StorageType.findById(storage.storageTypeId) : null;
 
-                console.log(product);
-
                 return {
                     id: product._id,
                     title: product.title,
@@ -74,7 +72,6 @@ exports.getHomeProducts = async (req, res) => {
                 const user = await User.findById(product.userId);
                 const version = await Version.findById(product.versionId);
                 const brand = version ? await Brand.findById(version.brandId) : null;
-                console.log(product);
                 return {
                     id: product._id,
                     title: product.title,
@@ -103,37 +100,58 @@ exports.getHomeProducts = async (req, res) => {
         const newsIsVipAndNotOnTime = []; 
         const normalNews = [];
         const currentDate = new Date();
-    
-        const isWithinTimePeriod = (date, startHour, endHour) => {
-            const hours = date.getHours();
-            const minutes = date.getMinutes();
-            const start = new Date(date);
-            start.setHours(startHour, 0, 0, 0);
-            const end = new Date(date);
-            end.setHours(endHour, 59, 59, 999);
-            return date >= start && date <= end;
+        
+        // Hàm để kiểm tra xem khoảng thời gian để đẩy tin hay không (vd: nếu pushNews = 10h thì sẽ đẩy tin từ 8h đến 11h)
+        const isWithinTimePeriod = (date, startOffsetHours, endOffsetHours) => {
+            const currentTime = new Date();
+            const start = new Date(currentTime);
+            start.setHours(currentTime.getHours() + startOffsetHours);
+            const end = new Date(currentTime);
+            end.setHours(currentTime.getHours() + endOffsetHours);
+
+            const dateToCompare = new Date();
+            dateToCompare.setHours(date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds());
+
+            return dateToCompare >= start && dateToCompare <= end;
         };
 
+
+        // Hàm để kiểm tra xem tin đăng có phải là tin gần đây không để đẩy lên trên đầu trang chủ
+        const isRecentNews = (date, startOffsetHours, endOffsetHours) => {
+            const start = new Date();
+            start.setHours(start.getHours() + startOffsetHours);
+            const end = new Date();
+            end.setHours(end.getHours() + endOffsetHours);
+            return date >= start && date <= end;
+        }; 
+
+        // Lặp qua mảng các tin đăng để phân loại tin đăng theo điều kiện (tin vip đang trong thời gian đẩy, tin vip không trong thời gian đẩy, tin thường)
         allProducts.forEach((product) => {
             const pushNewsDate = new Date(product.pushNews);
-            if (product.isVip && new Date(product.newsPushDay) > currentDate) {
-                if (isWithinTimePeriod(pushNewsDate, 5, 11)) {
-                    newsIsVipAndOnTime.unshift(product);
-                } else if (isWithinTimePeriod(pushNewsDate, 12, 16)) {
-                    newsIsVipAndOnTime.unshift(product);
-                } else if (isWithinTimePeriod(pushNewsDate, 17, 23) || isWithinTimePeriod(pushNewsDate, 0, 4)) {
+            if (product.isVip && new Date(product.newsPushDay) > currentDate) { // Nếu tin đăng là tin vip và chưa hết thời gian đẩy 
+                if (isWithinTimePeriod(pushNewsDate, -2, 1)) { // Nếu tin đăng đang trong khoảng thời gian đẩy
                     newsIsVipAndOnTime.unshift(product);
                 } else {
-                    newsIsVipAndNotOnTime.push(product);
+                    newsIsVipAndNotOnTime.push(product); // Nếu tin đăng không trong khoảng thời gian đẩy
                 }
             } else {
-                normalNews.push(product);
+                if(isRecentNews(product.postingDate, -5, 0)) { // Nếu tin đăng là tin thường và đăng gần đây
+                    newsIsVipAndNotOnTime.push(product);
+                }else{
+                    normalNews.push(product);
+                }
             }
         });
 
 
-        // console.log("Tin vip", data); 
-        res.status(200).json(allProducts);
+        // Sắp xếp mảng normalNews theo postingDate (tin mới nhất ở đầu mảng)
+        normalNews.sort((a, b) => new Date(b.postingDate) - new Date(a.postingDate));
+
+        // Ghép 3 mảng lại (tin vip đang trong thời gian đẩy, tin vip không trong thời gian đẩy, tin thường)
+        const finalProducts = [...newsIsVipAndOnTime, ...newsIsVipAndNotOnTime, ...normalNews];
+
+        // Trả về kết quả cho client
+        res.status(200).json(finalProducts);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
