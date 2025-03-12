@@ -4,7 +4,7 @@ const User = require('../models/User');
 // Middleware bảo vệ route - yêu cầu đăng nhập
 exports.protect = async (req, res, next) => {
   let token;
-  
+
   console.log('Headers:', req.headers);
 
   // Kiểm tra header Authorization
@@ -39,7 +39,7 @@ exports.protect = async (req, res, next) => {
     }
 
     console.log('User authenticated:', user.name);
-    
+
     // Thêm thông tin người dùng vào request
     req.user = {
       id: user._id,
@@ -70,7 +70,7 @@ exports.authorize = (...roles) => {
     }
 
     console.log('User role:', req.user.role, 'Required roles:', roles);
-    
+
     if (!roles.includes(req.user.role)) {
       console.log('User does not have required role');
       return res.status(403).json({
