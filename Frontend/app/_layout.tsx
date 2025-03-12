@@ -7,9 +7,9 @@ import { useFonts } from 'expo-font';
 import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import { LogBox, StyleSheet } from 'react-native';
 
 import 'react-native-reanimated';
-import { StyleSheet } from 'react-native';
 import "../global.css";
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { store } from '../store/store';
@@ -18,6 +18,12 @@ import { RootState } from '../store/store';
 import { NotificationProvider } from '../context/NotificationContext';
 import { checkAuth } from '../store/authSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Tắt cảnh báo lỗi Text strings must be rendered within a <Text> component
+LogBox.ignoreLogs([
+  'Warning: Text strings must be rendered within a <Text> component',
+  '(NOBRIDGE) ERROR Warning: Text strings must be rendered within a <Text> component',
+]);
 
 // Prevent splash screen from auto-hiding before loading assets
 SplashScreen.preventAutoHideAsync();
