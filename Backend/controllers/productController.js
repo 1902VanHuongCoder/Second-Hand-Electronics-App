@@ -335,6 +335,7 @@ exports.getProductDetails = async (req, res) => {
                 expirationDate: product.expirationDate,
                 battery: laptop ? laptop.battery : null,
                 nameUser: user ? user.name : null,
+                userId: user ? user.id : null,
                 isPhoneHidden: user ? user.isPhoneHidden : false,
                 versionName: version ? version.versionName : null,
                 brandName: brand ? brand.brandName : null,
@@ -365,6 +366,7 @@ exports.getProductDetails = async (req, res) => {
                 postingDate: product.createdAt,
                 expirationDate: product.expirationDate,
                 nameUser: user ? user.name : null,
+                userId: user ? user.id : null,
                 isPhoneHidden: user ? user.isPhoneHidden : false,
                 versionName: version ? version.versionName : null,
                 brandName: brand ? brand.brandName : null,
@@ -394,7 +396,7 @@ exports.searchProducts = async (req, res) => {
 
         const searchRegex = new RegExp(searchTerm, 'i');
 
-        const products = await Product.find({ title: searchRegex })
+        const products = await Product.find({ title: searchRegex, isHidden: false, expirationDate: { $gt: new Date() } })
             .populate('categoryId', 'categoryName')
             .populate('versionId', 'versionName')
             .populate('userId', 'name avatarUrl')
