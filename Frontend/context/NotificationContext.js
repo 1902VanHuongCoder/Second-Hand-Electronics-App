@@ -9,7 +9,10 @@ const NotificationProvider = ({ children }) => {
         type: 'success'
     });
 
+    console.log(notifications.visible);
+
     const showNotification = (message, type) => {
+   
         setNotifications({
             visible: true,
             message,
