@@ -12,6 +12,7 @@ const Storage = require('../models/Storage');
 const StorageType = require('../models/StorageType');
 const Category = require('../models/Category');
 const Screen = require('../models/Screen');
+const stringSimilarity = require('string-similarity');
 
 // Lấy tất cả sản phẩm
 exports.getAllProducts = async (req, res) => {
@@ -37,6 +38,24 @@ exports.getProductById = async (req, res) => {
 // Thêm sản phẩm mới
 exports.createProduct = async (req, res) => {
     try {
+        const newTitle = req.body.title.toLowerCase();
+
+        const existingProducts = await Product.find({ userId: req.body.userId });
+
+        // Lấy danh sách tiêu đề cũ (chuyển về chữ thường)
+        const existingTitles = existingProducts.map(p => p.title.toLowerCase());
+
+        // So sánh tiêu đề mới với các tiêu đề cũ
+        const matches = stringSimilarity.findBestMatch(newTitle, existingTitles);
+        const bestMatch = matches.bestMatch;
+
+        if (bestMatch.rating >= 0.9) {
+            return res.status(400).json({
+                success: false,
+                message: 'Tiêu đề sản phẩm quá giống với sản phẩm đã đăng trước đó. Vui lòng chọn tiêu đề khác.'
+            });
+        }
+
         const productData = {
             categoryId: new mongoose.Types.ObjectId(req.body.categoryId),
             userId: new mongoose.Types.ObjectId(req.body.userId),
@@ -58,7 +77,7 @@ exports.createProduct = async (req, res) => {
         // Thiết lập ngày hết hạn là 60 ngày sau ngày tạo
         const createdAt = req.body.createdAt || Date.now();
         productData.createdAt = createdAt;
-        
+
         const expirationDate = new Date(createdAt);
         expirationDate.setDate(expirationDate.getDate() + 60);
         productData.expirationDate = expirationDate;
@@ -401,7 +420,7 @@ exports.toggleHideProduct = async (req, res) => {
         product.hiddenReason = product.isHidden ? reason : '';
         await product.save();
 
-        return res.status(200).json({ 
+        return res.status(200).json({
             isHidden: product.isHidden,
             hiddenReason: product.hiddenReason
         })
@@ -422,9 +441,9 @@ exports.updateProductVideo = async (req, res) => {
         // Kiểm tra xem sản phẩm có tồn tại không
         const product = await Product.findById(id);
         if (!product) {
-            return res.status(404).json({ 
-                success: false, 
-                message: 'Không tìm thấy sản phẩm' 
+            return res.status(404).json({
+                success: false,
+                message: 'Không tìm thấy sản phẩm'
             });
         }
 
@@ -436,7 +455,7 @@ exports.updateProductVideo = async (req, res) => {
         );
 
         console.log('Product video updated successfully');
-        
+
         res.status(200).json({
             success: true,
             message: 'Cập nhật video thành công',

@@ -84,10 +84,10 @@ export default function PostDetailsScreen() {
       <View style={styles.content}>
         <Text style={styles.postName}>{product.title}</Text>
         <Text style={styles.price}>{formatCurrency(product.price)} đ</Text>
-        <Text style={styles.location}>Địa chỉ: {product.address}</Text>
-        <Text style={styles.location}>Ngày đăng: {new Date(product.postingDate).toLocaleDateString()}</Text>
-        <Text style={styles.location}>Phiên bản: {product.versionName || 'Chưa có phiên bản'}</Text>
-        <Text style={styles.location}>Thương hiệu: {product.brandName || 'Chưa có thương hiệu'}</Text>
+        <Text style={styles.location} className='font-bold'>Địa chỉ: <Text className='font-normal'>{product.address}</Text></Text>
+        <Text style={styles.location} className='font-bold'>Ngày đăng: <Text className='font-normal'>{new Date(product.postingDate).toLocaleDateString()}</Text></Text>
+        <Text style={styles.location} className='font-bold'>Phiên bản: <Text className='font-normal'>{product.versionName || 'Chưa có phiên bản'}</Text></Text>
+        <Text style={styles.location} className='font-bold'>Thương hiệu: <Text className='font-normal'>{product.brandName || 'Chưa có thương hiệu'}</Text></Text>
         <Text style={styles.location} className='font-bold uppercase'>Mô tả chi tiết</Text>
         <TouchableOpacity onPress={() => setExpanded(!expanded)}>
           <Text style={styles.expandText}>
@@ -100,28 +100,72 @@ export default function PostDetailsScreen() {
           </Text>
         )}
         <Text style={styles.specs} className='font-bold uppercase'>Thông số kỹ thuật</Text>
-        <View style={styles.specsContainer}>
-          <View style={styles.specItem}>
-            <Ionicons name="hardware-chip-outline" size={24} color="black" className='font-bold' />
-            <Text style={styles.specText} className='font-bold'>CPU: <Text className='font-normal'>{product.cpuName}</Text></Text>
+        {product.type === 'laptop' && (
+          <View style={styles.specsContainer}>
+            <View style={styles.specItem}>
+              <Ionicons name="hardware-chip-outline" size={24} color="black" />
+              <Text style={styles.specText}>
+                <Text style={{ fontWeight: 'bold' }}>CPU: </Text>
+                {product.cpuName}
+              </Text>
+            </View>
+            <View style={styles.specItem}>
+              <Ionicons name="at-sharp" size={24} color="black" />
+              <Text style={styles.specText}>
+                <Text style={{ fontWeight: 'bold' }}>RAM: </Text>
+                {product.ramCapacity}
+              </Text>
+            </View>
+            <View style={styles.specItem}>
+              <Ionicons name="disc-outline" size={24} color="black" />
+              <Text style={styles.specText}>
+                <Text style={{ fontWeight: 'bold' }}>Dung lượng bộ nhớ: </Text>
+                {product.storageCapacity} ({product.storageType})
+              </Text>
+            </View>
+            <View style={styles.specItem}>
+              <Ionicons name="laptop-outline" size={24} color="black" />
+              <Text style={styles.specText}>
+                <Text style={{ fontWeight: 'bold' }}>Màn hình: </Text>
+                {product.screenSize}
+              </Text>
+            </View>
+            <View style={styles.specItem}>
+              <Ionicons name="battery-charging-outline" size={24} color="black" />
+              <Text style={styles.specText}>
+                <Text style={{ fontWeight: 'bold' }}>Dung lượng bộ pin: </Text>
+                {product.battery}
+              </Text>
+            </View>
           </View>
-          <View style={styles.specItem}>
-            <Ionicons name="at-sharp" size={24} color="black" />
-            <Text style={styles.specText} className='font-bold'>RAM: <Text className='font-normal'>{product.ramCapacity}</Text></Text>
+        )}
+
+        {product.type === 'phone' && (
+          <View style={styles.specsContainer}>
+            <View style={styles.specItem}>
+              <Ionicons name="at-sharp" size={24} color="black" />
+              <Text style={styles.specText}>
+                <Text style={{ fontWeight: 'bold' }}>RAM: </Text>
+                {product.ramCapacity}
+              </Text>
+            </View>
+            <View style={styles.specItem}>
+              <Ionicons name="disc-outline" size={24} color="black" />
+              <Text style={styles.specText}>
+                <Text style={{ fontWeight: 'bold' }}>Dung lượng bộ nhớ: </Text>
+                {product.storageCapacity}
+              </Text>
+            </View>
+            <View style={styles.specItem}>
+              <Ionicons name="battery-charging-outline" size={24} color="black" />
+              <Text style={styles.specText}>
+                <Text style={{ fontWeight: 'bold' }}>Dung lượng pin: </Text>
+                {product.battery}
+              </Text>
+            </View>
           </View>
-          <View style={styles.specItem}>
-            <Ionicons name="disc-outline" size={24} color="black" />
-            <Text style={styles.specText} className='font-bold'>Storage: <Text className='font-normal'>{product.storageCapacity} ({product.storageType})</Text></Text>
-          </View>
-          <View style={styles.specItem}>
-            <Ionicons name="laptop-outline" size={24} color="black" />
-            <Text style={styles.specText} className='font-bold'>Display: <Text className='font-normal'>{product.screenSize}</Text></Text>
-          </View>
-          <View style={styles.specItem}>
-            <Ionicons name="battery-charging-outline" size={24} color="black" />
-            <Text style={styles.specText} className='font-bold'>Battery: <Text className='font-normal'>{product.battery}</Text></Text>
-          </View>
-        </View>
+        )}
+
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={[
             styles.buttonWrapper,
@@ -292,6 +336,7 @@ const styles = StyleSheet.create({
   location: {
     fontSize: 16,
     marginVertical: 10,
+    fontWeight: 'bold',
   },
   details: {
     fontSize: 16,
@@ -341,7 +386,7 @@ const styles = StyleSheet.create({
     gap: 5,
     width: '100%',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 20,
+    borderRadius: 15,
     padding: 10,
   },
   navigateButtonFlatList: {
@@ -362,16 +407,16 @@ const styles = StyleSheet.create({
   },
   expandText: {
     fontSize: 18,
-    color: 'blue',
     textAlign: 'center',
+    color: '#9661D9',
+    fontWeight: 600
   },
   expandedText: {
     fontSize: 16,
     marginVertical: 10,
-    fontWeight: 600
   },
   postName: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
     marginVertical: 10,
     fontFamily: 'Knewave',

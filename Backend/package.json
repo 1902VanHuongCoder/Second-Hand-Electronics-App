@@ -102,6 +102,7 @@
     "socket.io": "^4.8.1",
     "sparse-bitfield": "^3.0.3",
     "statuses": "^2.0.1",
+    "string-similarity": "^4.0.4",
     "toidentifier": "^1.0.1",
     "tr46": "^5.0.0",
     "type-is": "^1.6.18",
