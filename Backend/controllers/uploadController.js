@@ -6,6 +6,7 @@ const axios = require('axios');
 const fs = require('fs');
 const sharp = require('sharp');
 const ImageHash = require('../models/ImageHash');
+const Product = require('../models/Product');
 
 // Cấu hình multer storage
 const storage = multer.diskStorage({
@@ -58,7 +59,7 @@ async function getExistingImages() {
   }
 }
 
-// Hàm tạo pHash
+// Hàm tạo pHash cải tiến
 async function generatePHash(imagePath) {
   try {
     const buffer = await sharp(imagePath)
@@ -82,6 +83,109 @@ async function generatePHash(imagePath) {
   }
 }
 
+// Hàm tạo vector đặc trưng nâng cao cho ảnh
+async function generateFeatureVector(imagePath) {
+  try {
+    // Sử dụng sharp để xử lý ảnh và trích xuất đặc trưng
+    const metadata = await sharp(imagePath).metadata();
+    
+    // Tạo buffer ảnh đã resize để xử lý nhất quán
+    const buffer = await sharp(imagePath)
+      .resize(64, 64, { fit: 'fill' })
+      .removeAlpha()
+      .raw()
+      .toBuffer();
+    
+    const pixels = new Uint8Array(buffer);
+    
+    // Tính toán vector đặc trưng dựa trên phân vùng ảnh
+    // Chia ảnh thành 16 vùng (4x4) và tính giá trị trung bình của mỗi vùng
+    const featureVector = [];
+    const regionSize = 16; // 64/4 = 16 pixels per region
+    const channels = metadata.channels || 3;
+    
+    for (let y = 0; y < 4; y++) {
+      for (let x = 0; x < 4; x++) {
+        for (let c = 0; c < channels; c++) {
+          let sum = 0;
+          let count = 0;
+          
+          // Tính giá trị trung bình của từng kênh màu trong vùng
+          for (let ry = 0; ry < regionSize; ry++) {
+            for (let rx = 0; rx < regionSize; rx++) {
+              const pixelIndex = ((y * regionSize + ry) * 64 + (x * regionSize + rx)) * channels + c;
+              if (pixelIndex < pixels.length) {
+                sum += pixels[pixelIndex];
+                count++;
+              }
+            }
+          }
+          
+          featureVector.push(count > 0 ? sum / count : 0);
+        }
+      }
+    }
+    
+    // Thêm một số đặc trưng toàn cục
+    // Histogram đơn giản cho mỗi kênh màu (chia thành 8 bins)
+    const histograms = Array(channels * 8).fill(0);
+    for (let i = 0; i < pixels.length; i++) {
+      const channel = i % channels;
+      const bin = Math.floor(pixels[i] / 32); // 256/8 = 32
+      histograms[channel * 8 + bin]++;
+    }
+    
+    // Chuẩn hóa histogram
+    const pixelCount = pixels.length / channels;
+    for (let i = 0; i < histograms.length; i++) {
+      histograms[i] /= pixelCount;
+      featureVector.push(histograms[i]);
+    }
+    
+    return {
+      featureVector,
+      dimensions: {
+        width: metadata.width,
+        height: metadata.height
+      },
+      features: {
+        format: metadata.format,
+        size: metadata.size,
+        channels: metadata.channels
+      }
+    };
+  } catch (error) {
+    console.error('Error generating feature vector:', error);
+    throw error;
+  }
+}
+
+// Hàm tính khoảng cách cosine giữa hai vector
+function cosineSimilarity(vector1, vector2) {
+  if (vector1.length !== vector2.length) {
+    throw new Error('Vectors must have the same length');
+  }
+  
+  let dotProduct = 0;
+  let magnitude1 = 0;
+  let magnitude2 = 0;
+  
+  for (let i = 0; i < vector1.length; i++) {
+    dotProduct += vector1[i] * vector2[i];
+    magnitude1 += vector1[i] * vector1[i];
+    magnitude2 += vector2[i] * vector2[i];
+  }
+  
+  magnitude1 = Math.sqrt(magnitude1);
+  magnitude2 = Math.sqrt(magnitude2);
+  
+  if (magnitude1 === 0 || magnitude2 === 0) {
+    return 0;
+  }
+  
+  return dotProduct / (magnitude1 * magnitude2);
+}
+
 // Hàm tính khoảng cách Hamming
 function getHammingDistance(hash1, hash2) {
   let distance = 0;
@@ -91,6 +195,63 @@ function getHammingDistance(hash1, hash2) {
     }
   }
   return distance;
+}
+
+// Hàm kiểm tra ảnh trùng lặp nâng cao
+async function checkDuplicateImage(imagePath, threshold = 0.85) {
+  try {
+    // Tạo hash và vector đặc trưng cho ảnh mới
+    const hash = await generatePHash(imagePath);
+    const { featureVector, dimensions, features } = await generateFeatureVector(imagePath);
+    
+    // Lấy danh sách hash từ cơ sở dữ liệu
+    const existingImages = await ImageHash.find({}, 'hash imageUrl featureVector');
+    
+    // Kết quả kiểm tra
+    const results = [];
+    
+    for (const existingImage of existingImages) {
+      // Kiểm tra bằng khoảng cách Hamming trước (nhanh hơn)
+      const hammingDistance = getHammingDistance(hash, existingImage.hash);
+      
+      // Nếu khoảng cách Hamming đủ nhỏ, tiếp tục kiểm tra bằng vector đặc trưng
+      if (hammingDistance < 80) {
+        let similarity = 0;
+        
+        // Nếu ảnh đã có vector đặc trưng, tính độ tương đồng cosine
+        if (existingImage.featureVector && existingImage.featureVector.length > 0) {
+          similarity = cosineSimilarity(featureVector, existingImage.featureVector);
+        }
+        
+        results.push({
+          imageUrl: existingImage.imageUrl,
+          hammingDistance,
+          similarity,
+          isDuplicate: hammingDistance < 10 || similarity > threshold
+        });
+      }
+    }
+    
+    // Sắp xếp kết quả theo độ tương đồng giảm dần
+    results.sort((a, b) => {
+      if (a.similarity !== b.similarity) {
+        return b.similarity - a.similarity;
+      }
+      return a.hammingDistance - b.hammingDistance;
+    });
+    
+    return {
+      hash,
+      featureVector,
+      dimensions,
+      features,
+      duplicates: results.filter(r => r.isDuplicate),
+      similarImages: results
+    };
+  } catch (error) {
+    console.error('Error checking duplicate image:', error);
+    throw error;
+  }
 }
 
 // Thêm hàm helper để xóa file
@@ -109,43 +270,28 @@ exports.uploadMulti = async (req, res) => {
   try {
     const files = req.files;
     const duplicateFiles = [];
-    const seenHashes = new Set();
+    const duplicateDetails = [];
 
-    // Lấy hash từ cơ sở dữ liệu thay vì tạo lại
-    const existingImageData = await getExistingImages();
-    const existingHashes = existingImageData.map(item => item.hash);
-
-    // Kiểm tra trùng lặp trước khi upload
+    // Kiểm tra trùng lặp trước khi upload sử dụng thuật toán nâng cao
     for (const file of files) {
       tempFiles.push(file.path);
       try {
-        const newHash = await generatePHash(file.path);
-        let isDuplicate = false;
-
-        // Kiểm tra với ảnh đã có
-        for (const existingHash of existingHashes) {
-          const distance = getHammingDistance(newHash, existingHash);
-          if (distance < 20) {
-            isDuplicate = true;
-            duplicateFiles.push(file.originalname);
-            break;
-          }
-        }
-
-        // Kiểm tra với ảnh trong cùng lần upload
-        if (!isDuplicate) {
-          for (const seenHash of seenHashes) {
-            const distance = getHammingDistance(newHash, seenHash);
-            if (distance < 10) {
-              isDuplicate = true;
-              duplicateFiles.push(file.originalname);
-              break;
-            }
-          }
-        }
-
-        if (!isDuplicate) {
-          seenHashes.add(newHash);
+        // Sử dụng thuật toán kiểm tra ảnh trùng lặp nâng cao
+        const result = await checkDuplicateImage(file.path);
+        
+        if (result.duplicates.length > 0) {
+          isDuplicate = true;
+          duplicateFiles.push(file.originalname);
+          
+          // Lưu chi tiết về ảnh trùng lặp
+          duplicateDetails.push({
+            fileName: file.originalname,
+            duplicateWith: result.duplicates.map(d => ({
+              imageUrl: d.imageUrl,
+              similarity: d.similarity,
+              hammingDistance: d.hammingDistance
+            }))
+          });
         }
       } catch (error) {
         console.error('Error processing file:', error);
@@ -162,7 +308,8 @@ exports.uploadMulti = async (req, res) => {
         message: 'Phát hiện ảnh trùng lặp',
         details: { 
           isDuplicate: true,
-          inappropriateFiles: duplicateFiles
+          inappropriateFiles: duplicateFiles,
+          duplicateDetails: duplicateDetails
         }
       });
     }
@@ -176,14 +323,20 @@ exports.uploadMulti = async (req, res) => {
         });
         urls.push(result.secure_url);
         
-        // Lưu hash vào cơ sở dữ liệu
+        // Tạo hash và vector đặc trưng cho ảnh
         const hash = await generatePHash(file.path);
+        const { featureVector, dimensions, features } = await generateFeatureVector(file.path);
         const publicId = getPublicIdFromUrl(result.secure_url);
         
+        // Lưu thông tin đầy đủ vào cơ sở dữ liệu
         await ImageHash.create({
           imageUrl: result.secure_url,
           publicId: publicId,
-          hash: hash
+          hash: hash,
+          featureVector: featureVector,
+          dimensions: dimensions,
+          features: features,
+          processedByAdvancedAlgorithm: true
         });
       } catch (error) {
         console.error('Error uploading file:', error);
@@ -266,11 +419,11 @@ exports.uploadAvatar = async (req, res) => {
 };
 
 // Hàm lấy public_id từ secure_url của Cloudinary
-const getPublicIdFromUrl = (url) => {
+const getPublicIdFromUrl = (url, resourceType = 'image') => {
   try {
     // Giải mã URL nếu nó đã được mã hóa
     const decodedUrl = decodeURIComponent(url);
-    console.log('Decoding URL for publicId extraction:', decodedUrl);
+    console.log(`Decoding ${resourceType} URL for publicId extraction:`, decodedUrl);
     
     // Kiểm tra xem URL có phải là URL Cloudinary không
     if (!decodedUrl.includes('cloudinary.com')) {
@@ -278,9 +431,13 @@ const getPublicIdFromUrl = (url) => {
       return null;
     }
     
-    // Xử lý URL có chứa profile_pictures
-    if (decodedUrl.includes('profile_pictures')) {
-      console.log('URL contains profile_pictures');
+    // Xác định folder mặc định dựa vào loại resource
+    const defaultFolder = resourceType === 'video' ? 'videos' : 'profile_pictures';
+    const resourceTypeInUrl = resourceType === 'video' ? '/video/' : '/image/';
+    
+    // Xử lý URL có chứa folder mặc định
+    if (decodedUrl.includes(defaultFolder) || decodedUrl.includes(resourceTypeInUrl)) {
+      console.log(`URL contains ${defaultFolder} or ${resourceTypeInUrl}`);
       
       // Trích xuất phần sau /upload/ từ URL
       const uploadIndex = decodedUrl.indexOf('/upload/');
@@ -293,25 +450,30 @@ const getPublicIdFromUrl = (url) => {
         const pathWithoutVersion = pathAfterUpload.replace(versionRegex, '');
         console.log('Path without version:', pathWithoutVersion);
         
-        // Loại bỏ phần mở rộng file (.jpg, .png, etc.)
+        // Loại bỏ phần mở rộng file (.jpg, .png, .mp4, etc.)
         const extensionIndex = pathWithoutVersion.lastIndexOf('.');
         const publicIdWithoutExt = extensionIndex !== -1 
           ? pathWithoutVersion.substring(0, extensionIndex) 
           : pathWithoutVersion;
         
-        // Đảm bảo publicId bắt đầu với 'profile_pictures/'
-        const publicId = publicIdWithoutExt.startsWith('profile_pictures/') 
-          ? publicIdWithoutExt 
-          : `profile_pictures/${publicIdWithoutExt.split('/').pop()}`;
+        // Đảm bảo publicId bắt đầu với folder mặc định nếu cần
+        if (decodedUrl.includes(defaultFolder)) {
+          const publicId = publicIdWithoutExt.startsWith(`${defaultFolder}/`) 
+            ? publicIdWithoutExt 
+            : `${defaultFolder}/${publicIdWithoutExt.split('/').pop()}`;
+          
+          console.log(`Extracted publicId for ${resourceType}:`, publicId);
+          return publicId;
+        }
         
-        console.log('Extracted publicId for profile picture:', publicId);
-        return publicId;
+        console.log(`Extracted publicId for ${resourceType}:`, publicIdWithoutExt);
+        return publicIdWithoutExt;
       }
     }
     
     // Xử lý các định dạng URL Cloudinary khác nhau
-    // Format 1: https://res.cloudinary.com/cloudname/image/upload/v1234567890/folder/filename.jpg
-    // Format 2: https://res.cloudinary.com/cloudname/image/upload/folder/filename.jpg
+    // Format 1: https://res.cloudinary.com/cloudname/{resource_type}/upload/v1234567890/folder/filename.ext
+    // Format 2: https://res.cloudinary.com/cloudname/{resource_type}/upload/folder/filename.ext
     
     // Trích xuất phần sau /upload/ từ URL
     const uploadIndex = decodedUrl.indexOf('/upload/');
@@ -324,13 +486,13 @@ const getPublicIdFromUrl = (url) => {
       const pathWithoutVersion = pathAfterUpload.replace(versionRegex, '');
       console.log('Path without version:', pathWithoutVersion);
       
-      // Loại bỏ phần mở rộng file (.jpg, .png, etc.)
+      // Loại bỏ phần mở rộng file (.jpg, .png, .mp4, etc.)
       const extensionIndex = pathWithoutVersion.lastIndexOf('.');
       const publicId = extensionIndex !== -1 
         ? pathWithoutVersion.substring(0, extensionIndex) 
         : pathWithoutVersion;
       
-      console.log('Extracted publicId:', publicId);
+      console.log(`Extracted publicId for ${resourceType}:`, publicId);
       return publicId;
     }
     
@@ -347,75 +509,20 @@ const getPublicIdFromUrl = (url) => {
       const folder = folderMatch ? folderMatch[1] : '';
       
       const publicId = folder ? `${folder}/${filenameWithoutExt}` : filenameWithoutExt;
-      console.log('Extracted publicId (alternative method):', publicId);
+      console.log(`Extracted publicId for ${resourceType} (alternative method):`, publicId);
       return publicId;
     }
     
     return null;
   } catch (error) {
-    console.error('Error extracting publicId from URL:', error);
+    console.error(`Error extracting publicId from ${resourceType} URL:`, error);
     return null;
   }
 };
 
-// Hàm trích xuất publicId từ URL video
+// Hàm trích xuất publicId từ URL video - giữ lại để tương thích với code hiện tại
 const getPublicIdFromVideoUrl = (url) => {
-  try {
-    // Giải mã URL nếu nó đã được mã hóa
-    const decodedUrl = decodeURIComponent(url);
-    console.log('Decoding video URL for publicId extraction:', decodedUrl);
-    
-    // Kiểm tra xem URL có phải là URL Cloudinary không
-    if (!decodedUrl.includes('cloudinary.com')) {
-      console.log('Not a Cloudinary URL:', decodedUrl);
-      return null;
-    }
-    
-    // Xử lý URL video
-    // Format: https://res.cloudinary.com/cloudname/video/upload/v1234567890/videos/filename.mp4
-    
-    // Trích xuất phần sau /upload/ từ URL
-    const uploadIndex = decodedUrl.indexOf('/upload/');
-    if (uploadIndex !== -1) {
-      const pathAfterUpload = decodedUrl.substring(uploadIndex + 8); // +8 để bỏ qua '/upload/'
-      console.log('Path after /upload/ (video):', pathAfterUpload);
-      
-      // Loại bỏ phần version nếu có (v1234567890/)
-      const versionRegex = /^v\d+\//;
-      const pathWithoutVersion = pathAfterUpload.replace(versionRegex, '');
-      console.log('Path without version (video):', pathWithoutVersion);
-      
-      // Loại bỏ phần mở rộng file (.mp4, etc.)
-      const extensionIndex = pathWithoutVersion.lastIndexOf('.');
-      const publicIdWithoutExt = extensionIndex !== -1 
-        ? pathWithoutVersion.substring(0, extensionIndex) 
-        : pathWithoutVersion;
-      
-      console.log('Extracted publicId for video:', publicIdWithoutExt);
-      return publicIdWithoutExt;
-    }
-    
-    // Thử phương pháp khác nếu không tìm thấy /upload/
-    const parts = decodedUrl.split('/');
-    const filename = parts[parts.length - 1];
-    const filenameWithoutExt = filename.split('.')[0];
-    
-    // Kiểm tra xem có phải là URL Cloudinary không và có chứa /video/ không
-    if (decodedUrl.includes('cloudinary.com') && decodedUrl.includes('/video/')) {
-      // Tìm folder từ URL
-      const folderMatch = decodedUrl.match(/\/([^\/]+)\/[^\/]+$/);
-      const folder = folderMatch ? folderMatch[1] : '';
-      
-      const publicId = folder ? `${folder}/${filenameWithoutExt}` : filenameWithoutExt;
-      console.log('Extracted video publicId (alternative method):', publicId);
-      return publicId;
-    }
-    
-    return null;
-  } catch (error) {
-    console.error('Error extracting publicId from video URL:', error);
-    return null;
-  }
+  return getPublicIdFromUrl(url, 'video');
 };
 
 // Hàm xóa ảnh trên Cloudinary
@@ -444,55 +551,31 @@ const deleteCloudinaryImage = async (imageUrl) => {
     // Xóa hash khỏi cơ sở dữ liệu
     if (result.result === 'ok') {
       try {
+        // Tìm thông tin ảnh trước khi xóa
+        const imageData = await ImageHash.findOne({ imageUrl: imageUrl });
+        
+        // Xóa bản ghi từ cơ sở dữ liệu
         await ImageHash.findOneAndDelete({ imageUrl: imageUrl });
         console.log('Deleted image hash from database for URL:', imageUrl);
+        
+        // Kiểm tra xem ảnh có liên kết với sản phẩm nào không
+        if (imageData && imageData.productId) {
+          // Cập nhật sản phẩm để xóa ảnh khỏi mảng images
+          await Product.updateOne(
+            { _id: imageData.productId },
+            { $pull: { images: imageUrl } }
+          );
+          console.log('Removed image reference from product:', imageData.productId);
+        }
+        
+        return { result: 'ok', message: 'Image deleted successfully' };
       } catch (dbError) {
         console.error('Error deleting image hash from database:', dbError);
+        return { result: 'partial', message: 'Image deleted from Cloudinary but failed to update database', error: dbError.message };
       }
+    } else {
+      return { result: 'error', error: 'Failed to delete image from Cloudinary', cloudinaryResult: result };
     }
-    
-    if (result.result === 'not found') {
-      // Thử lại với một số biến thể của publicId
-      console.log('Resource not found, trying alternative public ID formats...');
-      
-      // Thử với tên file không có đường dẫn
-      const filename = publicId.split('/').pop();
-      console.log('Trying with filename only:', filename);
-      const result2 = await cloudinary.uploader.destroy(filename);
-      console.log('Second attempt result (filename only):', result2);
-      
-      if (result2.result === 'ok') {
-        // Xóa hash khỏi cơ sở dữ liệu
-        try {
-          await ImageHash.findOneAndDelete({ imageUrl: imageUrl });
-          console.log('Deleted image hash from database for URL (second attempt):', imageUrl);
-        } catch (dbError) {
-          console.error('Error deleting image hash from database:', dbError);
-        }
-        return result2;
-      }
-      
-      // Thử với đường dẫn đầy đủ không có prefix
-      console.log('Trying with profile_pictures prefix...');
-      const fullPath = publicId.includes('/') ? publicId : `profile_pictures/${publicId}`;
-      const result3 = await cloudinary.uploader.destroy(fullPath);
-      console.log('Third attempt result (with profile_pictures prefix):', result3);
-      
-      if (result3.result === 'ok') {
-        // Xóa hash khỏi cơ sở dữ liệu
-        try {
-          await ImageHash.findOneAndDelete({ imageUrl: imageUrl });
-          console.log('Deleted image hash from database for URL (third attempt):', imageUrl);
-        } catch (dbError) {
-          console.error('Error deleting image hash from database:', dbError);
-        }
-        return result3;
-      }
-      
-      return result;
-    }
-    
-    return result;
   } catch (error) {
     console.error('Error deleting image from Cloudinary:', error);
     return { result: 'error', error: error.message };
@@ -512,53 +595,32 @@ const deleteCloudinaryVideo = async (videoUrl) => {
       return { result: 'error', error: 'Invalid video public ID' };
     }
     
-    try {
-      console.log('Calling cloudinary.uploader.destroy with video publicId:', publicId);
-      const result = await cloudinary.uploader.destroy(publicId, { resource_type: 'video' });
-      console.log('Cloudinary delete video result:', result);
-      
-      if (result.result === 'not found') {
-        // Thử lại với một số biến thể của publicId
-        console.log('Video resource not found, trying alternative public ID formats...');
+    // Mảng các phiên bản publicId để thử
+    const publicIdVariations = [
+      publicId, // Thử publicId gốc trước
+      publicId.split('/').pop(), // Chỉ tên file
+      publicId.includes('/') ? publicId : `videos/${publicId}`, // Thêm prefix videos
+      publicId.includes('videos/') ? publicId.replace('videos/', '') : publicId // Bỏ prefix videos
+    ];
+    
+    // Thử lần lượt từng phiên bản publicId
+    for (const idVariation of publicIdVariations) {
+      try {
+        console.log('Trying to delete video with publicId:', idVariation);
+        const result = await cloudinary.uploader.destroy(idVariation, { resource_type: 'video' });
+        console.log('Cloudinary delete video result:', result);
         
-        // Thử với tên file không có đường dẫn
-        const filename = publicId.split('/').pop();
-        console.log('Trying with video filename only:', filename);
-        const result2 = await cloudinary.uploader.destroy(filename, { resource_type: 'video' });
-        console.log('Second attempt result for video (filename only):', result2);
-        
-        if (result2.result === 'ok') {
-          return result2;
+        if (result.result === 'ok') {
+          return result;
         }
-        
-        // Thử với đường dẫn đầy đủ với prefix videos
-        console.log('Trying with videos prefix...');
-        const fullPath = publicId.includes('/') ? publicId : `videos/${publicId}`;
-        const result3 = await cloudinary.uploader.destroy(fullPath, { resource_type: 'video' });
-        console.log('Third attempt result for video (with videos prefix):', result3);
-        
-        if (result3.result === 'ok') {
-          return result3;
-        }
-        
-        // Thử với đường dẫn không có videos prefix
-        if (publicId.includes('videos/')) {
-          console.log('Trying without videos prefix...');
-          const withoutPrefix = publicId.replace('videos/', '');
-          const result4 = await cloudinary.uploader.destroy(withoutPrefix, { resource_type: 'video' });
-          console.log('Fourth attempt result for video (without videos prefix):', result4);
-          
-          if (result4.result === 'ok') {
-            return result4;
-          }
-        }
+      } catch (err) {
+        console.error(`Error deleting video with publicId ${idVariation}:`, err);
+        // Tiếp tục với phiên bản tiếp theo
       }
-      
-      return result;
-    } catch (error) {
-      console.error('Error deleting video from Cloudinary:', error);
-      return { result: 'error', error: error.message };
     }
+    
+    // Nếu không có phiên bản nào thành công
+    return { result: 'not found', message: 'Video could not be found or deleted' };
   } catch (error) {
     console.error('Error in deleteCloudinaryVideo:', error);
     return { result: 'error', error: error.message };
@@ -704,54 +766,7 @@ exports.deleteImage = async (req, res) => {
   }
 };
 
-// Hàm xóa ảnh với body thay vì params
-exports.deleteImageWithBody = async (req, res) => {
-  try {
-    const { imageUrl } = req.body;
-    console.log('Received URL to delete (from body):', imageUrl);
-    
-    if (!imageUrl || typeof imageUrl !== 'string') {
-      return res.status(400).json({
-        success: false,
-        message: 'URL ảnh không hợp lệ'
-      });
-    }
 
-    // Xử lý URL nếu cần
-    let processedUrl = imageUrl;
-    // Nếu URL không bắt đầu bằng http hoặc https, thêm vào
-    if (!processedUrl.startsWith('http')) {
-      processedUrl = `https://${processedUrl}`;
-    }
-    
-    console.log('Processed URL:', processedUrl);
-    
-    // Gọi hàm xóa ảnh
-    const result = await deleteCloudinaryImage(processedUrl);
-    console.log('Delete result:', result);
-    
-    if (result && result.result === 'ok') {
-      res.json({
-        success: true,
-        message: 'Đã xóa ảnh thành công',
-        result: result
-      });
-    } else {
-      res.status(400).json({
-        success: false,
-        message: 'Không thể xóa ảnh',
-        result: result
-      });
-    }
-  } catch (error) {
-    console.error('Lỗi khi xóa ảnh:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Lỗi khi xóa ảnh',
-      error: error.message
-    });
-  }
-};
 
 // Hàm xóa video từ Cloudinary
 exports.deleteVideo = async (req, res) => {
@@ -829,85 +844,6 @@ exports.deleteVideo = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Lỗi khi xóa video',
-      error: error.message
-    });
-  }
-};
-
-// Hàm khởi tạo dữ liệu hash cho các ảnh đã tồn tại
-exports.initializeImageHashes = async (req, res) => {
-  try {
-    // Lấy danh sách ảnh từ Cloudinary
-    const response = await cloudinary.api.resources({
-      type: 'upload',
-      prefix: 'profile_pictures/',
-      max_results: 500,
-    });
-    
-    const existingImages = response.resources.map(resource => resource.secure_url);
-    const results = {
-      total: existingImages.length,
-      processed: 0,
-      success: 0,
-      failed: 0,
-      skipped: 0,
-      errors: []
-    };
-    
-    // Xử lý từng ảnh
-    for (const imageUrl of existingImages) {
-      results.processed++;
-      
-      try {
-        // Kiểm tra xem ảnh đã có hash trong cơ sở dữ liệu chưa
-        const existingHash = await ImageHash.findOne({ imageUrl: imageUrl });
-        if (existingHash) {
-          results.skipped++;
-          continue; // Bỏ qua nếu đã có
-        }
-        
-        // Lấy publicId từ URL
-        const publicId = getPublicIdFromUrl(imageUrl);
-        if (!publicId) {
-          results.failed++;
-          results.errors.push(`Không thể trích xuất publicId cho ${imageUrl}`);
-          continue;
-        }
-        
-        // Tải ảnh về và tạo hash
-        const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-        const tempPath = `./uploads/temp_${Date.now()}.jpg`;
-        fs.writeFileSync(tempPath, response.data);
-        
-        // Tạo hash và lưu vào cơ sở dữ liệu
-        const hash = await generatePHash(tempPath);
-        await ImageHash.create({
-          imageUrl: imageUrl,
-          publicId: publicId,
-          hash: hash
-        });
-        
-        // Xóa file tạm
-        await deleteFile(tempPath);
-        
-        results.success++;
-      } catch (error) {
-        results.failed++;
-        results.errors.push(`Lỗi xử lý ${imageUrl}: ${error.message}`);
-        console.error(`Error processing image ${imageUrl}:`, error);
-      }
-    }
-    
-    res.json({
-      success: true,
-      message: 'Đã khởi tạo dữ liệu hash cho các ảnh hiện có',
-      results: results
-    });
-  } catch (error) {
-    console.error('Error initializing image hashes:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Lỗi khi khởi tạo dữ liệu hash',
       error: error.message
     });
   }
