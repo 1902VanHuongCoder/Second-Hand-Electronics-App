@@ -198,20 +198,20 @@ export default function HomePage() {
 
   const handleReasonSelect = async (reason: string) => {
     setSelectedReason(reason);
-    
+
     if (!user) {
       showNotification("Vui lòng đăng nhập để báo cáo bài đăng", "error");
       setReportVisible(false);
       return;
     }
-    
+
     // Kiểm tra token
     if (!user.token) {
       showNotification("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại", "error");
       setReportVisible(false);
       return;
     }
-    
+
     // Kiểm tra xem người dùng có đang báo cáo chính mình không
     if (selectedProductId && user.id) {
       const selectedProduct = products.find(product => product.id === selectedProductId);
@@ -221,7 +221,7 @@ export default function HomePage() {
         return;
       }
     }
-    
+
     try {
       const response = await axios.post('http://10.0.2.2:5000/api/reports', {
         productId: selectedProductId,
@@ -233,7 +233,7 @@ export default function HomePage() {
           'Authorization': `Bearer ${user.token}`
         }
       });
-      
+
       showNotification("Báo cáo đã được gửi thành công", "success");
       setReportVisible(false);
     } catch (error: any) {
@@ -253,7 +253,7 @@ export default function HomePage() {
 
   const handleSearch = () => {
     if (!searchTerm.trim()) {
-      Alert.alert("Thông báo", "Vui lòng nhập thông tin tìm kiếm.");
+      showNotification("error", "Vui lòng nhập thông tin tìm kiếm.");
       return;
     }
     router.push(`/searchResults?searchTerm=${encodeURIComponent(searchTerm.trim())}`);
@@ -301,16 +301,17 @@ export default function HomePage() {
     setProducts(filtered);
   };
 
-
-  console.log(products); 
-
   return (
     <View className="p-4 relative" style={{ flex: 1 }}>
-      <Notification
-        message={notifications.message}
-        type={notifications.type}
-        visible={notifications.visible}
-      />
+      {/* {notifications.visible && <>
+        <Notification
+          message={notifications.message}
+          type={notifications.type}
+          visible={notifications.visible}
+        />
+      </>
+       
+      } */}
       <View className="flex-row justify-between items-center border-b-2 pb-6 pt-2 border-[#D9D9D9]">
         <TextInput
           className="border-2 border-[#D9D9D9] w-2/3 px-2 py-4 text-[#000] rounded-lg font-semibold"
