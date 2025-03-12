@@ -51,7 +51,7 @@ const productSchema = new mongoose.Schema({
     },
     isHidden: { type: Boolean, default: false },
     hiddenReason: { type: String, default: '' },
-    newsPushDay: { type: Date },
+    newsPushDay: { type: Date }, // Ngày hết hạn 
     pushNews: { type: Date },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },

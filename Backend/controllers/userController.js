@@ -61,11 +61,11 @@ exports.login = async (req, res) => {
 
     const token = jwt.sign(
       { id: user._id },
-      process.env.JWT_SECRET, // Nên đặt trong biến môi trường
+      process.env.JWT_SECRET || 'your_jwt_secret', // Fallback nếu không có biến môi trường
       { expiresIn: '30d' }
     );
 
-    console.log('JWT_SECRET:', process.env.JWT_SECRET);
+    console.log('JWT_SECRET:', process.env.JWT_SECRET ? 'Using environment variable' : 'Using fallback secret');
     console.log('User ID:', user._id);
 
     res.json({
@@ -78,7 +78,8 @@ exports.login = async (req, res) => {
         name: user.name, 
         email: user.email,
         address: user.address,
-        avatarUrl: user.avatarUrl 
+        avatarUrl: user.avatarUrl,
+        role: user.role || 'user'
       }
       
     });
@@ -120,7 +121,8 @@ exports.updateUser = async (req, res) => {
         name: user.name,
         email: user.email,
         address: user.address,
-        avatarUrl: user.avatarUrl
+        avatarUrl: user.avatarUrl,
+        role: user.role || 'user'
       }
     });
   } catch (error) {

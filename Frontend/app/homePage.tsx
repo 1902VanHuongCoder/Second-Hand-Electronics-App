@@ -196,9 +196,55 @@ export default function HomePage() {
     setReportVisible(!reportVisible);
   };
 
-  const handleReasonSelect = (reason: string) => {
+  const handleReasonSelect = async (reason: string) => {
     setSelectedReason(reason);
-    alert(`Bạn đã chọn lý do: ${reason}`);
+    
+    if (!user) {
+      showNotification("Vui lòng đăng nhập để báo cáo bài đăng", "error");
+      setReportVisible(false);
+      return;
+    }
+    
+    // Kiểm tra token
+    if (!user.token) {
+      showNotification("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại", "error");
+      setReportVisible(false);
+      return;
+    }
+    
+    // Kiểm tra xem người dùng có đang báo cáo chính mình không
+    if (selectedProductId && user.id) {
+      const selectedProduct = products.find(product => product.id === selectedProductId);
+      if (selectedProduct && selectedProduct.userId === user.id) {
+        showNotification("Bạn không thể báo cáo sản phẩm của chính mình", "error");
+        setReportVisible(false);
+        return;
+      }
+    }
+    
+    try {
+      const response = await axios.post('http://10.0.2.2:5000/api/reports', {
+        productId: selectedProductId,
+        reason: reason,
+        description: ''
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.token}`
+        }
+      });
+      
+      showNotification("Báo cáo đã được gửi thành công", "success");
+      setReportVisible(false);
+    } catch (error: any) {
+      // Xử lý lỗi một cách đơn giản hơn
+      if (error.response && error.response.data && error.response.data.message) {
+        showNotification(error.response.data.message, "error");
+      } else {
+        showNotification("Đã xảy ra lỗi khi gửi báo cáo", "error");
+      }
+      setReportVisible(false);
+    }
   };
 
   const formatCurrency = (value: String) => {
@@ -254,6 +300,9 @@ export default function HomePage() {
     const filtered = sourceProducts.filter(product => product.price >= min && product.price <= max);
     setProducts(filtered);
   };
+
+
+  console.log(products); 
 
   return (
     <View className="p-4 relative" style={{ flex: 1 }}>
@@ -418,7 +467,6 @@ export default function HomePage() {
                       {product.nameUser}
                     </Text>
                   </View>
-
 
                 </View>
                 <TouchableHighlight underlayColor='#fff' onPress={() => product.nameUser && handleCreateChat(product.userId, product.id)}>

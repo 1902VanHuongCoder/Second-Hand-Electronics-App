@@ -931,7 +931,7 @@ export default function PostCreation() {
             );
         } catch (error) {
             // console.error('Lỗi khi upload ảnh:', error);
-            Alert.alert('Phát hiện có ảnh đã được sử dụng , vui lòng chọn ảnh chính chủ hoặc xóa bỏ hình ảnh trùng lắp  ');
+            Alert.alert('Phát hiện có ảnh đã được sử dụng , vui lòng dùng hình ảnh chính chủ!');
         } finally {
             setLoading(false);
         }
