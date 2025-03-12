@@ -1,6 +1,5 @@
-
-import React from 'react';
-import { Provider } from 'react-redux';
+import React, { useEffect } from 'react';
+import { Provider, useDispatch } from 'react-redux';
 import { AuthProvider } from '../context/AuthContext';
 
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
@@ -8,7 +7,6 @@ import { useFonts } from 'expo-font';
 import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
 
 import 'react-native-reanimated';
 import { StyleSheet } from 'react-native';
@@ -18,10 +16,24 @@ import { store } from '../store/store';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { NotificationProvider } from '../context/NotificationContext';
-
+import { checkAuth } from '../store/authSlice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Prevent splash screen from auto-hiding before loading assets
 SplashScreen.preventAutoHideAsync();
+
+// Component to handle auth check
+function AuthCheck() {
+  const dispatch = useDispatch();
+  
+  useEffect(() => {
+    // Dispatch checkAuth when app starts
+    // @ts-ignore - Bỏ qua lỗi kiểu dữ liệu
+    dispatch(checkAuth());
+  }, [dispatch]);
+  
+  return null;
+}
 
 export default function RootLayout() {
 
@@ -52,6 +64,7 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Provider store={store}>
         <NotificationProvider>
+          <AuthCheck />
           <Stack>
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="profileSettings" options={{ headerShown: true, title: 'Cài đặt tài khoản', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff', headerTitleAlign: 'center' }} />
@@ -64,6 +77,8 @@ export default function RootLayout() {
             <Stack.Screen name="chat" options={{ title: 'Trò chuyện', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff', headerTitleAlign: 'center' }} />
             <Stack.Screen name="hiddenPosts" options={{ title: 'Ẩn bài đăng', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff', headerTitleAlign: 'center' }} />
             <Stack.Screen name="test-chat-penal" options={{ title: 'Trinh Huy Chat', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff', headerTitleAlign: 'center' }} />
+            <Stack.Screen name="admin" options={{ title: 'Quản trị viên', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff', headerTitleAlign: 'center' }} />
+            <Stack.Screen name="admin/reports" options={{ title: 'Quản lý báo cáo', headerStyle: { backgroundColor: '#9C62D7' }, headerTintColor: '#fff', headerTitleAlign: 'center' }} />
 
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="_sitemap" options={{ title: 'Sitemap' }} />

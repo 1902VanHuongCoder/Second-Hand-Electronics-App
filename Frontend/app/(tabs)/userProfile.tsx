@@ -10,6 +10,13 @@ import { logout, updateUser } from '../../store/authSlice';
 import { useAuthCheck } from '../../store/checkLogin';
 import axios from 'axios';
 
+// Mở rộng kiểu User để bao gồm trường role
+declare module '../../store/authSlice' {
+    interface User {
+        role?: string;
+    }
+}
+
 export default function UserProfile() {
     const dispatch = useDispatch<AppDispatch>();
     const { user } = useSelector((state: RootState) => state.auth);
@@ -33,7 +40,11 @@ export default function UserProfile() {
             const response = await axios.put('http://10.0.2.2:5000/api/toggle-phone-visibility', {
                 userId: user?.id,
             });
-            setIsPhoneHidden(response.data.isPhoneHidden)
+            
+            // Xử lý response.data với kiểm tra kiểu
+            if (response.data && typeof response.data === 'object' && 'isPhoneHidden' in response.data) {
+                setIsPhoneHidden(Boolean(response.data.isPhoneHidden));
+            }
         } catch (err) {
             console.log('Error: ', err);
         }
@@ -81,6 +92,19 @@ export default function UserProfile() {
                             </View>
                         </TouchableHighlight>
                     </View>
+                    {user?.role === 'admin' && (
+                        <View className='mt-4'>
+                            <TouchableHighlight 
+                                onPress={() => router.push('/admin')}
+                                className="border-2 border-[#9661D9] px-4 py-3 rounded-lg flex items-center justify-center"
+                            >
+                                <View className="flex-row items-center justify-center gap-2">
+                                    <Icon name="shield" size={22} color="#9661D9" />
+                                    <Text className="font-bold text-[18px] text-[#9661D9]">Quản trị viên</Text>
+                                </View>
+                            </TouchableHighlight>
+                        </View>
+                    )}
                     <View className='mt-4'>
                         <Text className='font-extrabold uppercase text-[16px] text-[#333] w-full'>Thông tin cá nhân</Text>
                         <View className='mt-4 flex-row gap-4 items-center justify-between'>

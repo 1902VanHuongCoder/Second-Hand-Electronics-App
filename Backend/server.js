@@ -20,6 +20,7 @@ const uploadImageRoutes = require('./routes/uploadImageRoutes');
 const phoneRoutes = require('./routes/phoneRoutes');
 const postManagementRoutes = require('./routes/postManagementRoutes');
 const orderRoutes = require('./routes/orderRoutes');
+const reportRoutes = require('./routes/reportRoutes');
 const paypal = require('paypal-rest-sdk');
 const ChatRoom = require('./models/Chat');
 const User = require('./models/User');
@@ -350,6 +351,8 @@ app.use('/api/phones', phoneRoutes);
 
 app.use('/api/post-management', postManagementRoutes);
 
+// Sử dụng các route Report
+app.use('/api/reports', reportRoutes);
 
 // Kết nối database
 const startServer = async () => {

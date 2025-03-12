@@ -36,8 +36,12 @@ export const loginUser = createAsyncThunk(
     try {
       const response = await axios.post<{ token: string; user: User }>('http://10.0.2.2:5000/api/login', { phone, password });
       await AsyncStorage.setItem('token', response.data.token);
-      console.log("Response data", response.data.user); 
-      return response.data.user; // Trả về thông tin người dùng
+      
+      // Trả về cả token và thông tin người dùng
+      return {
+        user: response.data.user,
+        token: response.data.token
+      };
       
     } catch (error) {
       return rejectWithValue((error as any).response?.data.message || 'Đăng nhập thất bại');
@@ -76,6 +80,35 @@ export const updateUser = createAsyncThunk<User, User>(
   }
 );
 
+// Async action to check token and load user data
+export const checkAuth = createAsyncThunk(
+  'auth/checkAuth',
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      
+      if (!token) {
+        return rejectWithValue('No token found');
+      }
+      
+      // Gọi API để lấy thông tin người dùng từ token
+      const response = await axios.get<User>('http://10.0.2.2:5000/api/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      return {
+        user: response.data,
+        token
+      };
+    } catch (error) {
+      await AsyncStorage.removeItem('token'); // Xóa token nếu không hợp lệ
+      return rejectWithValue((error as any).response?.data?.message || 'Authentication failed');
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -89,13 +122,36 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Xử lý checkAuth
+      .addCase(checkAuth.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(checkAuth.fulfilled, (state, action: PayloadAction<{ user: User; token: string }>) => {
+        state.loading = false;
+        state.token = action.payload.token;
+        state.user = {
+          ...action.payload.user,
+          token: action.payload.token
+        };
+      })
+      .addCase(checkAuth.rejected, (state, action) => {
+        state.loading = false;
+        state.user = null;
+        state.token = null;
+      })
+      // Xử lý loginUser
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(loginUser.fulfilled, (state, action: PayloadAction<User>) => {
+      .addCase(loginUser.fulfilled, (state, action: PayloadAction<{ user: User; token: string }>) => {
         state.loading = false;
-        state.user = action.payload; // Cập nhật thông tin người dùng
+        state.token = action.payload.token;
+        state.user = {
+          ...action.payload.user,
+          token: action.payload.token // Đảm bảo token được lưu trong user
+        };
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
