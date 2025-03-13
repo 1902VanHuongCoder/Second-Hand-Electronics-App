@@ -289,7 +289,6 @@ export default function HomePage() {
     try {
       const response = await axios.get<Product[]>(`http://10.0.2.2:5000/api/home/getAllProductByBrands/${brandId}`);
       setProducts(response.data);
-      console.log(response.data[0].id)
     } catch (error) {
       console.error("Error fetching products by brand:", error);
     }
@@ -415,78 +414,87 @@ export default function HomePage() {
             </View>
           </ScrollView>
         </View>
-        {products.map((product, index) => (
-          <View
-            key={index}
-            className="mt-6 flex-col gap-4 border-b border-[#D9D9D9] pb-4"
-          >
-            <View className="flex-col gap-4">
-              <View className="flex-row gap-2 w-[50%]">
-                <Link href={`/postDetails?id=${product.id}`}>
-                  <Image
-                    style={{ width: 170, height: 170 }}
-                    source={{ uri: product.images[0] }}
-                  />
-                </Link>
-                <View className="w-full flex-col gap-1">
-                  <View className="flex-row justify-between items-center">
-                    <Link href={`/postDetails?id=${product.id}`}>
-                      <Text numberOfLines={1} ellipsizeMode="tail" className="font-bold text-[16px]">{product.title}</Text>
-                    </Link>
-                    <TouchableHighlight onPress={() => handleReportPress(product.id)}>
-                      <Icon name="ellipsis-v" size={18} color="#9661D9" />
-                    </TouchableHighlight>
-                  </View>
-                  <Text className="text-[12px]">{product.description || product.configuration}</Text>
-                  <Text className="font-bold text-[#9661D9] text-[16px]">
-                    {formatCurrency(product.price.toString())} đ
-                  </Text>
-                  <View className="flex-row gap-2 items-center">
-                    <Icon name="map-marker" size={20} color="#9661D9" />
-                    <Text className="font-bold text-[14px]">
-                      {product.address}
+        {products.length > 0 ? (
+          products.map((product, index) => (
+            <View
+              key={index}
+              className="mt-6 flex-col gap-4 border-b border-[#D9D9D9] pb-4"
+            >
+              <View className="flex-col gap-4">
+                <View className="flex-row gap-2 w-[50%]">
+                  <Link href={`/postDetails?id=${product.id}`}>
+                    <Image
+                      style={{ width: 170, height: 170 }}
+                      source={{ uri: product.images[0] }}
+                    />
+                  </Link>
+                  <View className="w-full flex-col gap-1">
+                    <View className="flex-row justify-between items-center">
+                      <Link href={`/postDetails?id=${product.id}`}>
+                        <Text numberOfLines={1} ellipsizeMode="tail" className="font-bold text-[16px]">{product.title}</Text>
+                      </Link>
+                      <TouchableHighlight onPress={() => handleReportPress(product.id)}>
+                        <Icon name="ellipsis-v" size={18} color="#9661D9" />
+                      </TouchableHighlight>
+                    </View>
+                    <Text className="text-[12px]">{product.description || product.configuration}</Text>
+                    <Text className="font-bold text-[#9661D9] text-[16px]">
+                      {formatCurrency(product.price.toString())} đ
                     </Text>
-                  </View>
-                  <View className="flex-row gap-2 items-center">
-                    <Icon name="clock-o" size={20} color="#9661D9" />
-                    <Text className="font-bold text-[14px]">
-                      {new Date(product.postingDate).toLocaleDateString()}
-                    </Text>
+                    <View className="flex-row gap-2 items-center">
+                      <Icon name="map-marker" size={20} color="#9661D9" />
+                      <Text className="font-bold text-[14px]">
+                        {product.address}
+                      </Text>
+                    </View>
+                    <View className="flex-row gap-2 items-center">
+                      <Icon name="clock-o" size={20} color="#9661D9" />
+                      <Text className="font-bold text-[14px]">
+                        {new Date(product.postingDate).toLocaleDateString()}
+                      </Text>
+                    </View>
                   </View>
                 </View>
-              </View>
-              <View className="flex-row justify-between items-center w-full">
-                <View className="flex-row gap-2 items-center">
-                  <Image
-                    source={product.avatarUrl ? { uri: product.avatarUrl } : require("../assets/images/avatar.jpg")}
-                    style={{ width: 50, height: 50, borderRadius: 25 }}
-                  />
+                <View className="flex-row justify-between items-center w-full">
+                  <View className="flex-row gap-2 items-center">
+                    <Image
+                      source={product.avatarUrl ? { uri: product.avatarUrl } : require("../assets/images/avatar.jpg")}
+                      style={{ width: 50, height: 50, borderRadius: 25 }}
+                    />
 
-                  <View >
-                    <Text className="font-medium text-[14px]">Người bán</Text>
-                    <Text className="font-bold text-[16px]">
-                      {product.nameUser}
-                    </Text>
+                    <View >
+                      <Text className="font-medium text-[14px]">Người bán</Text>
+                      <Text className="font-bold text-[16px]">
+                        {product.nameUser}
+                      </Text>
+                    </View>
+
                   </View>
-
-                </View>
-                <TouchableHighlight underlayColor='#fff' onPress={() => product.nameUser && handleCreateChat(product.userId, product.id)}>
-                  <Ionicons name="chatbubbles-outline" size={30} color="#9661D9" />
-                </TouchableHighlight>
-              </View>
-            </View>
-            {reportVisible && selectedProductId === product.id && ( // Hiển thị menu báo cáo nếu điều kiện thỏa mãn
-              <View className="bg-[#F4E9FF] p-4 rounded-lg mt-2">
-                <Text className="text-[#000] font-bold text-[18px]">Chọn lý do báo cáo:</Text>
-                {reportReasons.map((reason, index) => (
-                  <TouchableHighlight key={index} underlayColor="#9661D9" onPress={() => handleReasonSelect(reason)}>
-                    <Text className="text-[#9661D9] mt-2 text-[16px] font-medium">{reason}</Text>
+                  <TouchableHighlight underlayColor='#fff' onPress={() => product.nameUser && handleCreateChat(product.userId, product.id)}>
+                    <Ionicons name="chatbubbles-outline" size={30} color="#9661D9" />
                   </TouchableHighlight>
-                ))}
+                </View>
               </View>
-            )}
+              {reportVisible && selectedProductId === product.id && ( // Hiển thị menu báo cáo nếu điều kiện thỏa mãn
+                <View className="bg-[#F4E9FF] p-4 rounded-lg mt-2">
+                  <Text className="text-[#000] font-bold text-[18px]">Chọn lý do báo cáo:</Text>
+                  {reportReasons.map((reason, index) => (
+                    <TouchableHighlight key={index} underlayColor="#9661D9" onPress={() => handleReasonSelect(reason)}>
+                      <Text className="text-[#9661D9] mt-2 text-[16px] font-medium">{reason}</Text>
+                    </TouchableHighlight>
+                  ))}
+                </View>
+              )}
+            </View>
+          ))
+        ) : (
+          <View className="flex-1 items-center justify-center mt-20">
+            <Text className="text-gray-500 text-[16px] font-bold">
+              Không có sản phẩm phù hợp
+            </Text>
+            <Image className="w-48 h-48" source={require('../assets/images/cute-shiba-inu-dog-sleeping-with-coffee-blanket-cartoon-vector-icon-illustration-animal-nature.png')} />
           </View>
-        ))}
+        )}
       </ScrollView>
     </View>
   );
