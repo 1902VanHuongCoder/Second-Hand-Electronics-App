@@ -7,16 +7,10 @@ const fs = require('fs');
 const sharp = require('sharp');
 const ImageHash = require('../models/ImageHash');
 const Product = require('../models/Product');
+const { Readable } = require('stream');
 
-// Cấu hình multer storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, './uploads/');
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
-});
+// Thay đổi cấu hình multer để sử dụng memory storage thay vì disk storage
+const storage = multer.memoryStorage();
 
 exports.upload = multer({ 
   storage,
@@ -59,16 +53,16 @@ async function getExistingImages() {
   }
 }
 
-// Hàm tạo pHash cải tiến
-async function generatePHash(imagePath) {
+// Hàm tạo pHash cải tiến - sửa để làm việc với buffer thay vì file path
+async function generatePHash(buffer) {
   try {
-    const buffer = await sharp(imagePath)
+    const processedBuffer = await sharp(buffer)
       .resize(32, 32, { fit: 'fill' })
       .grayscale()
       .raw()
       .toBuffer();
 
-    const pixels = new Uint8Array(buffer);
+    const pixels = new Uint8Array(processedBuffer);
     const average = pixels.reduce((sum, val) => sum + val, 0) / pixels.length;
 
     let hash = '';
@@ -83,20 +77,20 @@ async function generatePHash(imagePath) {
   }
 }
 
-// Hàm tạo vector đặc trưng nâng cao cho ảnh
-async function generateFeatureVector(imagePath) {
+// Hàm tạo vector đặc trưng nâng cao cho ảnh - sửa để làm việc với buffer thay vì file path
+async function generateFeatureVector(buffer) {
   try {
     // Sử dụng sharp để xử lý ảnh và trích xuất đặc trưng
-    const metadata = await sharp(imagePath).metadata();
+    const metadata = await sharp(buffer).metadata();
     
     // Tạo buffer ảnh đã resize để xử lý nhất quán
-    const buffer = await sharp(imagePath)
+    const processedBuffer = await sharp(buffer)
       .resize(64, 64, { fit: 'fill' })
       .removeAlpha()
       .raw()
       .toBuffer();
     
-    const pixels = new Uint8Array(buffer);
+    const pixels = new Uint8Array(processedBuffer);
     
     // Tính toán vector đặc trưng dựa trên phân vùng ảnh
     // Chia ảnh thành 16 vùng (4x4) và tính giá trị trung bình của mỗi vùng
@@ -197,12 +191,12 @@ function getHammingDistance(hash1, hash2) {
   return distance;
 }
 
-// Hàm kiểm tra ảnh trùng lặp nâng cao
-async function checkDuplicateImage(imagePath, threshold = 0.85) {
+// Hàm kiểm tra ảnh trùng lặp nâng cao - sửa để làm việc với buffer thay vì file path
+async function checkDuplicateImage(buffer, threshold = 0.85) {
   try {
     // Tạo hash và vector đặc trưng cho ảnh mới
-    const hash = await generatePHash(imagePath);
-    const { featureVector, dimensions, features } = await generateFeatureVector(imagePath);
+    const hash = await generatePHash(buffer);
+    const { featureVector, dimensions, features } = await generateFeatureVector(buffer);
     
     // Lấy danh sách hash từ cơ sở dữ liệu
     const existingImages = await ImageHash.find({}, 'hash imageUrl featureVector');
@@ -254,19 +248,7 @@ async function checkDuplicateImage(imagePath, threshold = 0.85) {
   }
 }
 
-// Thêm hàm helper để xóa file
-const deleteFile = (filePath) => {
-  return new Promise((resolve) => {
-    fs.unlink(filePath, (err) => {
-      if (err) console.error('Error deleting file:', err);
-      resolve();
-    });
-  });
-};
-
 exports.uploadMulti = async (req, res) => {
-  const tempFiles = []; // Mảng lưu đường dẫn các file tạm
-  
   try {
     const files = req.files;
     const duplicateFiles = [];
@@ -274,10 +256,9 @@ exports.uploadMulti = async (req, res) => {
 
     // Kiểm tra trùng lặp trước khi upload sử dụng thuật toán nâng cao
     for (const file of files) {
-      tempFiles.push(file.path);
       try {
-        // Sử dụng thuật toán kiểm tra ảnh trùng lặp nâng cao
-        const result = await checkDuplicateImage(file.path);
+        // Sử dụng thuật toán kiểm tra ảnh trùng lặp nâng cao với buffer
+        const result = await checkDuplicateImage(file.buffer);
         
         if (result.duplicates.length > 0) {
           isDuplicate = true;
@@ -300,9 +281,6 @@ exports.uploadMulti = async (req, res) => {
 
     // Nếu có bất kỳ ảnh trùng lặp nào, không upload ảnh nào cả
     if (duplicateFiles.length > 0) {
-      // Xóa tất cả file tạm
-      await Promise.all(tempFiles.map(file => deleteFile(file)));
-      
       return res.status(400).json({
         success: false,
         message: 'Phát hiện ảnh trùng lặp',
@@ -318,14 +296,28 @@ exports.uploadMulti = async (req, res) => {
     const urls = [];
     for (const file of files) {
       try {
-        const result = await cloudinary.uploader.upload(file.path, {
-          folder: 'profile_pictures',
+        // Tạo stream từ buffer để upload lên Cloudinary
+        const result = await new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            { folder: 'profile_pictures' },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          );
+          
+          // Tạo stream từ buffer và pipe vào uploadStream
+          const bufferStream = new Readable();
+          bufferStream.push(file.buffer);
+          bufferStream.push(null);
+          bufferStream.pipe(uploadStream);
         });
+        
         urls.push(result.secure_url);
         
         // Tạo hash và vector đặc trưng cho ảnh
-        const hash = await generatePHash(file.path);
-        const { featureVector, dimensions, features } = await generateFeatureVector(file.path);
+        const hash = await generatePHash(file.buffer);
+        const { featureVector, dimensions, features } = await generateFeatureVector(file.buffer);
         const publicId = getPublicIdFromUrl(result.secure_url);
         
         // Lưu thông tin đầy đủ vào cơ sở dữ liệu
@@ -343,9 +335,6 @@ exports.uploadMulti = async (req, res) => {
       }
     }
 
-    // Xóa tất cả file tạm
-    await Promise.all(tempFiles.map(file => deleteFile(file)));
-
     res.json({
       success: true,
       message: 'Tải ảnh lên thành công',
@@ -354,8 +343,6 @@ exports.uploadMulti = async (req, res) => {
 
   } catch (error) {
     console.error('Error uploading images:', error);
-    // Đảm bảo xóa file tạm ngay cả khi có lỗi
-    await Promise.all(tempFiles.map(file => deleteFile(file)));
     
     res.status(500).json({ 
       success: false, 
@@ -365,27 +352,27 @@ exports.uploadMulti = async (req, res) => {
   }
 };
 
-
-// Thêm cleanup định kỳ để đảm bảo
-setInterval(() => {
-  fs.readdir('./uploads', (err, files) => {
-    if (err) return;
-    files.forEach(file => {
-      const filePath = `./uploads/${file}`;
-      fs.unlink(filePath, err => {
-        if (err) console.error('Error deleting leftover file:', err);
-      });
-    });
-  });
-}, 100000); // Chạy mỗi 30 '
-
-
-// Function to upload a video to Cloudinary
+// Function to upload a video to Cloudinary - sửa để sử dụng buffer
 exports.uploadVideo = async (req, res) => {
   try {
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      resource_type: 'video', // Specify the resource type as video
-      folder: 'videos', // Optional: specify a folder in Cloudinary
+    // Tạo stream từ buffer để upload lên Cloudinary
+    const result = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { 
+          resource_type: 'video',
+          folder: 'videos'
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      
+      // Tạo stream từ buffer và pipe vào uploadStream
+      const bufferStream = new Readable();
+      bufferStream.push(req.file.buffer);
+      bufferStream.push(null);
+      bufferStream.pipe(uploadStream);
     });
 
     res.json({
@@ -399,11 +386,24 @@ exports.uploadVideo = async (req, res) => {
   }
 };
 
-// Hàm upload avatar
+// Hàm upload avatar - sửa để sử dụng buffer
 exports.uploadAvatar = async (req, res) => {
   try {
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: 'profile_pictures', // Optional: specify a folder in Cloudinary
+    // Tạo stream từ buffer để upload lên Cloudinary
+    const result = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { folder: 'profile_pictures' },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      
+      // Tạo stream từ buffer và pipe vào uploadStream
+      const bufferStream = new Readable();
+      bufferStream.push(req.file.buffer);
+      bufferStream.push(null);
+      bufferStream.pipe(uploadStream);
     });
 
     res.json({
@@ -415,7 +415,6 @@ exports.uploadAvatar = async (req, res) => {
     console.error('Error uploading avatar:', error);
     res.status(500).json({ success: false, message: 'Error uploading avatar' });
   }
-// End of Selection
 };
 
 // Hàm lấy public_id từ secure_url của Cloudinary
@@ -765,8 +764,6 @@ exports.deleteImage = async (req, res) => {
     });
   }
 };
-
-
 
 // Hàm xóa video từ Cloudinary
 exports.deleteVideo = async (req, res) => {
