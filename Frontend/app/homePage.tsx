@@ -421,15 +421,15 @@ export default function HomePage() {
               className="mt-6 flex-col gap-4 border-b border-[#D9D9D9] pb-4"
             >
               <View className="flex-col gap-4">
-                <View className="flex-row gap-2 w-[50%]">
+                <View className="flex-row gap-3 w-full">
                   <Link href={`/postDetails?id=${product.id}`}>
                     <Image
                       style={{ width: 170, height: 170 }}
                       source={{ uri: product.images[0] }}
                     />
                   </Link>
-                  <View className="w-full flex-col gap-1">
-                    <View className="flex-row justify-between items-center">
+                  <View className="w-2/3 flex-col gap-1">
+                    <View className="flex-row items-center justify-between">
                       <Link href={`/postDetails?id=${product.id}`}>
                         <Text numberOfLines={1} ellipsizeMode="tail" className="font-bold text-[16px]">{product.title}</Text>
                       </Link>
@@ -461,14 +461,12 @@ export default function HomePage() {
                       source={product.avatarUrl ? { uri: product.avatarUrl } : require("../assets/images/avatar.jpg")}
                       style={{ width: 50, height: 50, borderRadius: 25 }}
                     />
-
                     <View >
                       <Text className="font-medium text-[14px]">Người bán</Text>
                       <Text className="font-bold text-[16px]">
                         {product.nameUser}
                       </Text>
                     </View>
-
                   </View>
                   <TouchableHighlight underlayColor='#fff' onPress={() => product.nameUser && handleCreateChat(product.userId, product.id)}>
                     <Ionicons name="chatbubbles-outline" size={30} color="#9661D9" />
