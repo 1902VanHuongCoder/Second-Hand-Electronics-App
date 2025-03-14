@@ -379,7 +379,6 @@ exports.getProductDetails = async (req, res) => {
                 type: 'phone'
             };
         }
-        console.log(detail)
         res.status(200).json(detail);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -437,9 +436,7 @@ exports.updateProductVideo = async (req, res) => {
     try {
         const { id } = req.params;
         const { videos } = req.body;
-
-        console.log(`Updating video for product ${id} to: "${videos}"`);
-
+        
         // Kiểm tra xem sản phẩm có tồn tại không
         const product = await Product.findById(id);
         if (!product) {
@@ -456,7 +453,7 @@ exports.updateProductVideo = async (req, res) => {
             { new: true }
         );
 
-        console.log('Product video updated successfully');
+
 
         res.status(200).json({
             success: true,
