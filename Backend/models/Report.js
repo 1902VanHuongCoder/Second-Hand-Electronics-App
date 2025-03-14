@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const reportSchema = new mongoose.Schema({
+const reportSchema = new mongoose.Schema({ // This collection is used to store the reports of the products
     productId: { 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'Product', 

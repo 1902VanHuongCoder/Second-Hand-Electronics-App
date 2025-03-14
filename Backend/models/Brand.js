@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const brandSchema = new mongoose.Schema({
+const brandSchema = new mongoose.Schema({ // This collection is used to store the brand of the product (e.g: Apple, Samsung, ...)
   // Tên hãng vd: apple, samsung ...
   brandName: {
     type: String,

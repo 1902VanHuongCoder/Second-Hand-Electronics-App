@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-const userSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({ // This collection is used to store the user information
   name: {
     type: String,
     required: false,

@@ -63,7 +63,7 @@ export default function HiddenPosts() {
                 </ScrollView>
             </View>
             <View className="flex-row gap-5 items-center justify-center">
-                <TouchableHighlight className="w-1/2 border-2 border-[#333] px-[18px] py-3 rounded-lg flex items-center justify-center">
+                <TouchableHighlight onPress={() => router.back()} className="w-1/2 border-2 border-[#333] px-[18px] py-3 rounded-lg flex items-center justify-center">
                     <View className="flex-row items-center justify-center gap-2">
                         <Text className="font-bold text-[18px] text-[#333]">Hủy</Text>
                     </View>

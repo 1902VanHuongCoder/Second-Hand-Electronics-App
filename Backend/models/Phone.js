@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const phoneSchema = new mongoose.Schema({
+const phoneSchema = new mongoose.Schema({ // This collection is used to store the phone's information
     productId: { type: mongoose.Schema.Types.ObjectId, required: true },
     ramId: { type: mongoose.Schema.Types.ObjectId, required: true },
     battery: { type: String, required: true },

@@ -5,9 +5,16 @@ const User = require('../models/User');
 
 const router = express.Router();
 
+// Route để đăng ký
 router.post('/signup', register);
+
+// Route để đăng nhập
 router.post('/login', login);
+
+// Route để cập nhật thông tin người dùng
 router.put('/update', updateUser);
+
+// Route để cập nhật thông tin người dùng
 router.put('/toggle-phone-visibility', togglePhoneVisibility);
 
 // Thêm route để lấy thông tin người dùng từ token

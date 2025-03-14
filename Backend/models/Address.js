@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const addressSchema = new mongoose.Schema({
+const addressSchema = new mongoose.Schema({ // This collection is used to store the address of the user
     // Mã tỉnh/thành phố
     provinceCode: {
         type: String,
