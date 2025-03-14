@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const imageHashSchema = new mongoose.Schema({
+const imageHashSchema = new mongoose.Schema({ // This collection is used to store the hash of the image
   imageUrl: {
     type: String,
     required: true,

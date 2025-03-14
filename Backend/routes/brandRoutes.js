@@ -9,6 +9,7 @@ router.post('/brands', addBrand);
 // Route để lấy danh sách Brand
 router.get('/brands', getBrands); 
 
+// Route để lấy Brand theo categoryId
 router.get('/brands/:categoryId', getBrandsById);
 
 module.exports = router; 

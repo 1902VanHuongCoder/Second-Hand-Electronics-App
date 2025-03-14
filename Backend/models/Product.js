@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const productSchema = new mongoose.Schema({
+const productSchema = new mongoose.Schema({ // This collection is used to store the post's information 
     categoryId: { type: mongoose.Schema.Types.ObjectId, required: true }, // ID loại sản phẩm 'Điện thoại' hoặc 'Laptop
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // ID của người đăng bán
     versionId: { type: mongoose.Schema.Types.ObjectId, required: true }, // ID Loại sản phẩm vd: SamSung galaxy s22...

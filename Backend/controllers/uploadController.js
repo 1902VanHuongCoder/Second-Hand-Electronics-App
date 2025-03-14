@@ -1,6 +1,6 @@
 const dotenv = require('dotenv');
 dotenv.config();
-const cloudinary = require('../cloundinaryConfig');
+const cloudinary = require('../config/cloundinaryConfig');
 const multer = require('multer');
 const axios = require('axios');
 const fs = require('fs');

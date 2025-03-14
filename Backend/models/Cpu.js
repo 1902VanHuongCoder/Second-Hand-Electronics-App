@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const cpuSchema = new mongoose.Schema({
+const cpuSchema = new mongoose.Schema({ // This collection is used to store the CPU of the product
   cpuName: {
     type: String,
     required: true,
