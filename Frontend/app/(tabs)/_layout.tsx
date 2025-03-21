@@ -68,8 +68,7 @@ export default function TabLayout() {
     }
   }, [user]);
 
-  useLayoutEffect(() => {
-
+  useEffect(() => {
     socket.on("deleteNotification",(updateMessageList: MessageProps[]) => {
         if (user) {
             const filteredRooms = updateMessageList.filter((room: MessageProps) => room.senderId === user.id || room.receiverId === user.id);
@@ -84,7 +83,25 @@ export default function TabLayout() {
             setCount(count);
         }
     })
+
+    socket.on("newMessageCreated", (updateMessageList: MessageProps[]) => {
+        if (user) { 
+            const filteredRooms = updateMessageList.filter((room: MessageProps) => room.senderId === user.id || room.receiverId === user.id);
+            let count = 0; 
+            filteredRooms.forEach((room: MessageProps) => {
+              if(user.id === room.senderId){
+                count += room.senderMessagesNotRead.length;
+              }else{
+                count += room.receiverMessagesNotRead.length;
+              }
+            });
+            setCount(count);
+        }
+    });
+
+  
     return () => {
+        socket.off("newMessageCreated"); 
         socket.off("deleteNotification");
     };
 }, [socket, user]);
