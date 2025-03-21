@@ -150,8 +150,6 @@ exports.getHomeProducts = async (req, res) => {
         // Ghép 3 mảng lại (tin vip đang trong thời gian đẩy, tin vip không trong thời gian đẩy, tin thường)
         const finalProducts = [...newsIsVipAndOnTime, ...newsIsVipAndNotOnTime, ...normalNews];
 
-        console.log(newsIsVipAndOnTime); 
-
         // Trả về kết quả cho client
         res.status(200).json(finalProducts);
     } catch (error) {

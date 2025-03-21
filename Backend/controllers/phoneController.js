@@ -28,7 +28,6 @@ exports.createPhone = async (req, res) => {
 
     // Kiểm tra xem productId và ramId có hợp lệ không
     if (!mongoose.Types.ObjectId.isValid(productId) || !mongoose.Types.ObjectId.isValid(ramId)) {
-        console.log(ramId ) 
         return res.status(400).json({ message: 'ID không hợp lệ' });
     }
 

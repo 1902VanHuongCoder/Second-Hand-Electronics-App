@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
 
 // Import a default user icon
-const defaultUserIcon = require('../../assets/images/defaultUserIcon.png'); // Adjust the path as needed
+const defaultUserIcon = require('@/assets/images/defaultUserIcon.png'); // Adjust the path as needed
 
 interface MessageItemProps {
     senderId: string;
@@ -88,12 +88,13 @@ export default function MessageList() {
     }, []);
 
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         socket.on("createdRoom", (newRoom: MessageProps) => {
             if (user && (newRoom.senderId === user.id || newRoom.receiverId === user.id)) {
                 setRooms((prevRooms) => [...prevRooms, newRoom]);
             }
         });
+        
         socket.on("newMessageCreated", (updateMessageList: MessageProps[]) => {
             if (user) {
                 const filteredRooms = updateMessageList.filter((room: MessageProps) => room.senderId === user.id || room.receiverId === user.id);

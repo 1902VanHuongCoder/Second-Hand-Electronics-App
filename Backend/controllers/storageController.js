@@ -19,10 +19,6 @@ exports.getStorages = async (req, res) => {
     const storages = await Storage.find()
       .populate('storageTypeId')
       .lean(); // Sử dụng lean() để có thể chuyển đổi thành plain object
-
-    // Log để debug
-    console.log('Storages from DB:', storages);
-
     res.status(200).json({ 
       success: true, 
       data: storages 

@@ -19,9 +19,6 @@ exports.getVersions = async (req, res) => {
     const versions = await Version.find()
       .populate('brandId')
       .lean();
-
-    console.log('Versions from DB:', versions); // Debug log
-
     res.status(200).json({ 
       success: true, 
       data: versions 

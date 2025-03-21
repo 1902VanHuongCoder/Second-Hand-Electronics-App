@@ -32,6 +32,7 @@ interface MessageProps {
     productPrice: string;
     messages: MessageItemProps[];
 }
+
 // Import a default user icon
 const defaultUserIcon = require('../assets/images/defaultUserIcon.png'); // Adjust the path as needed
 
@@ -52,7 +53,7 @@ export default function Chat() {
 
     const handleNewMessage = () => {
         if (chatInfo && user) {
-            socket.emit("newMessage", {
+            socket.emit("sendMessage", {
                 roomCode: chatInfo.roomCode,
                 senderId: user.id,
                 text: text, 
@@ -73,13 +74,15 @@ export default function Chat() {
         socket.on("foundRoom", (roomChats: MessageProps) => setChatInfo(roomChats));
     }, [roomCode]);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         socket.on('createdRoom', (roomChats: MessageProps) => {
             setChatInfo(roomChats);
         });
+
         socket.on("foundRoom", (roomChats: MessageProps) => setChatInfo(roomChats));
+
         socket.on("receiveMessage", (newMessage: MessageItemProps) => {
-            console.log("Socket runnnnnnnnnn");
+            console.log("Receive message new.............."); 
             setChatInfo((prevChatInfo) => {
                 if (prevChatInfo) {
                     return {
@@ -91,11 +94,20 @@ export default function Chat() {
             });
             scrollViewRef.current?.scrollToEnd({ animated: true }); // Scroll to the end when a new message is received
         });
+
         return () => {
+            socket.off("createdRoom");
             socket.off("foundRoom");
             socket.off("receiveMessage");
         };
     }, [socket]);
+
+    // Scroll to the end when the chatInfo is updated
+    useEffect(() => {
+        if (chatInfo) {
+            scrollViewRef.current?.scrollToEnd({ animated: true });
+        }
+    }, [chatInfo]);
 
     return (
         <View className="w-full h-full bg-[#F9F6FB] p-4 flex flex-col flex-1">

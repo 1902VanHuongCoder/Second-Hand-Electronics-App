@@ -64,10 +64,7 @@ exports.login = async (req, res) => {
       process.env.JWT_SECRET || 'your_jwt_secret', // Fallback nếu không có biến môi trường
       { expiresIn: '30d' }
     );
-
-    console.log('JWT_SECRET:', process.env.JWT_SECRET ? 'Using environment variable' : 'Using fallback secret');
-    console.log('User ID:', user._id);
-
+    
     res.json({
       success: true,
       message: 'Đăng nhập thành công',
@@ -134,7 +131,6 @@ exports.updateUser = async (req, res) => {
 exports.togglePhoneVisibility = async (req, res) => {
   try {
     const { userId } = req.body;
-    console.log('User ID:', userId);
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
 

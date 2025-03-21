@@ -87,28 +87,7 @@ export default function HomePage() {
   const [selectedReason, setSelectedReason] = useState<string | null>(null); // State để lưu lý do đã chọn
   const checkAuth = useAuthCheck();
   const [products, setProducts] = useState<Product[]>([]);
-
   const [rooms, setRooms] = useState<Room[]>([]);
-  // const [users, setUsers] = useState<{ [key: string]: User }>({}); // Sử dụng kiểu User cho các giá trị
-  const [isConnected, setIsConnected] = useState(false);
-
-  useEffect(() => {
-    socket.on('connect', () => {
-      setIsConnected(true);
-      console.log('Connected to server');
-    });
-
-    socket.on('disconnect', () => {
-      setIsConnected(false);
-      console.log('Disconnected from server');
-    });
-
-    return () => {
-      socket.off('connect');
-      socket.off('disconnect');
-    };
-  }, []);
-
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [categories, setCategory] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -265,13 +244,12 @@ export default function HomePage() {
       if (senderId !== receiverId) {
         const roomCode = `${receiverId}-${senderId}-${productId}`;
         socket.emit("createRoom", receiverId, senderId, productId, roomCode);
-        // socket.emit("read", roomCode);
-        router.push({
-          pathname: '/chat',
-          params: {
-            roomCode: roomCode,
-          }
-        });
+        // router.push({
+        //   pathname: '/chat',
+        //   params: {
+        //     roomCode: roomCode,
+        //   }
+        // });
       }
     } else {
       showNotification("User not logged in", "error");
@@ -302,15 +280,6 @@ export default function HomePage() {
 
   return (
     <View className="p-4 relative" style={{ flex: 1 }}>
-      {/* {notifications.visible && <>
-        <Notification
-          message={notifications.message}
-          type={notifications.type}
-          visible={notifications.visible}
-        />
-      </>
-       
-      } */}
       <View className="flex-row justify-between items-center border-b-2 pb-6 pt-2 border-[#D9D9D9]">
         <TextInput
           className="border-2 border-[#D9D9D9] w-2/3 px-2 py-4 text-[#000] rounded-lg font-semibold"

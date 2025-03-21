@@ -104,6 +104,7 @@ socketIO.on("connection", (socket) => {
             } else {
                 chatRoom.receiverMessagesNotRead = [];
                 await chatRoom.save();
+
             }
         }
     });
@@ -124,7 +125,7 @@ socketIO.on("connection", (socket) => {
     });
 
     // Handle new messages
-    socket.on("newMessage", async (data) => {
+    socket.on("sendMessage", async (data) => {
         const { roomCode, senderId, text, senderN } = data;
         try {
             let chatRoom = await ChatRoom.findOne({ roomCode: roomCode });
@@ -147,7 +148,11 @@ socketIO.on("connection", (socket) => {
                 chatRoom.messages.push(newMessage);
                 chatRoom.haveNewMessage = false;
                 await chatRoom.save();
+
+                // Send message to all users in the room
+                socket.to(roomCode).emit("receiveMessage", newMessage);
                 socket.emit("receiveMessage", newMessage);
+
 
                 const updateMessageList = await ChatRoom.find(); // Update message list
                 socket.emit("newMessageCreated", updateMessageList);
@@ -165,13 +170,16 @@ socketIO.on("connection", (socket) => {
         try {
             let chatRoom = await ChatRoom.findOne({ roomCode: roomCode });
             if (chatRoom) {
+                socket.join(roomCode);
+                console.log("Nguoi dung vua tham gia phong co ID", roomCode);
                 if (chatRoom.senderId === userId) {
                     chatRoom.senderMessagesNotRead = [];
                 } else {
                     chatRoom.receiverMessagesNotRead = [];
                 }
                 await chatRoom.save();
-                socket.emit("newMessageCreated");
+                const newChatList = await ChatRoom.find(); // Update message list
+                socket.emit("newMessageCreated", newChatList);
             } else {
                 console.log("⚠️ Room not found");
             }
