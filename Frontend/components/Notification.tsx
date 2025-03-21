@@ -14,7 +14,7 @@ const Notification: React.FC<NotificationProps> = ({ message, type, visible}) =>
         if (visible) {
             // Khi thông báo hiển thị, trượt vào
             Animated.timing(translateY, {
-                toValue: 150, // Vị trí cuối cùng
+                toValue: 170, // Vị trí cuối cùng
                 duration: 300, // Thời gian trượt
                 easing: Easing.out(Easing.ease),
                 useNativeDriver: true,

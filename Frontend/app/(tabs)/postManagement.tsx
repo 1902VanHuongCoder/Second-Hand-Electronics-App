@@ -53,10 +53,11 @@ export default function PostManagement() {
 
             // Cập nhật danh sách sản phẩm sau khi thay đổi trạng thái
             setProducts(products.map(product =>
-                product.id === id ? { ...product, isHidden: response.data.isHidden } : product
+                product.id === id ? { ...product, isHidden: (response.data as { isHidden: boolean }).isHidden } : product
             ));
 
-            showNotification(response.data.isHidden ? 'Đã ẩn tin' : 'Tin đã hiển thị lại', 'success');
+            const data = response.data as { isHidden: boolean };
+            showNotification(data.isHidden ? 'Đã ẩn tin' : 'Tin đã hiển thị lại', 'success');
         } catch (err) {
             showNotification(err || "Có lỗi xảy ra", 'error');
         }
@@ -74,47 +75,44 @@ export default function PostManagement() {
 
 
     return (
-        <View className='w-full h-full bg-white'>
+        <View className='w-full bg-white'>
             <Notification
                 message={notifications.message}
                 type={notifications.type}
                 visible={notifications.visible}
             />
-            <ScrollView className='mt-6 px-4 pb-8 border-[#D9D9D9]'>
-                <View className='flex-row gap-10 items-center justify-center'>
+            <ScrollView className='mt-6 px-4 border-[#D9D9D9]'>
+                <View className='flex flex-row gap-10 items-center justify-center mb-6'>
                     {['Đang hiển thị', 'Tin đã ẩn', 'Tin hết hạn'].map((tab, index) => (
                         <TouchableHighlight
                             key={index}
-                            underlayColor="#D9D9D9"
+                            underlayColor="#523471"
                             onPress={() => setSelectedTab(tab)}
                         >
-                            <Text className={`font-bold text-[16px] ${selectedTab === tab ? 'text-[#9661D9]' : 'text-black'}`}>
+                            <Text className={`text-[18px] px-2 py-2 ${selectedTab === tab ? 'text-[#523471] font-bold border-b-[1px]' : 'text-black'}`}>
                                 {tab}
                             </Text>
                         </TouchableHighlight>
                     ))}
-                </View>
-            </ScrollView>
-            {filteredProducts.length > 0 ? (
-                <ScrollView>
-                    {filteredProducts.map(product => (
-                        <View key={product.id} className='flex-col gap-4 border-b-2 border-[#D9D9D9] pb-6'>
+                </View>  {filteredProducts.length > 0 ? (
+                    <View> {filteredProducts.map((product,i) => (
+                        <View key={product.id} className={`flex-col gap-4 ${ i === filteredProducts.length - 1 ? 'border-b-[0px]' : 'border-b-[1px]'} border-[#D9D9D9] mb-6 pb-6`}>
                             <Image
                                 style={{ width: '100%', height: 400 }}
                                 source={{ uri: product.image }}
                             />
-                            <View className='flex-col gap-1 px-4'>
-                                <Text className='font-bold text-[20px]'>{product.name}</Text>
+                            <View className='flex-col gap-2 px-4'>
+                                <Text className='font-bold text-3xl uppercase'>{product.name}</Text>
                                 <Text className='text-[#9661D9] font-bold text-[18px]'>{product.price.toLocaleString('vi-VN')} đ</Text>
-                                <Text className='font-medium text-[14px]'>Loại: <Text className='font-bold'>{product.type}</Text></Text>
-                                <Text className='font-medium text-[14px]'>Thương hiệu: <Text className='font-bold'>{product.brandName}</Text></Text>
-                                <Text className='font-medium text-[14px]'>Ngày đăng: <Text className='font-bold'>{new Date(product.postingDate).toLocaleDateString('vi-VN')}</Text></Text>
-                                <Text className='font-medium text-[14px]'>Ngày hết hạn: <Text className='font-bold'>{new Date(product.expirationDate).toLocaleDateString('vi-VN')}</Text></Text>
-                                <Text className='font-medium text-[14px]'>Trạng thái: <Text className='font-bold'>{product.status}</Text></Text>
+                                <Text className='font-medium text-[16px]'>Loại: <Text className='font-bold'>{product.type}</Text></Text>
+                                <Text className='font-medium text-[16px]'>Thương hiệu: <Text className='font-bold'>{product.brandName}</Text></Text>
+                                <Text className='font-medium text-[16px]'>Ngày đăng: <Text className='font-bold'>{new Date(product.postingDate).toLocaleDateString('vi-VN')}</Text></Text>
+                                <Text className='font-medium text-[16px]'>Ngày hết hạn: <Text className='font-bold'>{new Date(product.expirationDate).toLocaleDateString('vi-VN')}</Text></Text>
+                                <Text className='font-medium text-[16px]'>Trạng thái: <Text className='font-bold'>{product.status}</Text></Text>
                             </View>
                             <View className={`${new Date(product.expirationDate) < new Date() ? 'hidden' : 'flex-row px-4 items-center justify-center gap-4'}`}>
                                 <TouchableHighlight
-                                    className="border-2 rounded-md p-3 border-[#808080]"
+                                    className=" rounded-md p-3 border-[#808080]"
                                     onPress={() => router.push(`/postCreation?id=${product.id}`)}
                                 >
                                     <View className="flex-row items-center justify-center gap-2">
@@ -122,7 +120,7 @@ export default function PostManagement() {
                                         <Text className="font-bold text-[#808080] text-[16px]">Sửa</Text>
                                     </View>
                                 </TouchableHighlight>
-                                <TouchableHighlight className="border-2 flex-1 rounded-md p-3 border-[#9661D9]">
+                                <TouchableHighlight className="border-[1px] flex-1 rounded-md p-3 border-[#9661D9]">
                                     <View className="flex-row items-center justify-center gap-2">
                                         <Icon name="arrow-circle-up" size={22} color={'#9661D9'} />
                                         <Link href={`/publishPost?id=${product.id}`}>
@@ -163,16 +161,16 @@ export default function PostManagement() {
                                 </TouchableHighlight>
                             </View>
                         </View>
-                    ))}
-                </ScrollView>
+                    ))} </View>
             ) : (
-                <View className="flex-1 items-center">
+                <View className="w-full h-screen flex items-center justify-center">
                     <Text className="text-gray-500 text-[16px] font-bold">
-                        Không có kết quả phù hợp
+                        Chưa có thông tin bài đăng.
                     </Text>
                     <Image className="w-48 h-48" source={require('../../assets/images/cute-shiba-inu-dog-sleeping-with-coffee-blanket-cartoon-vector-icon-illustration-animal-nature.png')} />
                 </View>
             )}
+            </ScrollView>
         </View>
     );
 }

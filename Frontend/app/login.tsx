@@ -78,17 +78,17 @@ export default function LoginScreen() {
     }
   }
   return (
-    <View className="relative min-h-screen px-10 bg-white">
+    <View className="relative h-screen px-10 bg-white overflow-hidden">
       <Notification
         message={notifications.message}
         type={notifications.type}
         visible={notifications.visible}
       />
       <View className="relative z-20 w-full p-5 rounded-md flex justify-center items-center h-screen">
-        <Text className="text-4xl font-bold w-full">ĐĂNG NHẬP</Text>
+        <Text className="text-4xl font-bold w-full text-[#9661D9] drop-shadow-md">ĐĂNG NHẬP</Text>
         <Text className="mt-8 w-full text-left text-lg font-semibold">Số điện thoại</Text>
         <TextInput
-          className="outline-none border font-medium text-lg border-gray-400 rounded-md px-2 py-3 w-full bg-white mt-2 placeholder-opacity-50 placeholder-gray-400"
+          className="outline-none border font-medium text-lg border-gray-400 rounded-md py-3 w-full bg-white mt-2 placeholder-opacity-50 placeholder-gray-400 focus:border-[#9661D9] focus:ring-1 focus:ring-[#9661D9]"
           placeholder="0xx-xxx-xxxx"
           value={phone}
           onChangeText={setPhone}
@@ -102,7 +102,7 @@ export default function LoginScreen() {
         <Text className="mt-5 w-full text-left text-lg font-semibold">Mật khẩu</Text>
         <View className="relative w-full mb-5">
           <TextInput
-            className="outline-none font-medium border text-lg border-gray-400 rounded-lg px-2 py-3 w-full bg-white mt-2 placeholder-opacity-50 placeholder-gray-400"
+            className="outline-none font-medium border text-lg border-gray-400 rounded-lg py-3 w-full bg-white mt-2 placeholder-opacity-50 placeholder-gray-400 focus:border-[#9661D9] focus:ring-1 focus:ring-[#9661D9]"
             placeholder="Password"
             value={password}
             onChangeText={setPassword}
@@ -125,7 +125,6 @@ export default function LoginScreen() {
           </Text>
         )}
 
-        {/* {error && <Text className="w-full py-3 text-[#DC143C] font-semibold">{error} </Text>} */}
         {loading ? (
           <ActivityIndicator size="large" color="#0000ff" className="mt-5" />
         ) : (
@@ -147,12 +146,12 @@ export default function LoginScreen() {
         </Link>
       </View>
       <Image
-        className="absolute top-0 w-[130%] z-5"
+        className="absolute -top-1 w-[140%] z-5"
         source={require("../assets/images/Vector 1.png")}
         style={{ alignSelf: "center" }}
       />
       <Image
-        className="absolute bottom-0 w-[130%] z-5"
+        className="absolute -bottom-1 w-[140%] z-5"
         source={require("../assets/images/Vector 2.png")}
         style={{ alignSelf: "center" }}
       />

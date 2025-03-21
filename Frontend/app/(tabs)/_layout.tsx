@@ -113,7 +113,7 @@ export default function TabLayout() {
       <AuthProvider>
         <Tabs
           screenOptions={{
-            tabBarActiveTintColor: '#9661D9',
+            tabBarActiveTintColor: '#654192',
             headerShown: true,
             tabBarButton: HapticTab,
             tabBarBackground: TabBarBackground,
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   header: {
-    backgroundColor: '#9661D9',
+    backgroundColor: '#9C62D7',
     height: 80,
     color: 'white',
   }

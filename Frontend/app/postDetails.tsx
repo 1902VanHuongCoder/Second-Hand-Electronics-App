@@ -1,11 +1,15 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Dimensions, Image, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuthCheck } from '../store/checkLogin';
 import { Video, ResizeMode } from 'expo-av';
+import socket from '@/utils/socket';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store/store';
+import { NotificationContext } from '@/context/NotificationContext';
 
 // Định nghĩa kiểu cho sản phẩm
 interface Product {
@@ -29,6 +33,7 @@ interface Product {
   storageType?: string | null;
   video: string | null;
   images: string[];
+  userId: string;
 }
 
 const { width } = Dimensions.get("window");
@@ -36,17 +41,38 @@ const { width } = Dimensions.get("window");
 
 export default function PostDetailsScreen() {
   const [product, setProduct] = useState<Product | null>(null);
+  const { notifications, showNotification } = useContext(NotificationContext);
   const { id } = useLocalSearchParams();
-
+  const { user } = useSelector((state: RootState) => state.auth);
+  const router = useRouter();
   const checkAuth = useAuthCheck();
   const [expanded, setExpanded] = useState(false);
+
+  const handleChatWithSeller = (receiverId: string, productId: string) => {
+    if (user) {
+      const senderId = user.id;
+      if (senderId !== receiverId) {
+        const roomCode = `${receiverId}-${senderId}-${productId}`;
+        socket.emit("createRoom", receiverId, senderId, productId, roomCode);
+        router.push({
+          pathname: '/chat',
+          params: {
+            roomCode: roomCode,
+          }
+        });
+      }
+    } else {
+      showNotification("User not logged in", "error");
+    }
+  };
+
+
 
   useEffect(() => {
     const fetchProductDetails = async () => {
       try {
         const response = await axios.get(`http://10.0.2.2:5000/api/products/details/${id}`);
         setProduct(response.data as Product);
-        console.log(response.data)
       } catch (error) {
         console.error('Error fetching product details:', error);
       }
@@ -59,18 +85,13 @@ export default function PostDetailsScreen() {
     return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   }
 
-  // const getDisplayAddress = (product: Product) => {
-  //   if (typeof product.location === 'object' && product.location?.fullAddress) {
-  //     return product.location.fullAddress;
-  //   }
-  //   if (typeof product.location === 'string') {
-  //     return product.location;
-  //   }
-  //   return product.address || 'Chưa có địa chỉ';
-  // };
-
   if (!product) {
-    return <Text>Loading...</Text>; // Hiển thị loading khi đang lấy dữ liệu
+    return (
+      <View className='w-screen h-full flex justify-center items-center'>
+        <Text >Loading...</Text>; // Hiển thị loading khi đang lấy dữ liệu
+      </View>
+    )
+
   }
 
   const media: { type: 'image' | 'video'; uri: string }[] = [
@@ -78,11 +99,13 @@ export default function PostDetailsScreen() {
     ...(product.video ? [{ type: 'video' as const, uri: product.video }] : []),
   ];
 
+
+
   return (
     <ScrollView style={styles.container}>
       <MediaCarousel data={media} />
       <View style={styles.content}>
-        <Text style={styles.postName}>{product.title}</Text>
+        <Text className="uppercase" style={styles.postName} >{product.title}</Text>
         <Text style={styles.price}>{formatCurrency(product.price)} đ</Text>
         <Text style={styles.location} className='font-bold'>Địa chỉ: <Text className='font-normal'>{product.address}</Text></Text>
         <Text style={styles.location} className='font-bold'>Ngày đăng: <Text className='font-normal'>{new Date(product.postingDate).toLocaleDateString()}</Text></Text>
@@ -166,7 +189,7 @@ export default function PostDetailsScreen() {
           </View>
         )}
 
-        <View style={styles.buttonContainer}>
+        <View style={styles.buttonContainer} className={`${product.userId === user?.id ? 'hidden' : 'flex'}`}>
           <TouchableOpacity style={[
             styles.buttonWrapper,
             product.isPhoneHidden ? { width: '100%' } : { width: '48%' }
@@ -178,7 +201,7 @@ export default function PostDetailsScreen() {
               style={styles.button}
             >
               <Ionicons name="chatbubble-ellipses-outline" size={24} color="white" />
-              <Text style={styles.buttonText}>NHẮN TIN</Text>
+              <TouchableOpacity onPress={() => handleChatWithSeller(product.userId, product.id)}><Text style={styles.buttonText} >NHẮN TIN</Text></TouchableOpacity>
             </LinearGradient>
           </TouchableOpacity>
           <TouchableOpacity style={[
@@ -247,7 +270,7 @@ const MediaCarousel: React.FC<MediaCarouselProps> = ({ data }) => {
   };
 
   return (
-    <View>
+    <View className='py-5'>
       <FlatList
         ref={flatListRef}
         data={data}
@@ -255,11 +278,6 @@ const MediaCarousel: React.FC<MediaCarouselProps> = ({ data }) => {
         keyExtractor={(item, index) => index.toString()}
         horizontal
         pagingEnabled
-      // showsHorizontalScrollIndicator={true}
-      // // onMomentumScrollEnd={(event) => {
-      // //   const index = Math.floor(event.nativeEvent.contentOffset.x / width);
-      // //   setActiveIndex(index);
-      // // }}
       />
       <View style={styles.paginationContainer}>
         {data.map((_, index) => (
@@ -322,6 +340,9 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
+    borderTopColor: '#D9D9D9',
+    borderTopWidth: 1,
+    borderStyle: 'solid',
   },
   description: {
     fontSize: 16,
@@ -346,7 +367,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginVertical: 10,
     borderTopColor: '#D9D9D9',
-    borderTopWidth: 2,
+    borderTopWidth: 1,
     borderStyle: 'solid',
     paddingVertical: 10,
     paddingTop: 30,
@@ -391,7 +412,7 @@ const styles = StyleSheet.create({
   },
   navigateButtonFlatList: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 20,
+    borderRadius: 40,
     padding: 10,
   },
   buttonWrapper: {
@@ -416,7 +437,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   postName: {
-    fontSize: 26,
+    fontSize: 32,
     fontWeight: 'bold',
     marginVertical: 10,
     fontFamily: 'Knewave',
@@ -424,7 +445,8 @@ const styles = StyleSheet.create({
   paginationContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    paddingVertical: 8,
+    padding: 18,
+    marginTop: 20,
   },
   dotStyle: {
     width: 10,

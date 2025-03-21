@@ -12,7 +12,7 @@ export default function welcomePage() {
                     <Image style={{ width: 300, height: 40 }} source={require('../assets/images/2HAND MARKET.png')} />
                     <Image className="w-[350px] h-[350px]" source={require('../assets/images/image 2.png')} />
                 </View>
-                <Image style={{ width: '100%' }} className='absolute bottom-0' source={require('../assets/images/Vector 8.png')} />
+                <Image style={{width: '105%', height: '50%'}} className='absolute bottom-0' source={require('../assets/images/Vector 8.png')} />
                 <View className='absolute bottom-20 flex-row justify-center items-center gap-10'>
                     <Link href="/signup">
                         <View className='border-4 border-[#9661D9] px-10 py-3 rounded-2xl'>
