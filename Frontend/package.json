@@ -28,6 +28,7 @@
     "expo": "~52.0.32",
     "expo-av": "~15.0.2",
     "expo-blur": "~14.0.3",
+    "expo-clipboard": "^7.0.1",
     "expo-constants": "~17.0.5",
     "expo-font": "~13.0.3",
     "expo-haptics": "~14.0.1",

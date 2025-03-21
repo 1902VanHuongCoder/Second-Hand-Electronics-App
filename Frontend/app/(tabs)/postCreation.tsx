@@ -1,6 +1,6 @@
 import { Text, View, ScrollView, ActivityIndicator, TextInput, TouchableHighlight, Button, Image, Alert, TouchableOpacity } from 'react-native'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, version } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Picker } from '@react-native-picker/picker';
 import { LinearGradient } from "expo-linear-gradient";
@@ -99,6 +99,15 @@ interface District {
     division_type: string;
     codename: string;
     province_code: string;
+}
+
+interface Ward {
+    code: string;
+    division_type: string;
+    codename: string;
+    district_code: string;
+    name: string; 
+
 }
 
 // Thêm interface cho Condition
@@ -303,7 +312,7 @@ export default function PostCreation() {
     useEffect(() => {
         const fetchProvinces = async () => {
             try {
-                const response = await axios.get('https://provinces.open-api.vn/api/p/');
+                const response = await axios.get<Province[]>('https://provinces.open-api.vn/api/p/');
                 setProvinces(response.data);
             } catch (error) {
                 console.error('Lỗi khi lấy danh sách tỉnh/thành:', error);
@@ -322,7 +331,7 @@ export default function PostCreation() {
 
         if (provinceCode) {
             try {
-                const response = await axios.get(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`);
+                const response = await axios.get<{ districts: District[] }>(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`);
                 setDistricts(response.data.districts);
             } catch (error) {
                 console.error('Lỗi khi lấy danh sách quận/huyện:', error);
@@ -342,7 +351,8 @@ export default function PostCreation() {
         if (districtCode) {
             try {
                 const response = await axios.get(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`);
-                setWards(response.data.wards);
+                const data = response.data as { wards: Ward[] };
+                setWards(data.wards);
             } catch (error) {
                 console.error('Lỗi khi lấy danh sách phường/xã:', error);
                 setWards([]);
@@ -426,12 +436,12 @@ export default function PostCreation() {
                 }
             });
             
-            console.log('Delete response:', response.data);
-            
-            if (response.data && response.data.success) {
+            const responseData = response.data as { message: string, result: { message: string, result: string }, success: boolean };
+            if (responseData.success) {
                 console.log('Image deleted successfully on server');
             } else {
-                console.log('Server reported issue with deletion:', response.data?.message || 'Unknown error');
+                const responseData = response.data as { message: string, success: boolean };
+                console.log('Server reported issue with deletion:', responseData.message || 'Unknown error');
                 // Không hiển thị thông báo lỗi cho người dùng vì ảnh đã được xóa khỏi UI
             }
             
@@ -474,7 +484,9 @@ export default function PostCreation() {
             
             console.log('Delete video response:', response.data);
             
-            if (response.data && response.data.success) {
+            const responseData = response.data as { message: string, result: { message: string, result: string }, success: boolean };
+
+            if (response.data && responseData.success) {
                 console.log('Video deleted successfully on server');
                 // Xóa video khỏi UI sau khi xóa thành công trên server
                 setVideoUrl(null);
@@ -495,7 +507,7 @@ export default function PostCreation() {
                 
                 Alert.alert('Thành công', 'Đã xóa video thành công');
             } else {
-                console.log('Server reported issue with video deletion:', response.data?.message || 'Unknown error');
+                console.log('Server reported issue with video deletion:', responseData.message || 'Unknown error');
                 Alert.alert('Lỗi', 'Không thể xóa video. Vui lòng thử lại sau.');
             }
         } catch (error: any) {
@@ -642,7 +654,7 @@ export default function PostCreation() {
 
         } catch (error) {
             console.error('Lỗi khi xử lý tin:', error);
-            Alert.alert('Lỗi', error.response?.data?.message || `Có lỗi xảy ra khi ${isEditMode ? 'cập nhật' : 'đăng'} tin`);
+            Alert.alert('Lỗi', (error as any).response?.data?.message || `Có lỗi xảy ra khi ${isEditMode ? 'cập nhật' : 'đăng'} tin`);
         } finally {
             setIsSubmitting(false);
         }
@@ -662,12 +674,36 @@ export default function PostCreation() {
                     }
                 });
                 
-                const productData = response.data;
-                console.log("Dữ liệu sản phẩm nhận được:", productData);
-
+                const productData = response.data as {
+                    images?: string[];
+                    categoryId: string;
+                    brandId: string;
+                    versionId: string;
+                    conditionId: string;
+                    storageId: string;
+                    ramId: string;
+                    title: string;
+                    description: string;
+                    price: number;
+                    warranty: string;
+                    isVip: boolean;
+                    videos?: string;
+                    location?: {
+                        provinceCode?: string;
+                        districtCode?: string;
+                        wardCode?: string;
+                        detailAddress?: string;
+                        fullAddress?: string;
+                    };
+                    cpuId?: string;
+                    gpuId?: string;
+                    screenId?: string;
+                    storageTypeId?: string;
+                    battery?: string;
+                    origin?: string;
+                };
                 // Lưu danh sách ảnh ban đầu và hiện tại
                 if (productData.images && Array.isArray(productData.images)) {
-                    console.log("Ảnh sản phẩm:", productData.images);
                     setInitialImages([...productData.images]);
                     setAvatarUrls([...productData.images]);
                 }
@@ -705,11 +741,12 @@ export default function PostCreation() {
 
                     // Fetch districts và wards dựa trên province và district đã chọn
                     if (productData.location.provinceCode) {
-                        const provinceResponse = await axios.get(`https://provinces.open-api.vn/api/p/${productData.location.provinceCode}?depth=2`);
+                        const provinceResponse = await axios.get<{ districts: District[] }>(`https://provinces.open-api.vn/api/p/${productData.location.provinceCode}?depth=2`);
                         setDistricts(provinceResponse.data.districts);
 
                         if (productData.location.districtCode) {
                             const districtResponse = await axios.get(`https://provinces.open-api.vn/api/d/${productData.location.districtCode}?depth=2`);
+                            console.log('Wards:', districtResponse.data.wards);
                             setWards(districtResponse.data.wards);
                         }
                     }
@@ -746,14 +783,19 @@ export default function PostCreation() {
             try {
                 // Lấy dữ liệu brands và versions
                 const [brandsRes, versionsRes] = await Promise.all([
-                    axios.get<ApiResponse<Brand>>(`http://10.0.2.2:5000/api/brands?categoryId=${itemValue}`),
-                    axios.get<ApiResponse<Version>>('http://10.0.2.2:5000/api/versions')
+                    axios.get<ApiResponse<Brand[]>>(`http://10.0.2.2:5000/api/brands?categoryId=${itemValue}`),
+                    axios.get<ApiResponse<Version[]>>('http://10.0.2.2:5000/api/versions')
                 ]);
 
-                console.log('Versions Response:', versionsRes.data); // Debug log
+              
+                
+                // console.log("Test ************************ ",versionRes.data.data);
+                // console.log("Test ************************************", versionRes.data.data);
 
+                const versionData = versionsRes.data.data;
+                console.log('Versions Response:', versionData); // Debug log
                 setBrands(brandsRes.data.data);
-                setVersions(versionsRes.data.data);
+                setVersions(versionData.data);
 
                 // Kiểm tra category là laptop
                 const selectedCategoryObj = categories.find(cat => cat._id === itemValue);

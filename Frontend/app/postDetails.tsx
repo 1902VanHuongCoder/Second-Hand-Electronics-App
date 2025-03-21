@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Dimensions, Image, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Dimensions, Image, Pressable, ToastAndroid, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
@@ -7,9 +7,11 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuthCheck } from '../store/checkLogin';
 import { Video, ResizeMode } from 'expo-av';
 import socket from '@/utils/socket';
+import * as Clipboard from 'expo-clipboard';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
 import { NotificationContext } from '@/context/NotificationContext';
+import AntDesign from '@expo/vector-icons/AntDesign';
 
 // Định nghĩa kiểu cho sản phẩm
 interface Product {
@@ -34,14 +36,15 @@ interface Product {
   video: string | null;
   images: string[];
   userId: string;
+  phone: string; // Số điện thoại người bán
 }
 
 const { width } = Dimensions.get("window");
 
-
 export default function PostDetailsScreen() {
   const [product, setProduct] = useState<Product | null>(null);
-  const { notifications, showNotification } = useContext(NotificationContext);
+  const [showPhoneNumber, setShowPhoneNumber] = useState(false);
+  const { showNotification } = useContext(NotificationContext);
   const { id } = useLocalSearchParams();
   const { user } = useSelector((state: RootState) => state.auth);
   const router = useRouter();
@@ -66,8 +69,17 @@ export default function PostDetailsScreen() {
     }
   };
 
+  const handleCopyToClipboard = (phoneNumber: string) => {
+    Clipboard.setStringAsync(phoneNumber);
 
-
+    // Show confirmation message
+    if (Platform.OS === 'android') {
+      ToastAndroid.show('Số điện thoại đã được sao chép!', ToastAndroid.SHORT);
+    } else {
+      Alert.alert('Thông báo', 'Số điện thoại đã được sao chép!');
+    }
+  };
+  
   useEffect(() => {
     const fetchProductDetails = async () => {
       try {
@@ -91,7 +103,6 @@ export default function PostDetailsScreen() {
         <Text >Loading...</Text>; // Hiển thị loading khi đang lấy dữ liệu
       </View>
     )
-
   }
 
   const media: { type: 'image' | 'video'; uri: string }[] = [
@@ -99,11 +110,28 @@ export default function PostDetailsScreen() {
     ...(product.video ? [{ type: 'video' as const, uri: product.video }] : []),
   ];
 
-
-
   return (
     <ScrollView style={styles.container}>
       <MediaCarousel data={media} />
+      {showPhoneNumber && (
+        <View className='absolute inset-0 z-10 w-full h-full bg-[rgba(0,0,0,.5)] flex justify-center items-center'>
+        <View className='w-[90%] h-fit bg-white rounded-md flex justify-center items-start gap-y-5 p-10'>
+          <Text className='text-[18px]'>Số điện thoại người bán</Text>
+          <View className='flex items-center justify-between flex-row w-full'>
+            <Text className='text-2xl font-bold text-[#9661D9]'>{product.phone}</Text>
+            <View className='flex flex-row gap-x-5'> 
+            <TouchableOpacity className='px-4 py-2 bg-[rgba(0,0,0,.1)] rounded-md flex flex-row items-center' onPress={() => handleCopyToClipboard(product.phone)}>
+              <AntDesign name="copy1" size={24} color="black" /> <Text> Sao chép số</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setShowPhoneNumber(false)} className='px-4 py-2 border-[1px] border-solid border-[rgba(0,0,0,.1)] rounded-md flex flex-row items-center'>
+            <AntDesign name="close" size={24} color="black" /> <Text>Đóng</Text>
+            </TouchableOpacity>
+           
+            </View>
+          </View>
+        </View>
+      </View>
+      )}
       <View style={styles.content}>
         <Text className="uppercase" style={styles.postName} >{product.title}</Text>
         <Text style={styles.price}>{formatCurrency(product.price)} đ</Text>
@@ -207,7 +235,7 @@ export default function PostDetailsScreen() {
           <TouchableOpacity style={[
             styles.buttonWrapper,
             product.isPhoneHidden ? { display: 'none' } : { width: '48%' }
-          ]} onPress={checkAuth}>
+          ]} onPress={() => setShowPhoneNumber(true) }>
             <LinearGradient
               colors={['rgba(156,98,215,1)', 'rgba(82,52,113,1)']}
               start={{ x: 0, y: 0 }}
@@ -223,7 +251,6 @@ export default function PostDetailsScreen() {
     </ScrollView>
   );
 }
-
 
 interface MediaItem {
   type: 'image' | 'video';
@@ -322,6 +349,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'white',
+    position: 'relative',
   },
   header: {
     flexDirection: 'row',

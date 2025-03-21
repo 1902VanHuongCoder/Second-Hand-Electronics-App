@@ -347,6 +347,7 @@ exports.getProductDetails = async (req, res) => {
                 storageType: storageType ? storageType.storageName : null,
                 images: product ? product.images : [],
                 video: product ? product.videos : null,
+                phone: user ? user.phone : null,
                 type: 'laptop'
             };
         } else if (category.categoryName === 'Điện thoại') {
@@ -376,6 +377,7 @@ exports.getProductDetails = async (req, res) => {
                 storageType: storageType ? storageType.storageName : null,
                 images: product ? product.images : [],
                 video: product ? product.videos : null,
+                phone: user ? user.phone : null,
                 type: 'phone'
             };
         }

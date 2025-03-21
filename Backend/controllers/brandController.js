@@ -28,8 +28,10 @@ exports.getBrands = async (req, res) => {
 
 exports.getBrandsById = async (req, res) => {
   const { categoryId } = req.params;
+  console.log("<---------------------- categoryId ----------------------->", categoryId);
   try {
     const brands = await Brand.find({ categoryId });
+    console.log(brands);
     res.status(200).json(brands);
   } catch (error) {
     res.status(500).json({ message: error.message });
