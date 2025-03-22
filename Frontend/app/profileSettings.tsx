@@ -10,8 +10,9 @@ import { AppDispatch, RootState } from '@/store/store';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
+import rootURL from "@/utils/backendRootURL";
 
-const API_URL = "http://10.0.2.2:5000/api/uploadAvatar";
+const API_URL = `${rootURL}/api/uploadAvatar`;
 
 export default function ProfileSettings() {
     const dispatch = useDispatch<AppDispatch>();

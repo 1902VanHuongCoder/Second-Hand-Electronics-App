@@ -12,6 +12,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
 import { NotificationContext } from '@/context/NotificationContext';
 import AntDesign from '@expo/vector-icons/AntDesign';
+import rootURL from "@/utils/backendRootURL";
 
 // Định nghĩa kiểu cho sản phẩm
 interface Product {
@@ -83,7 +84,7 @@ export default function PostDetailsScreen() {
   useEffect(() => {
     const fetchProductDetails = async () => {
       try {
-        const response = await axios.get(`http://10.0.2.2:5000/api/products/details/${id}`);
+        const response = await axios.get(`${rootURL}/api/products/details/${id}`);
         setProduct(response.data as Product);
       } catch (error) {
         console.error('Error fetching product details:', error);

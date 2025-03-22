@@ -56,7 +56,7 @@ export default function Chat() {
             socket.emit("sendMessage", {
                 roomCode: chatInfo.roomCode,
                 senderId: user.id,
-                text: text, 
+                text: text,
                 senderN: user.name,
             });
             onChangeText("");
@@ -82,7 +82,6 @@ export default function Chat() {
         socket.on("foundRoom", (roomChats: MessageProps) => setChatInfo(roomChats));
 
         socket.on("receiveMessage", (newMessage: MessageItemProps) => {
-            console.log("Receive message new.............."); 
             setChatInfo((prevChatInfo) => {
                 if (prevChatInfo) {
                     return {
@@ -126,21 +125,21 @@ export default function Chat() {
                 </View>
             </View>
             <ScrollView ref={scrollViewRef}>
-                <View style={{ flex: 1, marginTop: 20, gap: 16 }} className="w-full flex-col items-center">
+                <View style={{ flex: 1, marginTop: 20, gap: 16 }} className="w-full flex-col items-center gap-y-10">
                     {chatInfo && chatInfo.messages.map((msg, index) => (
-                        <View key={index} style={{ alignSelf: msg.senderId === user?.id ? "flex-end" : "flex-start", flexDirection: msg.senderId === user?.id ? "row-reverse" : "row" }} className="flex-row gap-2 items-center">
-                           <Image
-                                style={{ width: 40, height: 40 }}
-                                className="rounded-full"
-                                source={msg.senderId === chatInfo.senderId ? (chatInfo.senderAvatar ? { uri: chatInfo.senderAvatar } : defaultUserIcon) : (chatInfo.receiverAvatar ? { uri: chatInfo.receiverAvatar } : defaultUserIcon)}/>
-                            <View className="flex-col gap-1">
-                                <Text className={msg.senderId === chatInfo.senderId ? "bg-white rounded-lg py-2 px-3 font-bold w-auto shadow-md" : "bg-white rounded-lg py-2 px-3 font-bold w-auto shadow-md"}>
+                        <View key={index} style={{ alignSelf: msg.senderId === user?.id ? "flex-end" : "flex-start" }} className={`flex-col gap-2 ${msg.senderId === user?.id ? "items-end" : "items-start"}`}>
+                            <View className={`flex-row gap-2`} style={{ flexDirection: msg.senderId === user?.id ? "row-reverse" : "row"}}>
+                                <Image
+                                    style={{ width: 40, height: 40 }}
+                                    className="rounded-full"
+                                    source={msg.senderId === chatInfo.senderId ? (chatInfo.senderAvatar ? { uri: chatInfo.senderAvatar } : defaultUserIcon) : (chatInfo.receiverAvatar ? { uri: chatInfo.receiverAvatar } : defaultUserIcon)} />
+                                <Text className={msg.senderId === chatInfo.senderId ? "relative bg-white rounded-lg py-2 px-3 font-bold shadow-md text-[18px]" : "relative bg-white rounded-lg py-2 px-3 font-bold shadow-md text-[18px]"}>
                                     {msg.text}
                                 </Text>
-                                <Text style={{ alignSelf: msg.senderId !== chatInfo.senderId ? "flex-start" : "flex-end" }} className="font-semibold text-[#808080] text-[12px]">
-                                    {msg.senderN} - {new Date(msg.time).toLocaleTimeString()}
-                                </Text>
                             </View>
+                            <Text className={`font-semibold text-[#808080] text-[12px] pl-[48px] min-w-[190px]`}>
+                                {msg.senderN} - {new Date(msg.time).toLocaleTimeString()}
+                            </Text>
                         </View>
                     ))}
                 </View>

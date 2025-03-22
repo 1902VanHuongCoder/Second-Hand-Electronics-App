@@ -20,7 +20,6 @@ exports.getStorages = async (req, res) => {
       .populate('storageTypeId')
       .lean(); // Sử dụng lean() để có thể chuyển đổi thành plain object
     res.status(200).json({ 
-      success: true, 
       data: storages 
     });
   } catch (error) {

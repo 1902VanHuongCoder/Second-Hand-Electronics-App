@@ -342,8 +342,7 @@ exports.uploadMulti = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error uploading images:', error);
-    
+    console.error('Error uploading images:', error);    
     res.status(500).json({ 
       success: false, 
       message: 'Lỗi khi tải ảnh lên',

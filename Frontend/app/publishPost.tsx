@@ -5,6 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Link } from 'expo-router';
 import { useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
+import rootURL from "@/utils/backendRootURL";
 
 interface Product {
     id: string;
@@ -29,7 +30,7 @@ export default function PublishPost() {
     useEffect(() => {
         const fetchProduct = async () => {
             try {
-                const response = await axios.get(`http://10.0.2.2:5000/api/products/${id}`);
+                const response = await axios.get(`${rootURL}/api/products/${id}`);
                 setProduct(response.data as Product);
             } catch (error) {
                 console.error('Error fetching product details:', error);
@@ -47,16 +48,18 @@ export default function PublishPost() {
     const formatCurrency = (value: number) => {
         return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     }
+
+    console.log('product:', product);
     return (
         <View className='w-full h-full bg-white p-4 flex-col'>
-            <View className="flex-row gap-1 border-b-2 border-[#D9D9D9] pb-4">
+            <View className="flex-row gap-2 items-center border-b-[1px] border-[#D9D9D9] pb-4">
                 <Image
                     style={{ width: 90, height: 90 }}
                     className="rounded-lg"
-                    source={require("../assets/images/z6316149378615_f6d6f665171bf597c35f86bf13ca61b2.jpg")}
+                    source={{ uri: product?.images[0] }}
                 />
-                <View>
-                    <Text className="font-bold text-[18px]">{product?.title}</Text>
+                <View className=''>
+                    <Text className="font-bold text-[20px] pb-3">{product?.title}</Text>
                     <Text className="text-[#9661D9] text-[16px] font-bold">{product?.price !== undefined ? formatCurrency(product.price) : 'Giá không xác định'} đ</Text>
                 </View>
             </View>

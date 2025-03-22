@@ -44,6 +44,8 @@ import socket from '../utils/socket';
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import AppBarForHome from "@/components/AppBarForHome";
+import rootURL from "@/utils/backendRootURL";
+
 // Định nghĩa kiểu cho người dùng
 interface User {
   _id: string;
@@ -108,7 +110,7 @@ export default function HomePage() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get<Product[]>('http://10.0.2.2:5000/api/home');
+        const response = await axios.get<Product[]>(`${rootURL}/api/home`);
         setProducts(response.data);
         setAllProducts(response.data);
       } catch (error) {
@@ -118,7 +120,7 @@ export default function HomePage() {
 
     const fetchCategory = async () => {
       try {
-        const response = await axios.get<CategoryResponse>('http://10.0.2.2:5000/api/allcategory');
+        const response = await axios.get<CategoryResponse>(`${rootURL}/api/allcategory`);
         setCategory(response.data.categories);
 
       } catch (err) {
@@ -141,7 +143,7 @@ export default function HomePage() {
   const getAllProducts = async () => {
     setBrands([]);
     try {
-      const response = await axios.get<Product[]>('http://10.0.2.2:5000/api/home');
+      const response = await axios.get<Product[]>(`${rootURL}/api/home`);
       setProducts(response.data);
       setAllProducts(response.data);
       setFilteredProductsByCategory(response.data); // Reset cả danh sách lọc
@@ -152,7 +154,7 @@ export default function HomePage() {
 
   const getBrandsById = async (categoryId: string, categoryName: string) => {
     try {
-      const response = await axios.get<Brand[]>(`http://10.0.2.2:5000/api/brands/${categoryId}`);
+      const response = await axios.get<Brand[]>(`${rootURL}/api/brands/${categoryId}`);
       setBrands(response.data);
 
       let filteredProducts = allProducts;

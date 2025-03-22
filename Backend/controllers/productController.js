@@ -56,6 +56,8 @@ exports.createProduct = async (req, res) => {
             });
         }
 
+        console.log(req.body);
+        
         const productData = {
             categoryId: new mongoose.Types.ObjectId(req.body.categoryId),
             userId: new mongoose.Types.ObjectId(req.body.userId),

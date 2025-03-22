@@ -14,7 +14,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
 import { NotificationContext } from '@/context/NotificationContext';
 import Notification from '@/components/Notification';
-
+import rootURL from '@/utils/backendRootURL';
 interface Report {
   _id: string;
   productId: {
@@ -54,7 +54,7 @@ export default function ReportsManagement() {
   const fetchReports = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://10.0.2.2:5000/api/reports', {
+      const response = await axios.get<{data: Report[]}>(`${rootURL}/api/reports`, {
         headers: {
           Authorization: `Bearer ${user?.token}`
         }
@@ -70,7 +70,7 @@ export default function ReportsManagement() {
 
   const updateReportStatus = async (reportId: string, status: 'pending' | 'reviewed' | 'resolved') => {
     try {
-      await axios.patch(`http://10.0.2.2:5000/api/reports/${reportId}`, 
+      await axios.patch(`${rootURL}/api/reports/${reportId}`, 
         { status },
         {
           headers: {

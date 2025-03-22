@@ -12,8 +12,10 @@ import axios from 'axios';
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
+import rootURL from "@/utils/backendRootURL";
 
 interface Product {
+    description: string;
     id: string;
     title: string;
     configuration: string;
@@ -71,7 +73,8 @@ const mapApiResponseToProduct = (apiProduct: ProductResponse): Product => {
         gpuName: null,
         screenSize: null,
         storageCapacity: null,
-        storageType: null
+        storageType: null,
+        description: apiProduct.description
     };
 };
 
@@ -93,7 +96,7 @@ export default function SearchResults() {
     useEffect(() => {
         const fetchSearchResults = async () => {
             try {
-                const response = await axios.get<ProductResponse[]>(`http://10.0.2.2:5000/api/products/search/ketquatimkiem?searchTerm=${searchTerm}`);
+                const response = await axios.get<ProductResponse[]>(`${rootURL}/api/products/search/ketquatimkiem?searchTerm=${searchTerm}`);
                 const mappedProducts = response.data.map(mapApiResponseToProduct);
                 setProducts(mappedProducts);
                 console.log('tim kiem', mappedProducts)
@@ -124,7 +127,7 @@ export default function SearchResults() {
     return (
         <View className="p-4 bg-white" style={{ flex: 1 }}>
             <View className="flex-col gap-4">
-                <Text className="font-bold text-[16px]">Kết quả tìm kiếm với "{searchTerm}"</Text>
+                <Text className="font-bold text-[18px]">Kết quả tìm kiếm với "{searchTerm}"</Text>
             </View>
             {products.length > 0 ? (
                 <ScrollView>
@@ -134,35 +137,38 @@ export default function SearchResults() {
                             className="mt-6 flex-col gap-4 border-b border-[#D9D9D9] pb-4"
                         >
                             <View className="flex-col gap-4">
-                                <View className="flex-row gap-2 w-full">
-                                    <Link href={`/postDetails?id=${product.id}`}>
+                                <View className="flex-row gap-2 w-full gap-x-4">
+                                    <View className="w-fit h-fit rounded-md overflow-hidden">
+                                        <Link href={`/postDetails?id=${product.id}`}>
                                         <Image
                                             style={{ width: 170, height: 170 }}
                                             source={{ uri: product.images[0] }}
                                         />
                                     </Link>
-                                    <View className="w-[50%] flex-col gap-1">
+                                    </View>
+                                    
+                                    <View className="flex-1 flex-col gap-2">
                                         <View className="flex-row justify-between items-center">
                                             <Link href={`/postDetails?id=${product.id}`}>
-                                                <Text className="font-bold text-[16px]">{product.title}</Text>
+                                                <Text className="font-bold text-[18px] uppercase">{product.title}</Text>
                                             </Link>
-                                            <TouchableHighlight onPress={() => handleReportPress(product.id)}>
-                                                <Icon name="ellipsis-v" size={18} color="#9661D9" />
+                                            <TouchableHighlight className="pr-2" onPress={() => handleReportPress(product.id)}>
+                                                <Icon name="ellipsis-v" size={20} color="#9661D9" />
                                             </TouchableHighlight>
                                         </View>
-                                        <Text className="text-[12px]">{product.configuration}</Text>
+                                        <Text className="text-[16px] text-black">{product.description || product.configuration}</Text>
                                         <Text className="font-bold text-[#9661D9] text-[16px]">
                                             {formatCurrency(product.price)} đ
                                         </Text>
                                         <View className="flex-row gap-2 items-center">
                                             <Icon name="map-marker" size={20} color="#9661D9" />
-                                            <Text className="font-bold text-[14px]">
+                                            <Text className=" text-[16px]">
                                                 {product.address}
                                             </Text>
                                         </View>
                                         <View className="flex-row gap-2 items-center">
                                             <Icon name="clock-o" size={20} color="#9661D9" />
-                                            <Text className="font-bold text-[14px]">
+                                            <Text className=" text-[16px]">
                                                 {product.postingDate}
                                             </Text>
                                         </View>

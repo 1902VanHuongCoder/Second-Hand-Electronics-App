@@ -15,10 +15,10 @@ import { Video, ResizeMode } from 'expo-av';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
+import rootURL from '@/utils/backendRootURL';
 
-
-const API_URL = "http://10.0.2.2:5000/api/uploadmultiple";
-const API_URL_UPLOAD_VIDEO = "http://10.0.2.2:5000/api/uploadvideo";
+const API_URL = `${rootURL}/api/uploadmultiple`;
+const API_URL_UPLOAD_VIDEO = `${rootURL}/api/uploadvideo`;
 const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50 MB
 
 // Định nghĩa kiểu cho ảnh và video
@@ -33,9 +33,11 @@ interface Category {
 }
 
 interface Brand {
-    _id: string;
-    brandName: string;
-    categoryId: string;
+        _id: string;
+        brandName: string;
+        categoryId: string;
+        createdAt: string,
+        updatedAt: string
 }
 
 interface Ram {
@@ -78,11 +80,11 @@ interface Version {
     };
 }
 
-interface ApiResponse<T> {
-    data: {
-        data: T[];
-    }
-}
+// interface ApiResponse<T> {
+//     data: {
+//         data: T[];
+//     }
+// }
 
 // Thêm interfaces cho địa chỉ từ API
 interface Province {
@@ -106,7 +108,7 @@ interface Ward {
     division_type: string;
     codename: string;
     district_code: string;
-    name: string; 
+    name: string;
 
 }
 
@@ -127,13 +129,12 @@ interface OriginOption {
 export default function PostCreation() {
     const params = useLocalSearchParams();
     const id = params.id;
-    console.log("ID từ params:", id, typeof id);
-    
+
     const isEditMode = typeof id === 'string' && id.length > 0;
-    console.log("isEditMode:", isEditMode);
-    
+
+
     const router = useRouter();
-    
+
     // Lấy user từ Redux store
     const { user } = useSelector((state: RootState) => state.auth);
     const [avatarUrls, setAvatarUrls] = useState<string[]>([]);
@@ -175,6 +176,9 @@ export default function PostCreation() {
     // States cho data từ API
     const [categories, setCategories] = useState<Category[]>([]);
     const [brands, setBrands] = useState<Brand[]>([]);
+
+   
+
     const [cpus, setCpus] = useState<Cpu[]>([]);
     const [gpus, setGpus] = useState<Gpu[]>([]);
     const [rams, setRams] = useState<Ram[]>([]);
@@ -216,7 +220,7 @@ export default function PostCreation() {
     useEffect(() => {
         const fetchConditions = async () => {
             try {
-                const response = await axios.get('http://10.0.2.2:5000/api/conditions');
+                const response = await axios.get<{data: Condition[]}>(`${rootURL}/api/conditions`);
                 setConditions(response.data.data);
             } catch (error) {
                 console.error('Lỗi khi lấy danh sách tình trạng:', error);
@@ -229,16 +233,16 @@ export default function PostCreation() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const categoriesResponse = await axios.get<ApiResponse<Category>>('http://10.0.2.2:5000/api/categories');
+                const categoriesResponse = await axios.get<{data: Category[]}>(`${rootURL}/api/categories`);
                 setCategories(categoriesResponse.data.data);
 
-                const brandsResponse = await axios.get<ApiResponse<Brand>>('http://10.0.2.2:5000/api/brands');
+                const brandsResponse = await axios.get<{data: Brand[]}>(`${rootURL}/api/brands`);
                 setBrands(brandsResponse.data.data);
 
-                const ramsResponse = await axios.get<ApiResponse<Ram>>('http://10.0.2.2:5000/api/rams');
+                const ramsResponse = await axios.get<{data: Ram[]}>(`${rootURL}/api/rams`);
                 setRams(ramsResponse.data.data);
 
-                const screensResponse = await axios.get<ApiResponse<Screen>>('http://10.0.2.2:5000/api/screens');
+                const screensResponse = await axios.get<{data: Screen[]}>(`${rootURL}/api/screens`);
                 setScreens(screensResponse.data.data);
 
             } catch (error) {
@@ -254,14 +258,12 @@ export default function PostCreation() {
         const fetchStorageData = async () => {
             try {
                 const [storagesResponse, storageTypesResponse] = await Promise.all([
-                    axios.get('http://10.0.2.2:5000/api/storages'),
-                    axios.get('http://10.0.2.2:5000/api/storage-types')
+                    axios.get<{data: Storage[]}>(`${rootURL}/api/storages`),
+                    axios.get<{data: StorageType[]}>(`${rootURL}/api/storage-types`)
                 ]);
 
                 setStorages(storagesResponse.data.data);
                 setStorageTypes(storageTypesResponse.data.data);
-                console.log('Storages:', storagesResponse.data.data);
-                console.log('Storage Types:', storageTypesResponse.data.data);
             } catch (error) {
                 console.error('Lỗi khi lấy dữ liệu storage:', error);
             }
@@ -399,7 +401,7 @@ export default function PostCreation() {
 
     // Thêm state để theo dõi trạng thái tải dữ liệu
     const [pageLoading, setPageLoading] = useState(false);
-    
+
     // Thêm state để lưu trữ ảnh ban đầu khi edit
     const [initialImages, setInitialImages] = useState<string[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -409,48 +411,45 @@ export default function PostCreation() {
     // Hàm xóa một ảnh cụ thể
     const handleDeleteImage = async (imageUrl: string) => {
         try {
-            console.log('Deleting image:', imageUrl);
-            
+
+
             // Kiểm tra xem URL có hợp lệ không
             if (!imageUrl || !imageUrl.includes('cloudinary.com')) {
                 console.error('Invalid image URL:', imageUrl);
                 Alert.alert('Lỗi', 'URL ảnh không hợp lệ');
                 return;
             }
-            
+
             // Đặt trạng thái đang xóa cho ảnh này
             setDeletingImageId(imageUrl);
-            
+
             // Xóa ảnh khỏi UI ngay lập tức để trải nghiệm người dùng tốt hơn
             setAvatarUrls(prevUrls => prevUrls.filter(url => url !== imageUrl));
-            
-            // Hiển thị thông báo đang xử lý (chỉ log, không hiển thị cho người dùng)
-            console.log('Sending delete request to server...');
-            
+
+
+
             // Gửi request xóa ảnh đến server
-            const response = await axios.post('http://10.0.2.2:5000/api/deleteImage', {
+            const response = await axios.post(`${rootURL}/api/deleteImage`, {
                 imageUrl
             }, {
                 headers: {
                     'Content-Type': 'application/json'
                 }
             });
-            
+
             const responseData = response.data as { message: string, result: { message: string, result: string }, success: boolean };
             if (responseData.success) {
                 console.log('Image deleted successfully on server');
             } else {
                 const responseData = response.data as { message: string, success: boolean };
-                console.log('Server reported issue with deletion:', responseData.message || 'Unknown error');
-                // Không hiển thị thông báo lỗi cho người dùng vì ảnh đã được xóa khỏi UI
             }
-            
+
             // Đặt lại trạng thái xóa
             setDeletingImageId(null);
         } catch (error: any) {
             console.error('Lỗi khi xóa ảnh:', error);
             // Không hiển thị thông báo lỗi cho người dùng vì ảnh đã được xóa khỏi UI
-            
+
             // Đặt lại trạng thái xóa
             setDeletingImageId(null);
         }
@@ -465,49 +464,43 @@ export default function PostCreation() {
                 Alert.alert('Lỗi', 'URL video không hợp lệ');
                 return;
             }
-            
+
             // Hiển thị trạng thái đang xóa
             setDeletingVideo(true);
-            
-            // Hiển thị thông báo đang xử lý (chỉ log, không hiển thị cho người dùng)
-            console.log('Sending delete request to server for video...');
-            console.log('Video URL to delete:', videoUrl);
-            
+
+
             // Gửi request xóa video đến server
-            const response = await axios.post('http://10.0.2.2:5000/api/deleteVideo', {
+            const response = await axios.post(`${rootURL}/api/deleteVideo`, {
                 videoUrl
             }, {
                 headers: {
                     'Content-Type': 'application/json'
                 }
             });
-            
-            console.log('Delete video response:', response.data);
-            
+
+
+
             const responseData = response.data as { message: string, result: { message: string, result: string }, success: boolean };
 
             if (response.data && responseData.success) {
-                console.log('Video deleted successfully on server');
-                // Xóa video khỏi UI sau khi xóa thành công trên server
                 setVideoUrl(null);
                 setThumbnail(null);
-                
+
                 // Nếu đang ở chế độ chỉnh sửa, cập nhật trường videos của sản phẩm
                 if (isEditMode && id) {
                     try {
                         // Gửi request cập nhật sản phẩm để xóa trường videos
-                        await axios.patch(`http://10.0.2.2:5000/api/products/${id}/update-video`, {
+                        await axios.patch(`${rootURL}/api/products/${id}/update-video`, {
                             videos: ''
                         });
-                        console.log('Product video field updated to empty');
+
                     } catch (updateError) {
                         console.error('Error updating product video field:', updateError);
                     }
                 }
-                
+
                 Alert.alert('Thành công', 'Đã xóa video thành công');
             } else {
-                console.log('Server reported issue with video deletion:', responseData.message || 'Unknown error');
                 Alert.alert('Lỗi', 'Không thể xóa video. Vui lòng thử lại sau.');
             }
         } catch (error: any) {
@@ -529,7 +522,7 @@ export default function PostCreation() {
             Alert.alert('Thông báo', 'Vui lòng nhập đầy đủ thông tin sản phẩm');
             return false;
         }
-        
+
         if (avatarUrls.length === 0) {
             Alert.alert('Thông báo', 'Vui lòng chọn ảnh sản phẩm');
             return false;
@@ -564,9 +557,7 @@ export default function PostCreation() {
             // Nếu đang ở chế độ edit, xóa các ảnh không còn sử dụng
             if (isEditMode && initialImages.length > 0) {
                 try {
-                    console.log('Ảnh ban đầu:', initialImages);
-                    console.log('Ảnh hiện tại:', avatarUrls);
-                    await axios.post('http://10.0.2.2:5000/api/deleteUnusedImages', {
+                    await axios.post(`${rootURL}/api/deleteUnusedImages`, {
                         oldImageUrls: initialImages,
                         newImageUrls: avatarUrls
                     });
@@ -578,8 +569,7 @@ export default function PostCreation() {
             // Kiểm tra nếu đang ở chế độ edit và video đã bị xóa
             if (isEditMode && initialVideoUrl && !videoUrl) {
                 try {
-                    console.log('Video đã bị xóa, cập nhật trường videos thành rỗng');
-                    await axios.patch(`http://10.0.2.2:5000/api/products/${id}/update-video`, {
+                    await axios.patch(`${rootURL}/api/products/${id}/update-video`, {
                         videos: ''
                     });
                 } catch (error) {
@@ -622,39 +612,40 @@ export default function PostCreation() {
             let response;
             if (isEditMode) {
                 // Gọi API cập nhật sản phẩm
-                response = await axios.put(`http://10.0.2.2:5000/api/products/${id}`, productData);
+                response = await axios.put(`${rootURL}/api/products/${id}`, productData);
                 Alert.alert('Thành công', 'Cập nhật tin thành công', [
-                    { 
-                        text: 'OK', 
+                    {
+                        text: 'OK',
                         onPress: () => {
                             // Chuyển về trang quản lý tin
                             router.replace('/postManagement');
-                            
+
                             // Sau đó chuyển về form đăng tin mới (không phải ở chế độ edit)
                             setTimeout(() => {
                                 resetForm(); // Reset form về trạng thái ban đầu
                                 router.replace('/postCreation'); // Chuyển đến trang đăng tin mới
                             }, 100);
-                        } 
+                        }
                     }
                 ]);
             } else {
                 // Gọi API tạo sản phẩm mới
-                response = await axios.post('http://10.0.2.2:5000/api/products', productData);
+                alert("Tao san pham moi");
+                response = await axios.post(`${rootURL}/api/products`, productData);
                 Alert.alert('Thành công', 'Đăng tin thành công', [
-                    { 
-                        text: 'OK', 
+                    {
+                        text: 'OK',
                         onPress: () => {
                             resetForm(); // Reset form về trạng thái ban đầu
                             router.replace('/postManagement'); // Chuyển đến trang quản lý tin
-                        } 
+                        }
                     }
                 ]);
             }
 
         } catch (error) {
             console.error('Lỗi khi xử lý tin:', error);
-            Alert.alert('Lỗi', (error as any).response?.data?.message || `Có lỗi xảy ra khi ${isEditMode ? 'cập nhật' : 'đăng'} tin`);
+            // Alert.alert('Lỗi', (error as any).response?.data?.message || `Có lỗi xảy ra khi ${isEditMode ? 'cập nhật' : 'đăng'} tin`);
         } finally {
             setIsSubmitting(false);
         }
@@ -668,12 +659,12 @@ export default function PostCreation() {
             try {
                 setPageLoading(true);
                 const token = await AsyncStorage.getItem('token');
-                const response = await axios.get(`http://10.0.2.2:5000/api/products/edit/${id}`, {
+                const response = await axios.get(`${rootURL}/api/products/edit/${id}`, {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
                 });
-                
+
                 const productData = response.data as {
                     images?: string[];
                     categoryId: string;
@@ -746,8 +737,8 @@ export default function PostCreation() {
 
                         if (productData.location.districtCode) {
                             const districtResponse = await axios.get(`https://provinces.open-api.vn/api/d/${productData.location.districtCode}?depth=2`);
-                            console.log('Wards:', districtResponse.data.wards);
-                            setWards(districtResponse.data.wards);
+                            const data = districtResponse.data as { wards: Ward[] };
+                            setWards(data.wards);
                         }
                     }
                 }
@@ -774,7 +765,6 @@ export default function PostCreation() {
     }, [isEditMode, id]);
 
     const handleCategoryChange = async (itemValue: string) => {
-        console.log('Selected Category ID:', itemValue);
         setSelectedCategory(itemValue);
         setSelectedBrand("");
         setSelectedVersion(""); // Reset version khi đổi category
@@ -783,39 +773,12 @@ export default function PostCreation() {
             try {
                 // Lấy dữ liệu brands và versions
                 const [brandsRes, versionsRes] = await Promise.all([
-                    axios.get<ApiResponse<Brand[]>>(`http://10.0.2.2:5000/api/brands?categoryId=${itemValue}`),
-                    axios.get<ApiResponse<Version[]>>('http://10.0.2.2:5000/api/versions')
+                    axios.get<{ data: Brand[] }>(`${rootURL}/api/brands?categoryId=${itemValue}`),
+                    axios.get<{ data: Version[] }>(`${rootURL}/api/versions`)
                 ]);
 
-              
-                
-                // console.log("Test ************************ ",versionRes.data.data);
-                // console.log("Test ************************************", versionRes.data.data);
-
-                const versionData = versionsRes.data.data;
-                console.log('Versions Response:', versionData); // Debug log
                 setBrands(brandsRes.data.data);
-                setVersions(versionData.data);
-
-                // Kiểm tra category là laptop
-                const selectedCategoryObj = categories.find(cat => cat._id === itemValue);
-                const isLaptopCategory = selectedCategoryObj?.categoryName.toLowerCase() === 'laptop';
-
-                console.log('Is Laptop Category:', isLaptopCategory);
-
-                if (isLaptopCategory) {
-                    const [cpusRes, gpusRes, screensRes, storageTypesRes] = await Promise.all([
-                        axios.get<ApiResponse<Cpu>>('http://10.0.2.2:5000/api/cpus'),
-                        axios.get<ApiResponse<Gpu>>('http://10.0.2.2:5000/api/gpus'),
-                        axios.get<ApiResponse<Screen>>('http://10.0.2.2:5000/api/screens'),
-                        axios.get<ApiResponse<StorageType>>('http://10.0.2.2:5000/api/storage-types')
-                    ]);
-
-                    setCpus(cpusRes.data.data);
-                    setGpus(gpusRes.data.data);
-                    setScreens(screensRes.data.data);
-                    setStorageTypes(storageTypesRes.data.data);
-                }
+                setVersions(versionsRes.data.data);
             } catch (error) {
                 console.error('Lỗi khi lấy dữ liệu:', error);
                 setBrands([]);
@@ -835,15 +798,12 @@ export default function PostCreation() {
     const handleStorageTypeChange = (itemValue: string) => {
         setSelectedStorageType(itemValue);
         setSelectedStorage(""); // Reset selected storage
-        console.log('Selected Storage Type:', itemValue);
     };
 
     // Xử lý khi thay đổi brand
     const handleBrandChange = (itemValue: string) => {
         setSelectedBrand(itemValue);
         setSelectedVersion(""); // Reset version khi đổi brand
-        console.log('Selected Brand:', itemValue);
-        console.log('Available Versions:', filteredVersions);
     };
 
     useEffect(() => {
@@ -905,7 +865,7 @@ export default function PostCreation() {
         // Kiểm tra tổng số ảnh sau khi tải lên không vượt quá 6
         if (avatarUrls.length + images.length > 6) {
             Alert.alert(
-                "Quá nhiều ảnh", 
+                "Quá nhiều ảnh",
                 `Bạn đã có ${avatarUrls.length} ảnh. Chỉ có thể tải thêm tối đa ${6 - avatarUrls.length} ảnh nữa.`,
                 [
                     { text: "OK" }
@@ -913,9 +873,7 @@ export default function PostCreation() {
             );
             return;
         }
-
         setLoading(true);
-
         try {
             const formData = new FormData();
             images.forEach((image, index) => {
@@ -926,13 +884,22 @@ export default function PostCreation() {
                 } as any);
             });
 
-            const response = await axios.post(API_URL, formData, {
+            const response = await axios.post<{
+                success: boolean,
+                message: string,
+                urls: string[], // Danh sách URL ảnh đã tải lên
+                details?: {
+                    hasInappropriateContent: boolean,
+                    inappropriateFiles?: string[],
+                    isDuplicate: boolean
+                } 
+            }>(API_URL, formData, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
 
             if (!response.data.success) {
                 let errorMessage = "Upload thất bại:\n";
-                
+
                 if (response.data.details) {
                     if (response.data.details.hasInappropriateContent) {
                         const inappropriateFiles = response.data.details.inappropriateFiles || [];
@@ -941,14 +908,14 @@ export default function PostCreation() {
                             errorMessage += `- ${fileName}\n`;
                         });
                     }
-                    
+
                     if (response.data.details.isDuplicate) {
                         errorMessage += "Một số ảnh đã tồn tại trong hệ thống\n";
                     }
                 }
-                
+
                 Alert.alert(
-                    "Upload Thất Bại", 
+                    "Upload Thất Bại",
                     errorMessage,
                     [
                         { text: "OK", onPress: () => console.log("OK Pressed") }
@@ -963,9 +930,9 @@ export default function PostCreation() {
             setAvatarUrls(newUrls);
             // Xóa ảnh đã chọn sau khi tải lên thành công
             setImages([]);
-            
+
             Alert.alert(
-                "Thành công", 
+                "Thành công",
                 "Upload ảnh thành công",
                 [
                     { text: "OK", onPress: () => console.log("OK Pressed") }
@@ -983,7 +950,7 @@ export default function PostCreation() {
         // Kiểm tra nếu đã có video
         if (videoUrl) {
             Alert.alert(
-                "Video đã tồn tại", 
+                "Video đã tồn tại",
                 "Bạn đã tải lên một video. Vui lòng xóa video hiện tại trước khi chọn video mới.",
                 [{ text: "OK" }]
             );
@@ -1008,9 +975,9 @@ export default function PostCreation() {
             if (!result.canceled) {
                 // Kiểm tra kích thước video
                 const fileInfo = await FileSystem.getInfoAsync(result.assets[0].uri);
-                if (fileInfo.size > MAX_VIDEO_SIZE) {
+                if (fileInfo.exists && fileInfo.size > MAX_VIDEO_SIZE) {
                     Alert.alert(
-                        "Video quá lớn", 
+                        "Video quá lớn",
                         "Kích thước video vượt quá 50MB. Vui lòng chọn video nhỏ hơn.",
                         [{ text: "OK" }]
                     );
@@ -1018,7 +985,7 @@ export default function PostCreation() {
                 }
 
                 setVideo(result.assets[0].uri);
-                
+
                 // Tạo thumbnail cho video
                 try {
                     const { uri } = await VideoThumbnails.getThumbnailAsync(result.assets[0].uri, { time: 1000 });
@@ -1042,7 +1009,7 @@ export default function PostCreation() {
         // Kiểm tra nếu đã có video
         if (videoUrl) {
             Alert.alert(
-                "Video đã tồn tại", 
+                "Video đã tồn tại",
                 "Bạn đã tải lên một video. Vui lòng xóa video hiện tại trước khi tải lên video mới.",
                 [{ text: "OK" }]
             );
@@ -1054,9 +1021,9 @@ export default function PostCreation() {
         try {
             // Kiểm tra kích thước video
             const fileInfo = await FileSystem.getInfoAsync(video);
-            if (fileInfo.size > MAX_VIDEO_SIZE) {
+            if (fileInfo.exists && fileInfo.size > MAX_VIDEO_SIZE) {
                 Alert.alert(
-                    "Video quá lớn", 
+                    "Video quá lớn",
                     "Kích thước video vượt quá 50MB. Vui lòng chọn video nhỏ hơn.",
                     [{ text: "OK" }]
                 );
@@ -1071,22 +1038,26 @@ export default function PostCreation() {
                 name: "video.mp4",
             } as any);
 
-            const response = await axios.post(API_URL_UPLOAD_VIDEO, formData, {
+            const response = await axios.post<{
+                success: boolean,
+                message: string,
+                url: string,
+              }>(API_URL_UPLOAD_VIDEO, formData, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
 
             if (response.data && response.data.success) {
                 setVideoUrl(response.data.url);
                 setVideo(null); // Xóa video đã chọn sau khi tải lên thành công
-                
+
                 Alert.alert(
-                    "Thành công", 
+                    "Thành công",
                     "Upload video thành công",
                     [{ text: "OK" }]
                 );
             } else {
                 Alert.alert(
-                    "Upload Thất Bại", 
+                    "Upload Thất Bại",
                     response.data?.message || "Không thể tải lên video. Vui lòng thử lại sau.",
                     [{ text: "OK" }]
                 );
@@ -1094,7 +1065,7 @@ export default function PostCreation() {
         } catch (error) {
             console.error('Lỗi khi upload video:', error);
             Alert.alert(
-                "Lỗi", 
+                "Lỗi",
                 "Không thể tải lên video. Vui lòng thử lại sau.",
                 [{ text: "OK" }]
             );
@@ -1129,14 +1100,14 @@ export default function PostCreation() {
         setVideoUrl(null);
         setInitialVideoUrl(null);
         setThumbnail(null);
-        
+
         // Reset location data
         setSelectedProvince("");
         setSelectedDistrict("");
         setSelectedWard("");
         setDetailAddress("");
         setSelectedLocation("");
-        
+
         // Reset các state khác nếu có
     };
 
@@ -1144,21 +1115,25 @@ export default function PostCreation() {
     const renderNewPostButton = () => {
         if (isEditMode) {
             return (
-                <TouchableHighlight
+                <View>
+                    <TouchableHighlight
                     style={{
                         marginVertical: 10,
-                        alignSelf: 'center',
+                        alignSelf: 'flex-end',
+                        width: '40%',
                         borderRadius: 8,
-                        overflow: 'hidden'
+                        overflow: 'hidden',
                     }}
+
+                    
                     onPress={() => {
                         Alert.alert(
                             'Xác nhận',
                             'Bạn muốn tạo tin mới thay vì sửa tin này?',
                             [
                                 { text: 'Hủy', style: 'cancel' },
-                                { 
-                                    text: 'Đồng ý', 
+                                {
+                                    text: 'Đồng ý',
                                     onPress: () => {
                                         resetForm(); // Reset form trước khi chuyển trang
                                         router.replace('/postCreation');
@@ -1172,9 +1147,9 @@ export default function PostCreation() {
                         colors={['#523471', '#9C62D7']}
                         start={{ x: 1, y: 0 }}
                         end={{ x: 0, y: 0 }}
-                        style={{ 
-                            paddingVertical: 10, 
-                            paddingHorizontal: 20, 
+                        style={{
+                            paddingVertical: 15,
+                            paddingHorizontal: 20,
                             flexDirection: 'row',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -1187,6 +1162,8 @@ export default function PostCreation() {
                         </Text>
                     </LinearGradient>
                 </TouchableHighlight>
+                </View>
+                
             );
         }
         return null;
@@ -1200,27 +1177,25 @@ export default function PostCreation() {
             </View>
         );
     }
-    
+
     return (
         <View className='w-full h-full bg-white p-4'>
             <ScrollView>
                 <View className='flex-col gap-5'>
                     <View className='flex-col gap-2'>
-                        <Text className='font-bold text-[20px] text-center'>
-                        {isEditMode ? 'Chỉnh sửa tin đăng' : 'Đăng tin mới'}
-                    </Text>
-                    
-                    {/* Hiển thị nút tạo tin mới */}
-                    {renderNewPostButton()}
-                        <Text className='font-bold text-[16px]'>Danh mục <Text className='text-[#DC143C]'>*</Text></Text>
-                        <View className='border-2 border-[#D9D9D9] rounded-lg'>
+                        {/* Hiển thị nút tạo tin mới */}
+                        {renderNewPostButton()}
+                        <Text className='font-bold text-[18px]'>Danh mục <Text className='text-[#DC143C]'>*</Text></Text>
+                        <View className='border-[1px] border-[#D9D9D9] rounded-lg'>
                             <Picker
                                 selectedValue={selectedCategory}
                                 onValueChange={handleCategoryChange}
+                                className='text-[18px]'
                             >
                                 <Picker.Item label="Chọn danh mục" value="" />
                                 {categories.map(category => (
                                     <Picker.Item
+                                    
                                         key={category._id}
                                         label={category.categoryName}
                                         value={category._id}
@@ -1229,23 +1204,23 @@ export default function PostCreation() {
                             </Picker>
                         </View>
                     </View>
-                    <Text className='font-bold text-[16px] uppercase'>Thông tin chi tiết</Text>
+                    <Text className='font-bold text-[18px]'>Thông tin chi tiết</Text>
                     <View className='flex-col gap-2'>
-                        <View className='border-2 border-[#D9D9D9] rounded-lg p-3 flex-col items-center'>
+                        <View className='border-[1px] border-[#D9D9D9] rounded-lg p-3 flex-col items-center'>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 10 }}>
-                                <Text className='text-[#9661D9] font-semibold'>Đăng từ 01 đến 06 hình</Text>
+                                <Text className='text-[#9661D9] text-[18px] font-semibold'>Đăng từ 01 đến 06 hình</Text>
                                 {avatarUrls.length > 0 && (
-                                    <TouchableOpacity 
+                                    <TouchableOpacity
                                         onPress={() => {
                                             Alert.alert(
                                                 "Xác nhận",
                                                 "Bạn có chắc muốn xóa tất cả ảnh đã tải lên?",
                                                 [
                                                     { text: "Hủy", style: "cancel" },
-                                                    { 
-                                                        text: "Xóa tất cả", 
+                                                    {
+                                                        text: "Xóa tất cả",
                                                         style: "destructive",
-                                                        onPress: () => setAvatarUrls([]) 
+                                                        onPress: () => setAvatarUrls([])
                                                     }
                                                 ]
                                             );
@@ -1255,15 +1230,15 @@ export default function PostCreation() {
                                     </TouchableOpacity>
                                 )}
                             </View>
-                            <View style={{display: images.length > 0 || avatarUrls.length > 0 ? 'none' : 'flex', marginTop: 10 }}> 
+                            <View style={{ display: images.length > 0 || avatarUrls.length > 0 ? 'none' : 'flex', marginTop: 10, marginBottom: 10 }}>
                                 <Icon name='camera' size={40} color='#9661D9' />
                             </View>
                             {(avatarUrls.length > 0 || images.length > 0) && (
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginVertical: 5 }}>
-                                    <Text style={{ color: '#666' }}>
+                                    <Text  className='text-[16px]' style={{ color: '#666' }}>
                                         Đã tải lên: {avatarUrls.length}/6 ảnh
                                     </Text>
-                                    <Text style={{ color: avatarUrls.length >= 6 ? 'red' : '#666' }}>
+                                    <Text className='text-[16px]' style={{ color: avatarUrls.length >= 6 ? 'red' : '#666' }}>
                                         Còn lại: {6 - avatarUrls.length} ảnh
                                     </Text>
                                 </View>
@@ -1272,12 +1247,12 @@ export default function PostCreation() {
                                 {images.map((image, index) => (
                                     <View key={index} style={{ position: 'relative', margin: 5 }}>
                                         <Image source={{ uri: image }} style={{ width: 100, height: 100, borderRadius: 5 }} />
-                                        <TouchableOpacity 
-                                            style={{ 
-                                                position: 'absolute', 
-                                                top: -5, 
-                                                right: -5, 
-                                                backgroundColor: 'rgba(255,0,0,0.7)', 
+                                        <TouchableOpacity
+                                            style={{
+                                                position: 'absolute',
+                                                top: -5,
+                                                right: -5,
+                                                backgroundColor: 'rgba(255,0,0,0.7)',
                                                 borderRadius: 10,
                                                 width: 20,
                                                 height: 20,
@@ -1299,12 +1274,12 @@ export default function PostCreation() {
                                 {avatarUrls.map((url, index) => (
                                     <View key={index} style={{ position: 'relative', margin: 5 }}>
                                         <Image source={{ uri: url }} style={{ width: 100, height: 100, borderRadius: 5 }} />
-                                        <TouchableOpacity 
-                                            style={{ 
-                                                position: 'absolute', 
-                                                top: -5, 
-                                                right: -5, 
-                                                backgroundColor: 'rgba(255,0,0,0.7)', 
+                                        <TouchableOpacity
+                                            style={{
+                                                position: 'absolute',
+                                                top: -5,
+                                                right: -5,
+                                                backgroundColor: 'rgba(255,0,0,0.7)',
                                                 borderRadius: 10,
                                                 width: 20,
                                                 height: 20,
@@ -1326,10 +1301,10 @@ export default function PostCreation() {
                             {loading && <ActivityIndicator size="large" color="blue" style={{ marginTop: 10, marginBottom: 10 }} />}
                             <View style={{ flexDirection: "row", justifyContent: "center", gap: 20, marginBottom: 10, marginTop: 10 }}>
                                 <Button title="Chọn ảnh" onPress={selectImages} />
-                                <Button 
-                                    title="Tải ảnh lên" 
-                                    onPress={uploadImages} 
-                                    disabled={images.length === 0 || avatarUrls.length >= 6} 
+                                <Button
+                                    title="Tải ảnh lên"
+                                    onPress={uploadImages}
+                                    disabled={images.length === 0 || avatarUrls.length >= 6}
                                 />
                             </View>
                             {avatarUrls.length >= 6 && (
@@ -1340,19 +1315,19 @@ export default function PostCreation() {
                         </View>
                     </View>
                     <View className='flex-col gap-2'>
-                        <View className='border-2 border-[#D9D9D9] rounded-lg p-3 flex-col items-center'>
+                        <View className='border-[1px] border-[#D9D9D9] rounded-lg p-3 flex-col items-center'>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 10 }}>
-                                <Text className='text-[#9661D9] font-semibold'>Đăng tối đa 1 video dưới 50MB</Text>
+                                <Text className='text-[#9661D9] font-semibold text-[18px]'>Đăng tối đa 1 video dưới 50MB</Text>
                                 {videoUrl && (
-                                    <TouchableOpacity 
+                                    <TouchableOpacity
                                         onPress={() => {
                                             Alert.alert(
                                                 "Xác nhận",
                                                 "Bạn có chắc muốn xóa video đã tải lên?",
                                                 [
                                                     { text: "Hủy", style: "cancel" },
-                                                    { 
-                                                        text: "Xóa", 
+                                                    {
+                                                        text: "Xóa",
                                                         style: "destructive",
                                                         onPress: handleDeleteVideo
                                                     }
@@ -1365,7 +1340,7 @@ export default function PostCreation() {
                                     </TouchableOpacity>
                                 )}
                             </View>
-                            {!video && !videoUrl && <Icon className='mt-4' name='video-camera' size={40} color='#9661D9' />}
+                            {!video && !videoUrl && <Icon className='mt-4 mb-4' name='video-camera' size={40} color='#9661D9' />}
                             {videoUrl && (
                                 <Text style={{ marginTop: 5, color: '#666', marginBottom: 5 }}>
                                     Đã tải lên video
@@ -1379,12 +1354,12 @@ export default function PostCreation() {
                                         useNativeControls
                                         resizeMode={ResizeMode.CONTAIN}
                                     />
-                                    <TouchableOpacity 
-                                        style={{ 
-                                            position: 'absolute', 
-                                            top: 5, 
-                                            right: 5, 
-                                            backgroundColor: 'rgba(255,0,0,0.7)', 
+                                    <TouchableOpacity
+                                        style={{
+                                            position: 'absolute',
+                                            top: 5,
+                                            right: 5,
+                                            backgroundColor: 'rgba(255,0,0,0.7)',
                                             borderRadius: 10,
                                             width: 20,
                                             height: 20,
@@ -1424,17 +1399,17 @@ export default function PostCreation() {
                                     )}
                                 </View>
                             )}
-                            {videoloading && <ActivityIndicator size="large" color="blue" style={{ marginVertical: 10 }}/>}
+                            {videoloading && <ActivityIndicator size="large" color="blue" style={{ marginVertical: 10 }} />}
                             <View style={{ flexDirection: "row", justifyContent: "center", gap: 20, marginVertical: 10 }}>
-                                <Button 
-                                    title="Chọn video" 
-                                    onPress={selectVideo} 
+                                <Button
+                                    title="Chọn video"
+                                    onPress={selectVideo}
                                     disabled={videoUrl !== null || deletingVideo}
                                 />
-                                <Button 
-                                    disabled={video === null || deletingVideo} 
-                                    title="Tải video lên" 
-                                    onPress={uploadVideo} 
+                                <Button
+                                    disabled={video === null || deletingVideo}
+                                    title="Tải video lên"
+                                    onPress={uploadVideo}
                                 />
                             </View>
                             {videoUrl && !deletingVideo && (
@@ -1446,7 +1421,7 @@ export default function PostCreation() {
                     </View>
                     <View className='flex-col gap-2'>
                         <Text className='font-bold text-[16px]'>Tình trạng <Text className='text-[#DC143C]'>*</Text></Text>
-                        <View className='border-2 border-[#D9D9D9] rounded-lg'>
+                        <View className='border-[1px] border-[#D9D9D9] rounded-lg'>
                             <Picker
                                 selectedValue={selectedCondition}
                                 onValueChange={(itemValue) => setSelectedCondition(itemValue)}
@@ -1466,7 +1441,7 @@ export default function PostCreation() {
                         <>
                             <View className='flex-col gap-2'>
                                 <Text className='font-bold text-[16px]'>Hãng <Text className='text-[#DC143C]'>*</Text></Text>
-                                <View className='border-2 border-[#D9D9D9] rounded-lg'>
+                                <View className='border-[1px] border-[#D9D9D9] rounded-lg'>
                                     <Picker
                                         selectedValue={selectedBrand}
                                         onValueChange={handleBrandChange}
@@ -1485,7 +1460,7 @@ export default function PostCreation() {
                             {selectedBrand && filteredVersions.length > 0 && (
                                 <View className='flex-col gap-2'>
                                     <Text className='font-bold text-[16px]'>Dòng máy <Text className='text-[#DC143C]'>*</Text></Text>
-                                    <View className='border-2 border-[#D9D9D9] rounded-lg'>
+                                    <View className='border-[1px] border-[#D9D9D9] rounded-lg'>
                                         <Picker
                                             selectedValue={selectedVersion}
                                             onValueChange={(itemValue) => setSelectedVersion(itemValue)}
@@ -1508,7 +1483,7 @@ export default function PostCreation() {
                         <>
                             <View className='flex-col gap-2'>
                                 <Text className='font-bold text-[16px]'>Bộ vi xử lý <Text className='text-[#DC143C]'>*</Text></Text>
-                                <View className='border-2 border-[#D9D9D9] rounded-lg'>
+                                <View className='border-[1px] border-[#D9D9D9] rounded-lg'>
                                     <Picker
                                         selectedValue={selectedCpu}
                                         onValueChange={(itemValue) => setSelectedCpu(itemValue)}
@@ -1526,7 +1501,7 @@ export default function PostCreation() {
                             </View>
                             <View className='flex-col gap-2'>
                                 <Text className='font-bold text-[16px]'>Card đồ họa <Text className='text-[#DC143C]'>*</Text></Text>
-                                <View className='border-2 border-[#D9D9D9] rounded-lg'>
+                                <View className='border-[1px] border-[#D9D9D9] rounded-lg'>
                                     <Picker
                                         selectedValue={selectedGpu}
                                         onValueChange={(itemValue) => setSelectedGpu(itemValue)}
@@ -1544,7 +1519,7 @@ export default function PostCreation() {
                             </View>
                             <View className='flex-col gap-2'>
                                 <Text className='font-bold text-[16px]'>Kích thước màn hình <Text className='text-[#DC143C]'>*</Text></Text>
-                                <View className='border-2 border-[#D9D9D9] rounded-lg'>
+                                <View className='border-[1px] border-[#D9D9D9] rounded-lg'>
                                     <Picker
                                         selectedValue={selectedScreen}
                                         onValueChange={(itemValue) => setSelectedScreen(itemValue)}
@@ -1562,7 +1537,7 @@ export default function PostCreation() {
                             </View>
                             <View className='flex-col gap-2'>
                                 <Text className='font-bold text-[16px]'>Loại ổ cứng <Text className='text-[#DC143C]'>*</Text></Text>
-                                <View className='border-2 border-[#D9D9D9] rounded-lg'>
+                                <View className='border-[1px] border-[#D9D9D9] rounded-lg'>
                                     <Picker
                                         selectedValue={selectedStorageType}
                                         onValueChange={handleStorageTypeChange}
@@ -1582,7 +1557,7 @@ export default function PostCreation() {
                     )}
                     <View className='flex-col gap-2'>
                         <Text className='font-bold text-[16px]'>Ram <Text className='text-[#DC143C]'>*</Text></Text>
-                        <View className='border-2 border-[#D9D9D9] rounded-lg'>
+                        <View className='border-[1px] border-[#D9D9D9] rounded-lg'>
                             <Picker
                                 selectedValue={selectedRam}
                                 onValueChange={(itemValue) => setSelectedRam(itemValue)}
@@ -1601,7 +1576,7 @@ export default function PostCreation() {
                         <Text className='font-bold text-[16px]'>Dung lượng pin<Text className='text-[#DC143C]'>*</Text>
                         </Text>
                         <TextInput
-                            className='border-2 border-[#D9D9D9] rounded-lg px-2 py-5 font-semibold'
+                            className='border-[1px] border-[#D9D9D9] rounded-lg px-2 py-5 font-semibold'
                             placeholder='Nhập dung lượng pin'
                             value={battery}
                             onChangeText={setBattery}
@@ -1610,7 +1585,7 @@ export default function PostCreation() {
                     {selectedCategory && (
                         <View className='flex-col gap-2'>
                             <Text className='font-bold text-[16px]'>Dung lượng bộ nhớ <Text className='text-[#DC143C]'>*</Text></Text>
-                            <View className='border-2 border-[#D9D9D9] rounded-lg'>
+                            <View className='border-[1px] border-[#D9D9D9] rounded-lg'>
                                 <Picker
                                     selectedValue={selectedStorage}
                                     onValueChange={(itemValue) => setSelectedStorage(itemValue)}
@@ -1637,7 +1612,7 @@ export default function PostCreation() {
                     )}
                     <View className='flex-col gap-2'>
                         <Text className='font-bold text-[16px]'>Chính sách bảo hành <Text className='text-[#DC143C]'>*</Text></Text>
-                        <View className='border-2 border-[#D9D9D9] rounded-lg'>
+                        <View className='border-[1px] border-[#D9D9D9] rounded-lg'>
                             <Picker
                                 className='font-semibold'
                                 selectedValue={selectedWarranty}
@@ -1651,7 +1626,7 @@ export default function PostCreation() {
                     </View>
                     <View className='flex-col gap-2'>
                         <Text className='font-bold text-[16px]'>Xuất xứ<Text className='text-[#DC143C]'>*</Text></Text>
-                        <View className='border-2 border-[#D9D9D9] rounded-lg'>
+                        <View className='border-[1px] border-[#D9D9D9] rounded-lg'>
                             <Picker
                                 className='font-semibold'
                                 selectedValue={selectedOrigin}
@@ -1667,19 +1642,20 @@ export default function PostCreation() {
                             </Picker>
                         </View>
                     </View>
-                    <View className='flex-col gap-2'>                        <Text className='font-bold text-[16px]'>Giá bán<Text className='text-[#DC143C]'>*</Text></Text>
+                    <View className='flex-col gap-2 mb-4'>                        
+                        <Text className='font-bold text-[16px]'>Giá bán<Text className='text-[#DC143C]'>*</Text></Text>
                         <TextInput
-                            className='border-2 border-[#D9D9D9] rounded-lg px-2 py-5 font-semibold'
+                            className='border-[1px] border-[#D9D9D9] rounded-lg px-2 py-5 font-semibold'
                             placeholder='10.000 đ'
                             value={price}
                             onChangeText={setPrice}
                         />
                     </View>
-                    <Text className='font-bold text-[16px] uppercase'>Tiêu đề tin đăng và mô tả chi tiết</Text>
+                    <Text className='font-bold text-[16px] uppercase border-t-[1px] border-t-solid border-t-[#D9D9D9] pt-8'>Tiêu đề tin đăng và mô tả chi tiết</Text>
                     <View className='flex-col gap-2'>
                         <Text className='font-bold text-[16px]'>Tiêu đề<Text className='text-[#DC143C]'>*</Text></Text>
                         <TextInput
-                            className='border-2 border-[#D9D9D9] rounded-lg px-2 py-5 font-semibold'
+                            className='border-[1px] border-[#D9D9D9] rounded-lg px-2 py-5 font-semibold'
                             placeholder='Nhập tiêu đề'
                             value={title}
                             onChangeText={setTitle}
@@ -1688,15 +1664,15 @@ export default function PostCreation() {
                     <View className='flex-col gap-2'>
                         <Text className='font-bold text-[16px]'>Mô tả chi tiết<Text className='text-[#DC143C]'>*</Text></Text>
                         <TextInput
-                            className='border-2 border-[#D9D9D9] rounded-lg px-2 py-5 font-semibold'
+                            className='border-[1px] border-[#D9D9D9] rounded-lg px-2 py-5 font-semibold'
                             placeholder='Mô tả ...'
                             value={description}
                             onChangeText={setDescription}
                         />
                     </View>
-                    <View className='flex-col gap-2'>
+                    <View className='flex-col gap-2 mb-4'>
                         <Text className='font-bold text-[16px]'>Hình thức đăng tin<Text className='text-[#DC143C]'>*</Text></Text>
-                        <View className='border-2 border-[#D9D9D9] rounded-lg'>
+                        <View className='border-[1px] border-[#D9D9D9] rounded-lg'>
                             <Picker
                                 className='font-semibold'
                                 selectedValue={selectedPostType}
@@ -1708,10 +1684,10 @@ export default function PostCreation() {
                             </Picker>
                         </View>
                     </View>
-                    <Text className='font-bold text-[16px] uppercase'>Thông tin người bán</Text>
+                    <Text className='font-bold text-[16px] uppercase border-t-[1px] border-t-solid border-t-[#D9D9D9] pt-8'>Thông tin người bán</Text>
                     <View className='flex-col gap-2'>
                         <Text className='font-bold text-[16px]'>Tỉnh/Thành phố<Text className='text-[#DC143C]'>*</Text></Text>
-                        <View className='border-2 border-[#D9D9D9] rounded-lg'>
+                        <View className='border-[1px] border-[#D9D9D9] rounded-lg'>
                             <Picker
                                 selectedValue={selectedProvince}
                                 onValueChange={handleProvinceChange}
@@ -1731,7 +1707,7 @@ export default function PostCreation() {
                     {selectedProvince && (
                         <View className='flex-col gap-2'>
                             <Text className='font-bold text-[16px]'>Quận/Huyện<Text className='text-[#DC143C]'>*</Text></Text>
-                            <View className='border-2 border-[#D9D9D9] rounded-lg'>
+                            <View className='border-[1px] border-[#D9D9D9] rounded-lg'>
                                 <Picker
                                     selectedValue={selectedDistrict}
                                     onValueChange={handleDistrictChange}
@@ -1752,7 +1728,7 @@ export default function PostCreation() {
                     {selectedDistrict && (
                         <View className='flex-col gap-2'>
                             <Text className='font-bold text-[16px]'>Phường/Xã<Text className='text-[#DC143C]'>*</Text></Text>
-                            <View className='border-2 border-[#D9D9D9] rounded-lg'>
+                            <View className='border-[1px] border-[#D9D9D9] rounded-lg'>
                                 <Picker
                                     selectedValue={selectedWard}
                                     onValueChange={handleWardChange}
@@ -1774,7 +1750,7 @@ export default function PostCreation() {
                         <View className='flex-col gap-2'>
                             <Text className='font-bold text-[16px]'>Địa chỉ chi tiết<Text className='text-[#DC143C]'>*</Text></Text>
                             <TextInput
-                                className='border-2 border-[#D9D9D9] rounded-lg px-2 py-3'
+                                className='border-[1px] border-[#D9D9D9] rounded-lg px-2 py-3'
                                 placeholder='Nhập số nhà, tên đường...'
                                 value={detailAddress}
                                 onChangeText={handleDetailAddressChange}
@@ -1799,12 +1775,12 @@ export default function PostCreation() {
                             end={{ x: 0, y: 0 }}
                             style={{ paddingTop: 12, paddingBottom: 12, paddingStart: 30, paddingEnd: 30, borderRadius: 8 }}
                         >
-                            <View className="flex-row items-center justify-center gap-2">
+                            <View className="flex-row items-center justify-center gap-2 px-10">
                                 {loading ? (
                                     <ActivityIndicator size="small" color="#fff" />
                                 ) : (
                                     <Text className="font-bold text-[18px] text-[#fff]">
-                                        {isEditMode ? 'Cập nhật tin' : 'Đăng tin'}
+                                        {isEditMode ? 'Cập nhật' : 'Đăng tin'}
                                     </Text>
                                 )}
                             </View>

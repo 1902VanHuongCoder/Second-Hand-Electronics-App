@@ -20,7 +20,6 @@ exports.getVersions = async (req, res) => {
       .populate('brandId')
       .lean();
     res.status(200).json({ 
-      success: true, 
       data: versions 
     });
   } catch (error) {

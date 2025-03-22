@@ -1,11 +1,11 @@
 import { Text, View, TouchableHighlight, TextInput, Image, ScrollView } from 'react-native';
-import React, { useEffect, useLayoutEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuthCheck } from '../../store/checkLogin';
 import socket from '@/utils/socket';
 import { useRouter } from 'expo-router';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
-
+import rootURL from '@/utils/backendRootURL';
 // Import a default user icon
 const defaultUserIcon = require('@/assets/images/defaultUserIcon.png'); // Adjust the path as needed
 
@@ -33,8 +33,10 @@ interface MessageProps {
 
 export default function MessageList() {
     const [text, onChangeText] = React.useState("");
+    const [searchQuery, setSearchQuery] = useState("");
     const checkAuth = useAuthCheck();
     const [rooms, setRooms] = useState<MessageProps[]>([]);
+    const [filteredRooms, setFilteredRooms] = useState<MessageProps[]>([]);
     const router = useRouter();
     const { user } = useSelector((state: RootState) => state.auth);
 
@@ -53,12 +55,13 @@ export default function MessageList() {
 
     useEffect(() => {
         function fetchGroups() {
-            fetch("http://10.0.2.2:5000/api/chat")
+            fetch(`${rootURL}/api/chat`)
                 .then((res) => res.json())
                 .then((data) => {
                     if (user) {
                         const filteredRooms = data.filter((room: MessageProps) => room.senderId === user.id || room.receiverId === user.id);
                         setRooms(filteredRooms);
+                        setFilteredRooms(filteredRooms);
                     }
                 })
                 .catch((err) => console.error(err));
@@ -69,29 +72,10 @@ export default function MessageList() {
     }, [user]);
 
     useEffect(() => {
-        function fetchGroups() {
-            fetch("http://10.0.2.2:5000/api/chat")
-                .then((res) => res.json())
-                .then((data) => {
-                    if (user) {
-                        const filteredRooms = data.filter((room: MessageProps) => room.senderId === user.id || room.receiverId === user.id);
-                        setRooms(filteredRooms);
-                    }
-                })
-                .catch((err) => console.error(err));
-        }
-        if (user) {
-            fetchGroups();
-        }
-
-        
-    }, []);
-
-
-    useEffect(() => {
         socket.on("createdRoom", (newRoom: MessageProps) => {
             if (user && (newRoom.senderId === user.id || newRoom.receiverId === user.id)) {
                 setRooms((prevRooms) => [...prevRooms, newRoom]);
+                setFilteredRooms((prevRooms) => [...prevRooms, newRoom]);
             }
         });
         
@@ -99,6 +83,7 @@ export default function MessageList() {
             if (user) {
                 const filteredRooms = updateMessageList.filter((room: MessageProps) => room.senderId === user.id || room.receiverId === user.id);
                 setRooms(filteredRooms);
+                setFilteredRooms(filteredRooms);
             };
         })
 
@@ -106,6 +91,7 @@ export default function MessageList() {
             if (user) {
                 const filteredRooms = updateMessageList.filter((room: MessageProps) => room.senderId === user.id || room.receiverId === user.id);
                 setRooms(filteredRooms);
+                setFilteredRooms(filteredRooms);
             }
         })
         return () => {
@@ -114,30 +100,43 @@ export default function MessageList() {
         };
     }, [socket, user]);
 
+    // Filter rooms based on search query
+    useEffect(() => {
+        if (searchQuery === "") {
+            setFilteredRooms(rooms);
+        } else {
+            const filtered = rooms.filter((room) =>
+                room.senderName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                room.receiverName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                room.productTitle.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+            setFilteredRooms(filtered);
+        }
+    }, [searchQuery, rooms]);
 
     return (
         <View className='bg-white w-full h-full p-4'>
-            <View className="flex-row justify-between items-center border-b-2 pb-4 border-[#D9D9D9] mb-4">
+            <View className="flex-row justify-between items-center border-b-[1px] pb-4 border-[#D9D9D9] mb-4 gap-x-2">
                 <TextInput
-                    className="border-2 border-[#D9D9D9] w-2/3 px-2 py-4 text-[#000] rounded-lg font-semibold"
-                    onChangeText={onChangeText}
-                    value={text}
+                    className="border-2 border-[#D9D9D9] w-3/4 px-2 py-4 text-[#000] rounded-lg font-semibold focus:border-[2px] focus:border-[#9661D9] focus:outline-none"
+                    onChangeText={(text) => setSearchQuery(text)}
+                    value={searchQuery}
                     placeholder="Tìm kiếm ..."
                 />
-                <TouchableHighlight className="bg-[#9661D9] px-5 py-4 rounded-lg flex items-center justify-center">
+                <TouchableHighlight className="bg-[#9661D9] w-1/4 px-5 py-4 rounded-lg flex items-center justify-center">
                     <Text className="text-[#fff] font-semibold text-[16px] text-center">
                         Tìm kiếm
                     </Text>
                 </TouchableHighlight>
             </View>
             <ScrollView>
-                {rooms.map((room) => (
+                {filteredRooms.map((room) => (
                     <TouchableHighlight
                         key={room.roomCode}
                         onPress={() => handleNavigateToChat(room.roomCode)}
                         underlayColor="#DDDDDD"
                     >
-                        <View className='flex-row justify-between border-b-2 border-[#D9D9D9] pb-4 mb-4'>
+                        <View className='flex-row justify-between border-b-[1px] border-[#D9D9D9] pb-4 mb-4'>
                             <View className='flex-row gap-2 relative'>
                                 <Image
                                     style={{ width: 70, height: 70 }}

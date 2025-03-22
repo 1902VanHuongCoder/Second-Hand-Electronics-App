@@ -13,7 +13,7 @@ import Icon from "react-native-vector-icons/FontAwesome";
 import { Ionicons } from '@expo/vector-icons';
 import { RootState, store } from '@/store/store';
 import socket from '@/utils/socket';
-
+import rootURL from '@/utils/backendRootURL';
 interface MessageItemProps {
   senderId: string;
   text: string;
@@ -45,7 +45,7 @@ export default function TabLayout() {
   const { user } = useSelector((state: RootState) => state.auth);
   useEffect(() => {
     function fetchGroups() {
-      fetch("http://10.0.2.2:5000/api/chat")
+      fetch(`${rootURL}/api/chat`)
         .then((res) => res.json())
         .then((data) => {
           if (user) {
