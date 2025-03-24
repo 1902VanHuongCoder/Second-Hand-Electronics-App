@@ -153,9 +153,10 @@ socketIO.on("connection", (socket) => {
                 socket.to(roomCode).emit("receiveMessage", newMessage);
                 socket.emit("receiveMessage", newMessage);
 
-
                 const updateMessageList = await ChatRoom.find(); // Update message list
-                socket.emit("newMessageCreated", updateMessageList);
+                // socket.emit("newMessageCreated", updateMessageList);
+                socket.to(roomCode).emit("newMessageCreated", updateMessageList);
+
             } else {
                 console.log(" ");
                 console.log("⚠️ Room not found");

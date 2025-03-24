@@ -92,6 +92,7 @@ export default function Chat() {
                 return prevChatInfo;
             });
             scrollViewRef.current?.scrollToEnd({ animated: true }); // Scroll to the end when a new message is received
+            
         });
 
         return () => {

@@ -1,10 +1,20 @@
 import { Text, View, Image,} from 'react-native'
-import React from 'react'
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Link } from 'expo-router';
-// import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useEffect } from 'react'
+import { Link, useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function welcomePage() {
+    const router = useRouter();
+    useEffect(() => {
+        const checkUserLogin = async () => {
+            const storedUserId = await AsyncStorage.getItem('userId');
+            if (storedUserId) {
+                router.push("/(tabs)"); // Bỏ qua màn hình đăng nhập nếu có userId
+            }
+        };
+    
+        checkUserLogin();
+    }, []);
     return (
         <View>
             <View className='relative bg-[#9661D9] w-full min-h-screen items-center'>

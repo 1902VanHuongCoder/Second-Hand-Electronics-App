@@ -181,7 +181,6 @@ export default function PostCreation() {
 
     const [cpus, setCpus] = useState<Cpu[]>([]);
 
-    console.log("CPU**************************", cpus);
 
     const [gpus, setGpus] = useState<Gpu[]>([]);
     const [rams, setRams] = useState<Ram[]>([]);
@@ -515,7 +514,6 @@ export default function PostCreation() {
         }
     };
 
-    // Validate form
     const validateForm = () => {
         // Validate các trường bắt buộc
         if (!selectedCategory || !selectedBrand || !selectedCondition ||
@@ -525,7 +523,14 @@ export default function PostCreation() {
             Alert.alert('Thông báo', 'Vui lòng nhập đầy đủ thông tin sản phẩm');
             return false;
         }
-
+    
+        // Kiểm tra định dạng giá (chỉ cho phép số, có thể có dấu thập phân)
+        const pricePattern = /^[0-9]+(\.[0-9]{1,2})?$/; // Hỗ trợ số nguyên hoặc số thập phân 2 chữ số
+        if (!pricePattern.test(price)) {
+            Alert.alert('Thông báo', 'Giá sản phẩm không hợp lệ. Vui lòng nhập số hợp lệ (VD: 10000 hoặc 10000.99)');
+            return false;
+        }
+    
         if (avatarUrls.length === 0) {
             Alert.alert('Thông báo', 'Vui lòng chọn ảnh sản phẩm');
             return false;
@@ -533,9 +538,10 @@ export default function PostCreation() {
             Alert.alert('Thông báo', 'Vui lòng chọn tối đa 6 ảnh sản phẩm');
             return false;
         }
-
+    
         return true;
     };
+    
 
     // Cập nhật hàm handleSubmit
     const handleSubmit = async () => {
@@ -769,6 +775,7 @@ export default function PostCreation() {
     }, [isEditMode, id]);
 
     const handleCategoryChange = async (itemValue: string) => {
+        console.log('Selected Category ID:', itemValue);
         setSelectedCategory(itemValue);
         setSelectedBrand("");
         setSelectedVersion(""); // Reset version khi đổi category
@@ -776,15 +783,31 @@ export default function PostCreation() {
         if (itemValue) {
             try {
                 // Lấy dữ liệu brands và versions
-                const [brandsRes, versionsRes, cpusRes, gpusRes, screensRes, storagesTypeRes ] = await Promise.all([
-                    axios.get<{ data: Brand[] }>(`${rootURL}/api/brands?categoryId=${itemValue}`),
-                    axios.get<{ data: Gpu[] }>(`${rootURL}/api/gpus`),
-                    axios.get<{ data: Cpu[] }>(`${rootURL}/api/cpus`),
+                const [brandsRes, versionsRes] = await Promise.all([
+                    axios.get<{data: Brand[]}>(`${rootURL}/api/brands?categoryId=${itemValue}`),
+                    axios.get<{data: Version[]}>(`${rootURL}/api/versions`)
                 ]);
 
                 setBrands(brandsRes.data.data);
                 setVersions(versionsRes.data.data);
 
+                // Kiểm tra category là laptop
+                const selectedCategoryObj = categories.find(cat => cat._id === itemValue);
+                const isLaptopCategory = selectedCategoryObj?.categoryName.toLowerCase() === 'laptop';
+
+                if (isLaptopCategory) {
+                    const [cpusRes, gpusRes, screensRes, storageTypesRes] = await Promise.all([
+                        axios.get<{data: Cpu[]}>(`${rootURL}/api/cpus`),
+                        axios.get<{data: Gpu[]}>(`${rootURL}/api/gpus`),
+                        axios.get<{data: Screen[]}>(`${rootURL}/api/screens`),
+                        axios.get<{data: StorageType[]}>(`${rootURL}/api/storage-types`)
+                    ]);
+
+                    setCpus(cpusRes.data.data);
+                    setGpus(gpusRes.data.data);
+                    setScreens(screensRes.data.data);
+                    setStorageTypes(storageTypesRes.data.data);
+                }
             } catch (error) {
                 console.error('Lỗi khi lấy dữ liệu:', error);
                 setBrands([]);
@@ -804,17 +827,21 @@ export default function PostCreation() {
     const handleStorageTypeChange = (itemValue: string) => {
         setSelectedStorageType(itemValue);
         setSelectedStorage(""); // Reset selected storage
+        console.log('Selected Storage Type:', itemValue);
     };
 
     // Xử lý khi thay đổi brand
     const handleBrandChange = (itemValue: string) => {
         setSelectedBrand(itemValue);
         setSelectedVersion(""); // Reset version khi đổi brand
+        console.log('Selected Brand:', itemValue);
+        console.log('Available Versions:', filteredVersions);
     };
 
     useEffect(() => {
         checkAuth()
     }, [checkAuth]);
+
 
     const selectImages = async () => {
         // Kiểm tra nếu đã đạt số lượng ảnh tối đa

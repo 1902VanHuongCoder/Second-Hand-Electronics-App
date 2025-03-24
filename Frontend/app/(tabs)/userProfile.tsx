@@ -1,4 +1,4 @@
-import { Text, View, TouchableHighlight, Image } from 'react-native'
+import { Text, View, TouchableHighlight, Image, TextInput, Switch } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/FontAwesome";
@@ -113,13 +113,20 @@ export default function UserProfile() {
                                 <Text className='p-2 text-[18px] font-medium'>{user?.email ? user.email : 'Chưa cập nhật'}</Text>
                             </View>
                         </View>
-                        <View className='mt-4 flex-row gap-4 items-center justify-between w-full'>
-                            <Text className='font-bold text-[18px]'>Điện thoại </Text>
-                            <View className='border-[1px] border-[#D9D9D9] p-2 rounded-lg w-2/3 flex-row justify-between items-center'>
-                                <Text className='p-2 text-[18px] font-medium'>{isPhoneHidden ? '**********' : user?.phone || 'Chưa cập nhật'}</Text>
-                                <TouchableHighlight onPress={togglePhoneVisibility}>
-                                    <Icon name={isPhoneHidden ? "eye" : "eye-slash"} size={22} color={'#9C62D7'} />
-                                </TouchableHighlight>
+                        <View className='mt-4 flex flex-col items-end justify-between w-full'>
+                            <View className='mt-4 flex-row gap-4 items-center justify-between w-full'>
+                                <Text className='font-bold text-[18px]'>Điện thoại </Text>
+                                <View className='border-[1px] border-[#D9D9D9] p-2 rounded-lg w-2/3 flex-row justify-between items-center'>
+                                    <Text className='p-2 text-[18px] font-medium'>
+                                        {isPhoneHidden ? '**********' : user?.phone || 'Chưa cập nhật'}
+                                    </Text>
+                                </View>
+                            </View>
+
+                            {/* Chuyển đổi giữa hiện/ẩn số điện thoại */}
+                            <View className="flex-row items-center gap-2 ">
+                                <Switch value={isPhoneHidden} onValueChange={togglePhoneVisibility} />
+                                <Text className='text-[18px]'>Ẩn số điện thoại trên bài đăng</Text>
                             </View>
                         </View>
                         <View className='mt-4 flex-row gap-4 items-center justify-between w-full'>
