@@ -116,14 +116,14 @@ export default function MessageList() {
 
     return (
         <View className='bg-white w-full h-full p-4'>
-            <View className="flex-row justify-between items-center border-b-[1px] pb-4 border-[#D9D9D9] mb-4 gap-x-2">
+            <View className="w-full flex-row justify-between items-center border-b-[1px] pb-4 border-[#D9D9D9] mb-4">
                 <TextInput
-                    className="border-2 border-[#D9D9D9] w-3/4 px-2 py-4 text-[#000] rounded-lg font-semibold focus:border-[2px] focus:border-[#9661D9] focus:outline-none"
+                    className="border-2 border-[#D9D9D9] w-[69%] px-2 py-4 text-[#000] rounded-lg font-semibold focus:border-[2px] focus:border-[#9661D9] focus:outline-none"
                     onChangeText={(text) => setSearchQuery(text)}
                     value={searchQuery}
                     placeholder="Tìm kiếm ..."
                 />
-                <TouchableHighlight className="bg-[#9661D9] w-1/4 px-5 py-4 rounded-lg flex items-center justify-center">
+                <TouchableHighlight className="bg-[#9661D9] w-[29%] ml-[2%] px-5 py-4 rounded-lg flex items-center justify-center">
                     <Text className="text-[#fff] font-semibold text-[16px] text-center">
                         Tìm kiếm
                     </Text>

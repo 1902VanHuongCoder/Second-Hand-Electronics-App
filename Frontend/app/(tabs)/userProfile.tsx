@@ -35,16 +35,12 @@ export default function UserProfile() {
         }
     };
 
-    const togglePhoneVisibility = async () => {
+    const togglePhoneVisibility = async () => {  
+        setIsPhoneHidden((prev) => !prev);
         try {
-            const response = await axios.put(`${rootURL}/api/toggle-phone-visibility`, {
+            await axios.put(`${rootURL}/api/toggle-phone-visibility`, {
                 userId: user?.id,
             });
-
-            // Xử lý response.data với kiểm tra kiểu
-            if (response.data && typeof response.data === 'object' && 'isPhoneHidden' in response.data) {
-                setIsPhoneHidden(Boolean(response.data.isPhoneHidden));
-            }
         } catch (err) {
             console.log('Error: ', err);
         }
@@ -78,7 +74,7 @@ export default function UserProfile() {
             </View>
             <View className='p-4'>
                 <View className='flex-col justify-center gap-4'>
-                    <View className="flex-row items-center justify-start gap-2">
+                    <View className="flex-row items-center justify-center gap-2">
                         <Link href="/(tabs)/postManagement" className="border-[2px] border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
                             <View className="flex-row items-center justify-center gap-2">
                                 <Icon name="book" size={22} color="#9661d9" />

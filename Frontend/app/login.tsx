@@ -87,7 +87,7 @@ export default function LoginScreen() {
 };
 
   return (
-    <View className="relative h-screen px-10 bg-white overflow-hidden">
+    <View className="relative h-screen  max-h-screen  px-10 bg-white overflow-hidden">
       <Notification
         message={notifications.message}
         type={notifications.type}
@@ -97,12 +97,13 @@ export default function LoginScreen() {
         <Text className="text-4xl font-bold w-full text-[#9661D9] drop-shadow-md">ĐĂNG NHẬP</Text>
         <Text className="mt-8 w-full text-left text-lg font-semibold">Số điện thoại</Text>
         <TextInput
-          className="outline-none border font-medium text-lg border-gray-400 rounded-md py-3 w-full bg-white mt-2 placeholder-opacity-50 placeholder-gray-400 focus:border-[#9661D9] focus:ring-1 focus:ring-[#9661D9]"
+          className="outline-none border font-medium text-lg border-gray-400 rounded-md py-3 w-full bg-white mt-2 placeholder-opacity-50 placeholder-gray-400 px-4 focus:outline-none focus:border-[#9661D9]"
           placeholder="0xx-xxx-xxxx"
           value={phone}
           onChangeText={setPhone}
           keyboardType="phone-pad"
         />
+                
         {validateInput.phoneError !== "" && (
           <Text className="w-full py-3 text-[#DC143C] font-semibold">
             {validateInput.phoneError}
@@ -111,7 +112,7 @@ export default function LoginScreen() {
         <Text className="mt-5 w-full text-left text-lg font-semibold">Mật khẩu</Text>
         <View className="relative w-full mb-5">
           <TextInput
-            className="outline-none font-medium border text-lg border-gray-400 rounded-lg py-3 w-full bg-white mt-2 placeholder-opacity-50 placeholder-gray-400 focus:border-[#9661D9] focus:ring-1 focus:ring-[#9661D9]"
+            className="outline-none font-medium border text-lg border-gray-400 rounded-lg py-3 w-full bg-white mt-2 placeholder-opacity-50 placeholder-gray-400 px-4 focus:outline-none focus:border-[#9661D9]"
             placeholder="Password"
             value={password}
             onChangeText={setPassword}

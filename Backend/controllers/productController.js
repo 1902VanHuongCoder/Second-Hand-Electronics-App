@@ -56,7 +56,7 @@ exports.createProduct = async (req, res) => {
             });
         }
 
-        console.log(req.body);
+        console.log("**** SERVER IS RUNNING ******", req.body);
         
         const productData = {
             categoryId: new mongoose.Types.ObjectId(req.body.categoryId),

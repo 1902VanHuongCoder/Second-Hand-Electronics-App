@@ -639,7 +639,6 @@ export default function PostCreation() {
                 ]);
             } else {
                 // Gọi API tạo sản phẩm mới
-                alert("Tao san pham moi");
                 response = await axios.post(`${rootURL}/api/products`, productData);
                 Alert.alert('Thành công', 'Đăng tin thành công', [
                     {
@@ -654,7 +653,7 @@ export default function PostCreation() {
 
         } catch (error) {
             console.error('Lỗi khi xử lý tin:', error);
-            // Alert.alert('Lỗi', (error as any).response?.data?.message || `Có lỗi xảy ra khi ${isEditMode ? 'cập nhật' : 'đăng'} tin`);
+            Alert.alert('Lỗi', (error as any).response?.data?.message || `Có lỗi xảy ra khi ${isEditMode ? 'cập nhật' : 'đăng'} tin`);
         } finally {
             setIsSubmitting(false);
         }
