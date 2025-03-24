@@ -17,7 +17,7 @@ exports.addRam = async (req, res) => {
 exports.getRams = async (req, res) => {
   try {
     const rams = await Ram.find();
-    res.status(200).json({ success: true, data: rams });
+    res.status(200).json({ data: rams });
   } catch (error) {
     console.error('Lỗi lấy danh sách RAM:', error);
     res.status(500).json({ success: false, message: 'Lỗi server' });

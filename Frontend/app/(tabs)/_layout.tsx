@@ -13,7 +13,7 @@ import Icon from "react-native-vector-icons/FontAwesome";
 import { Ionicons } from '@expo/vector-icons';
 import { RootState, store } from '@/store/store';
 import socket from '@/utils/socket';
-
+import rootURL from '@/utils/backendRootURL';
 interface MessageItemProps {
   senderId: string;
   text: string;
@@ -45,7 +45,7 @@ export default function TabLayout() {
   const { user } = useSelector((state: RootState) => state.auth);
   useEffect(() => {
     function fetchGroups() {
-      fetch("http://10.0.2.2:5000/api/chat")
+      fetch(`${rootURL}/api/chat`)
         .then((res) => res.json())
         .then((data) => {
           if (user) {
@@ -113,7 +113,7 @@ export default function TabLayout() {
       <AuthProvider>
         <Tabs
           screenOptions={{
-            tabBarActiveTintColor: '#9661D9',
+            tabBarActiveTintColor: '#654192',
             headerShown: true,
             tabBarButton: HapticTab,
             tabBarBackground: TabBarBackground,
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   header: {
-    backgroundColor: '#9661D9',
+    backgroundColor: '#9C62D7',
     height: 80,
     color: 'white',
   }

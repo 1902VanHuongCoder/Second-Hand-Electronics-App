@@ -3,6 +3,7 @@ import { View, ActivityIndicator, Alert } from "react-native";
 import { WebView, WebViewNavigation } from "react-native-webview";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import axios from "axios";
+import rootURL from "@/utils/backendRootURL";
 
 export default function PayPalWebView() {
     const router = useRouter();
@@ -37,7 +38,7 @@ export default function PayPalWebView() {
 
             try {
                 const orderInfo = JSON.parse(orderDataString || "{}");
-                const response = await axios.post("http://10.0.2.2:5000/api/orders/confirm-payment", {
+                const response = await axios.post(`${rootURL}/api/orders/confirm-payment`, {
                     paymentId,
                     payerId,
                     ...orderInfo
@@ -49,7 +50,8 @@ export default function PayPalWebView() {
                     Alert.alert("Lỗi", "Xác nhận thanh toán thất bại.");
                 }
             } catch (error) {
-                Alert.alert("Lỗi", error.response?.data?.message || "Có lỗi khi xác nhận thanh toán.");
+                const errorMessage = (error as any).response?.data?.message || "Có lỗi khi xác nhận thanh toán.";
+                Alert.alert("Lỗi", errorMessage);
             } finally {
                 router.push("/(tabs)/postManagement");
             }

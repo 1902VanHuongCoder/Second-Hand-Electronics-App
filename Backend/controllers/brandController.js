@@ -19,7 +19,7 @@ exports.getBrands = async (req, res) => {
     const { categoryId } = req.query;
     const query = categoryId ? { categoryId } : {};
     const brands = await Brand.find(query);
-    res.status(200).json({ success: true, data: brands });
+    res.status(200).json({data: brands});
   } catch (error) {
     console.error('Lỗi lấy danh sách Brand:', error);
     res.status(500).json({ success: false, message: 'Lỗi server' });
@@ -28,8 +28,10 @@ exports.getBrands = async (req, res) => {
 
 exports.getBrandsById = async (req, res) => {
   const { categoryId } = req.params;
+  console.log("<---------------------- categoryId ----------------------->", categoryId);
   try {
     const brands = await Brand.find({ categoryId });
+    console.log(brands);
     res.status(200).json(brands);
   } catch (error) {
     res.status(500).json({ message: error.message });

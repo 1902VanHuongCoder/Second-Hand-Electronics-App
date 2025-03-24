@@ -25,7 +25,7 @@ const {
     paypal,
     ChatRoom,
     User,
-    Product
+    Product, rootURL
 } = require('./helpers');
 
 const app = express();
@@ -246,8 +246,8 @@ app.post('/api/paypal/payment', (req, res) => {
         intent: "sale",
         payer: { payment_method: "paypal" },
         redirect_urls: {
-            return_url: "http://10.0.2.2:5000/api/paypal/success",
-            cancel_url: "http://10.0.2.2:5000/api/paypal/cancel"
+            return_url: `${rootURL}/api/paypal/success`,
+            cancel_url: `${rootURL}/api/paypal/cancel`
         },
         transactions: [
             {

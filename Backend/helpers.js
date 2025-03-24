@@ -25,7 +25,7 @@ const paypal = require('paypal-rest-sdk');
 const ChatRoom = require('./models/Chat');
 const User = require('./models/User');
 const Product = require('./models/Product');
-
+const rootURL = "http://10.0.2.2:5000";
 // Exporting individual modules
 module.exports = {
   express,
@@ -54,5 +54,5 @@ module.exports = {
   paypal,
   ChatRoom,
   User,
-  Product
+  Product, rootURL
 };

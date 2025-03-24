@@ -5,7 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import Notification from "@/components/Notification";
 import { NotificationContext } from "@/context/NotificationContext";
 import axios from 'axios';
-
+import rootURL from "@/utils/backendRootURL";
 export default function HiddenPosts() {
     const { id } = useLocalSearchParams();
     const options = [
@@ -26,7 +26,7 @@ export default function HiddenPosts() {
 
         try {
             const reason = options.find(op => op.id === selectedOption)?.label;
-            const response = await axios.patch(`http://10.0.2.2:5000/api/products/hiddenPost/${id}`, { reason });
+            const response = await axios.patch(`${rootURL}/api/products/hiddenPost/${id}`, { reason });
 
             showNotification('Ẩn tin thành công.', 'success');
             setTimeout(() => {

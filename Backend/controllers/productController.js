@@ -56,6 +56,8 @@ exports.createProduct = async (req, res) => {
             });
         }
 
+        console.log(req.body);
+        
         const productData = {
             categoryId: new mongoose.Types.ObjectId(req.body.categoryId),
             userId: new mongoose.Types.ObjectId(req.body.userId),
@@ -347,6 +349,7 @@ exports.getProductDetails = async (req, res) => {
                 storageType: storageType ? storageType.storageName : null,
                 images: product ? product.images : [],
                 video: product ? product.videos : null,
+                phone: user ? user.phone : null,
                 type: 'laptop'
             };
         } else if (category.categoryName === 'Điện thoại') {
@@ -376,6 +379,7 @@ exports.getProductDetails = async (req, res) => {
                 storageType: storageType ? storageType.storageName : null,
                 images: product ? product.images : [],
                 video: product ? product.videos : null,
+                phone: user ? user.phone : null,
                 type: 'phone'
             };
         }

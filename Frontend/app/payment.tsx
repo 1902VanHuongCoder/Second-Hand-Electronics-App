@@ -9,6 +9,8 @@ import { NotificationContext } from "@/context/NotificationContext";
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { useRouter } from 'expo-router';
+import rootURL from "@/utils/backendRootURL";
+
 interface Product {
     id: string;
     title: string;
@@ -47,7 +49,7 @@ export default function PushNews() {
     useEffect(() => {
         const fetchProduct = async () => {
             try {
-                const response = await axios.get(`http://10.0.2.2:5000/api/products/${id}`);
+                const response = await axios.get(`${rootURL}/api/products/${id}`);
                 setProduct(response.data as Product);
             } catch (error) {
                 console.error('Error fetching product details:', error);
@@ -71,7 +73,7 @@ export default function PushNews() {
 
             try {
                 const response = await axios.post<{ approvalUrl: string }>(
-                    "http://10.0.2.2:5000/api/paypal/payment",
+                    `${rootURL}/api/paypal/payment`,
                     {
                         amount: numericTotalPrice,
                         currency: "USD"
@@ -106,19 +108,17 @@ export default function PushNews() {
                 type={notifications.type}
                 visible={notifications.visible}
             />
-            <View className="flex-row gap-1 border-b-2 border-[#D9D9D9] pb-4">
+            <View className="flex-row gap-2 items-center border-b-[1px] border-[#D9D9D9] pb-4">
                 <Image
                     style={{ width: 90, height: 90 }}
                     className="rounded-lg"
-                    source={require("../assets/images/z6316149378615_f6d6f665171bf597c35f86bf13ca61b2.jpg")}
+                    source={{uri: product?.images[0]}}
                 />
-                <View className="flex-col justify-between">
-                    <View>
-                        <Text className="font-bold text-[18px]">{product?.title}</Text>
+                <View className="flex-col gap-2 justify-center">
+                        <Text className="font-bold text-[20px]">{product?.title}</Text>
                         <Text className="text-[#9661D9] text-[16px] font-bold">
                             {product?.price !== undefined ? formatCurrency(product.price) : 'Giá không xác định'} đ
                         </Text>
-                    </View>
                     <Text className="font-bold text-[16px]">Đẩy tin {selectedDays} ngày</Text>
                 </View>
             </View>

@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import socket from '@/utils/socket';
+import rootURL from "@/utils/backendRootURL";
 
 // Define types
 interface User {
@@ -12,6 +13,7 @@ interface User {
   address: string;
   token?: string; // Add token as an optional property
   avatarUrl?: string | null;
+  role?: string;
 }
 
 interface AuthState {
@@ -34,7 +36,7 @@ export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async ({ phone, password }: { phone: string; password: string }, { rejectWithValue }) => {
     try {
-      const response = await axios.post<{ token: string; user: User }>('http://10.0.2.2:5000/api/login', { phone, password });
+      const response = await axios.post<{ token: string; user: User }>(`${rootURL}/api/login`, { phone, password });
       await AsyncStorage.setItem('token', response.data.token);
       
       // Trả về cả token và thông tin người dùng
@@ -53,7 +55,7 @@ export const signupUser = createAsyncThunk(
   'auth/signupUser',
   async ({name, phone, password }: { name: string, phone: string; password: string }, { rejectWithValue }) => {
     try {
-      const response = await axios.post<{ token: string; user: User }>('http://10.0.2.2:5000/api/signup', { name, phone, password });
+      const response = await axios.post<{ token: string; user: User }>(`${rootURL}/api/signup`, { name, phone, password });
       return response.data;
     } catch (error) {
       return rejectWithValue((error as any).response?.data.message || 'Đăng ký thất bại');
@@ -66,7 +68,7 @@ export const updateUser = createAsyncThunk<User, User>(
   'auth/updateUser',
   async (userData, { rejectWithValue }) => {
     try {
-      const response = await axios.put<{message: String, success: boolean, user:User}>(`http://10.0.2.2:5000/api/update`, userData, {
+      const response = await axios.put<{message: String, success: boolean, user:User}>(`${rootURL}/api/update`, userData, {
         headers: {
           'Authorization': `Bearer ${userData.token}`, // Ensure token is included if it exists
         },
@@ -92,7 +94,7 @@ export const checkAuth = createAsyncThunk(
       }
       
       // Gọi API để lấy thông tin người dùng từ token
-      const response = await axios.get<User>('http://10.0.2.2:5000/api/me', {
+      const response = await axios.get<User>(`${rootURL}/api/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

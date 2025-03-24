@@ -43,6 +43,9 @@ interface Product {
 import socket from '../utils/socket';
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
+import AppBarForHome from "@/components/AppBarForHome";
+import rootURL from "@/utils/backendRootURL";
+
 // Định nghĩa kiểu cho người dùng
 interface User {
   _id: string;
@@ -107,9 +110,8 @@ export default function HomePage() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get<Product[]>('http://10.0.2.2:5000/api/home');
+        const response = await axios.get<Product[]>(`${rootURL}/api/home`);
         setProducts(response.data);
-        console.log(response.data)
         setAllProducts(response.data);
       } catch (error) {
         console.error('Error fetching products:', error);
@@ -118,7 +120,7 @@ export default function HomePage() {
 
     const fetchCategory = async () => {
       try {
-        const response = await axios.get<CategoryResponse>('http://10.0.2.2:5000/api/allcategory');
+        const response = await axios.get<CategoryResponse>(`${rootURL}/api/allcategory`);
         setCategory(response.data.categories);
 
       } catch (err) {
@@ -141,7 +143,7 @@ export default function HomePage() {
   const getAllProducts = async () => {
     setBrands([]);
     try {
-      const response = await axios.get<Product[]>('http://10.0.2.2:5000/api/home');
+      const response = await axios.get<Product[]>(`${rootURL}/api/home`);
       setProducts(response.data);
       setAllProducts(response.data);
       setFilteredProductsByCategory(response.data); // Reset cả danh sách lọc
@@ -152,7 +154,7 @@ export default function HomePage() {
 
   const getBrandsById = async (categoryId: string, categoryName: string) => {
     try {
-      const response = await axios.get<Brand[]>(`http://10.0.2.2:5000/api/brands/${categoryId}`);
+      const response = await axios.get<Brand[]>(`${rootURL}/api/brands/${categoryId}`);
       setBrands(response.data);
 
       let filteredProducts = allProducts;
@@ -174,6 +176,7 @@ export default function HomePage() {
     setSelectedProductId(productId);
     setReportVisible(!reportVisible);
   };
+  
 
   const handleReasonSelect = async (reason: string) => {
     setSelectedReason(reason);
@@ -244,12 +247,12 @@ export default function HomePage() {
       if (senderId !== receiverId) {
         const roomCode = `${receiverId}-${senderId}-${productId}`;
         socket.emit("createRoom", receiverId, senderId, productId, roomCode);
-        // router.push({
-        //   pathname: '/chat',
-        //   params: {
-        //     roomCode: roomCode,
-        //   }
-        // });
+        router.push({
+          pathname: '/chat',
+          params: {
+            roomCode: roomCode,
+          }
+        });
       }
     } else {
       showNotification("User not logged in", "error");
@@ -279,37 +282,39 @@ export default function HomePage() {
   };
 
   return (
-    <View className="p-4 relative" style={{ flex: 1 }}>
-      <View className="flex-row justify-between items-center border-b-2 pb-6 pt-2 border-[#D9D9D9]">
+    <View className="relative" style={{ flex: 1 }}>
+      <Notification message={notifications.message} type={notifications.type} visible={notifications.visible} /> 
+      <AppBarForHome />
+      <View className="px-4 flex flex-row gap-x-2 items-center border-b-[1px] mt-6 pb-6 border-[#D9D9D9]">
         <TextInput
-          className="border-2 border-[#D9D9D9] w-2/3 px-2 py-4 text-[#000] rounded-lg font-semibold"
+          className="border-2 border-[#D9D9D9] w-3/4 px-2 py-4 text-[#000] rounded-lg font-semibold"
           onChangeText={setSearchTerm}
           value={searchTerm}
           placeholder="Tìm kiếm ..."
         />
         <TouchableHighlight
           onPress={handleSearch}
-          className="bg-[#9661D9] px-5 py-4 rounded-lg flex items-center justify-center"
+          className="bg-[#9661D9] px-5 py-4 rounded-lg flex items-center justify-center w-1/4 "
         >
           <Text className="text-[#fff] font-semibold text-[16px] text-center">
             Tìm kiếm
           </Text>
         </TouchableHighlight>
       </View>
-      <ScrollView className="">
+      <ScrollView className="px-4 shadow-inner">
         <LinearGradient
           colors={['#523471', '#9C62D7']}
           start={{ x: 1, y: 0 }}
           end={{ x: 0, y: 0 }}
           style={{ padding: 12, borderRadius: 10, marginTop: 20 }}
-          className="flex-row items-center justify-between"
+          className="flex-row items-center justify-between px-6"
         >
           <View className="w-[50%]">
-            <Text className="uppercase font-extrabold text-white text-[18px]">
+            <Text className="uppercase font-extrabold text-white text-4xl">
               2Hand Market
             </Text>
-            <Text className="text-[14px] text-white font-medium">
-              Buôn bán các thiết bị hiện tại và uy tính.
+            <Text className="text-md text-white font-medium">
+              Trao đổi mua bán điện thoại - laptop đã qua sử dụng.
             </Text>
 
           </View>
@@ -319,10 +324,10 @@ export default function HomePage() {
           />
         </LinearGradient>
         <View className="flex-row gap-4 mt-6 items-center justify-center">
-          <TouchableHighlight underlayColor="#D9D9D9" onPress={() => getAllProducts()} className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
+          <TouchableHighlight underlayColor="#D9D9D9" onPress={() => getAllProducts()} className="border-[1px] border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center">
             <View className="flex-row items-center justify-center gap-2">
               <Ionicons name="logo-slack" className="text-[]" size={22} color="#9661D9" />
-              <Text className="font-bold text-[18px] text-[#9661D9]">All</Text>
+              <Text className="font-bold text-[18px] text-black">Tất cả</Text>
             </View>
           </TouchableHighlight>
           {categories.map((category) => {
@@ -333,11 +338,11 @@ export default function HomePage() {
                 underlayColor="#D9D9D9"
                 key={category._id}
                 onPress={() => getBrandsById(category._id, category.categoryName)}
-                className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center"
+                className="border-[1px] border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center"
               >
                 <View className="flex-row items-center justify-center gap-2">
                   <Icon name={iconName} size={24} color="#9661D9" />
-                  <Text className="font-bold text-[18px] text-[#9661D9]">
+                  <Text className="font-bold text-[18px] text-black">
                     {category.categoryName}
                   </Text>
                 </View>
@@ -346,8 +351,8 @@ export default function HomePage() {
           })}
         </View>
         {brands.length > 0 && (
-          <View className="mt-4">
-            <Text className="font-bold text-[18px] mb-2">Danh sách hãng</Text>
+          <View className="mt-4 border-b-[1px] border-solid border-[#D9D9D9] pb-4">
+            <Text className="font-bold text-[18px] mb-2 text-gray-500">Hãng của thiết bị</Text>
             <ScrollView horizontal className="flex-row gap-4">
               <View className="flex flex-row gap-4 justify-center items-center">
                 {brands.map((brand) => (
@@ -355,9 +360,9 @@ export default function HomePage() {
                     onPress={() => fetchProductsByBrand(brand._id)}
                     underlayColor="#D9D9D9"
                     key={brand._id}
-                    className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center"
+                    className="border-[1px] border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center"
                   >
-                    <Text className="font-bold text-[18px] text-[#9661D9]">
+                    <Text className="font-bold text-[18px] text-black">
                       {brand.brandName}
                     </Text>
                   </TouchableHighlight>
@@ -366,8 +371,8 @@ export default function HomePage() {
             </ScrollView>
           </View>
         )}
-        <View className="mt-4">
-          <Text className="font-bold text-[18px] mb-2">Lọc theo giá</Text>
+        <View className="mt-4 border-b-[1px] border-solid border-[#D9D9D9] pb-4">
+          <Text className="font-bold text-[18px] mb-2 text-gray-500">Lọc theo giá</Text>
           <ScrollView horizontal className="flex-row gap-4">
             <View className="flex flex-row gap-4 justify-center items-center">
               {priceRanges.map((range, index) => (
@@ -375,9 +380,9 @@ export default function HomePage() {
                   key={index}
                   underlayColor="#D9D9D9"
                   onPress={() => filterByPrice(range.min, range.max)}
-                  className="border-2 border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center"
+                  className="border-[1px] border-[#D9D9D9] px-4 py-3 rounded-lg flex items-center justify-center"
                 >
-                  <Text className="font-bold text-[16px] text-[#9661D9]">{range.label}</Text>
+                  <Text className="font-bold text-[16px] text-black">{range.label}</Text>
                 </TouchableHighlight>
               ))}
             </View>
@@ -389,36 +394,38 @@ export default function HomePage() {
               key={index}
               className="mt-6 flex-col gap-4 border-b border-[#D9D9D9] pb-4"
             >
-              <View className="flex-col gap-4">
-                <View className="flex-row gap-3 w-full">
-                  <Link href={`/postDetails?id=${product.id}`}>
-                    <Image
-                      style={{ width: 170, height: 170 }}
-                      source={{ uri: product.images[0] }}
-                    />
-                  </Link>
-                  <View className="w-2/3 flex-col gap-1">
+              <View className="flex flex-col gap-4">
+                <View className="flex-row gap-x-4 w-full">
+                  <View className="w-fit h-fit rounded-md overflow-hidden">
+                    <Link href={`/postDetails?id=${product.id}`}>
+                      <Image
+                        style={{ width: 170, height: 170 }}
+                        source={{ uri: product.images[0] }}
+                      />
+                    </Link>
+                  </View>
+                  <View className="w-2/3 flex flex-col gap-3">
                     <View className="flex-row items-center justify-between">
                       <Link href={`/postDetails?id=${product.id}`}>
-                        <Text numberOfLines={1} ellipsizeMode="tail" className="font-bold text-[16px]">{product.title}</Text>
+                        <Text numberOfLines={1} ellipsizeMode="tail" className="font-bold text-[18px] uppercase">{product.title}</Text>
                       </Link>
                       <TouchableHighlight onPress={() => handleReportPress(product.id)}>
                         <Icon name="ellipsis-v" size={18} color="#9661D9" />
                       </TouchableHighlight>
                     </View>
-                    <Text className="text-[12px]">{product.description || product.configuration}</Text>
+                    <Text className="text-[16px]">{product.description || product.configuration}</Text>
                     <Text className="font-bold text-[#9661D9] text-[16px]">
                       {formatCurrency(product.price.toString())} đ
                     </Text>
                     <View className="flex-row gap-2 items-center">
                       <Icon name="map-marker" size={20} color="#9661D9" />
-                      <Text className="font-bold text-[14px]">
+                      <Text className="text-[16px]">
                         {product.address}
                       </Text>
                     </View>
                     <View className="flex-row gap-2 items-center">
                       <Icon name="clock-o" size={20} color="#9661D9" />
-                      <Text className="font-bold text-[14px]">
+                      <Text className="text-[16px]">
                         {new Date(product.postingDate).toLocaleDateString()}
                       </Text>
                     </View>
@@ -437,7 +444,7 @@ export default function HomePage() {
                       </Text>
                     </View>
                   </View>
-                  <TouchableHighlight underlayColor='#fff' onPress={() => product.nameUser && handleCreateChat(product.userId, product.id)}>
+                  <TouchableHighlight className={`${product.userId !== user?.id ? 'block' : 'hidden'}`} underlayColor='#fff' onPress={() => product.nameUser && handleCreateChat(product.userId, product.id)}>
                     <Ionicons name="chatbubbles-outline" size={30} color="#9661D9" />
                   </TouchableHighlight>
                 </View>

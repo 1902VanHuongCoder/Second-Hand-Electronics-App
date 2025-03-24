@@ -9,7 +9,7 @@ import { Link, useRouter } from 'expo-router';
 import { logout, updateUser } from '../../store/authSlice';
 import { useAuthCheck } from '../../store/checkLogin';
 import axios from 'axios';
-
+import rootURL from '@/utils/backendRootURL';
 // Mở rộng kiểu User để bao gồm trường role
 declare module '../../store/authSlice' {
     interface User {
@@ -37,10 +37,10 @@ export default function UserProfile() {
 
     const togglePhoneVisibility = async () => {
         try {
-            const response = await axios.put('http://10.0.2.2:5000/api/toggle-phone-visibility', {
+            const response = await axios.put(`${rootURL}/api/toggle-phone-visibility`, {
                 userId: user?.id,
             });
-            
+
             // Xử lý response.data với kiểm tra kiểu
             if (response.data && typeof response.data === 'object' && 'isPhoneHidden' in response.data) {
                 setIsPhoneHidden(Boolean(response.data.isPhoneHidden));
@@ -66,7 +66,7 @@ export default function UserProfile() {
     }, [user, checkAuth]);
     return (
         <View className='bg-white w-full min-h-screen'>
-            <View className='bg-[#9661D9] w-full h-[200px] flex justify-center items-center'>
+            <View className='bg-[rgba(0,0,0,.8)] w-full h-[200px] flex justify-center items-center'>
                 <View className='relative'>
                     <Image className='rounded-full border-4 border-[#fff]' style={{ width: 80, height: 80 }} source={user?.avatarUrl ? { uri: user.avatarUrl } : require("../../assets/images/avatar.jpg")} />
                 </View>
@@ -78,23 +78,23 @@ export default function UserProfile() {
             </View>
             <View className='p-4'>
                 <View className='flex-col justify-center gap-4'>
-                    <View className="flex-row items-center justify-center gap-2">
-                        <Link href="/(tabs)/postManagement" className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
+                    <View className="flex-row items-center justify-start gap-2">
+                        <Link href="/(tabs)/postManagement" className="border-[2px] border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
                             <View className="flex-row items-center justify-center gap-2">
-                                <Icon name="book" size={22} color="#333" />
-                                <Text className="font-bold text-[18px] text-[#333]">Bài đăng</Text>
+                                <Icon name="book" size={22} color="#9661d9" />
+                                <Text className="font-bold text-[18px] text-[#9661d9]">Bài đăng</Text>
                             </View>
                         </Link>
-                        <Link href="/(tabs)/messageList" className="border-2 border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
+                        <Link href="/(tabs)/messageList" className="border-[2px] border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
                             <View className="flex-row items-center justify-center gap-2">
-                                <Icon name="comments" size={22} color="#333" />
-                                <Text className="font-bold text-[18px] text-[#333]">Trò chuyện</Text>
+                                <Icon name="comments" size={22} color="#9661d9" />
+                                <Text className="font-bold text-[18px] text-[#9661d9]">Trò chuyện</Text>
                             </View>
                         </Link>
                     </View>
                     {user?.role === 'admin' && (
                         <View className='mt-4'>
-                            <TouchableHighlight 
+                            <TouchableHighlight
                                 onPress={() => router.push('/admin')}
                                 className="border-2 border-[#9661D9] px-4 py-3 rounded-lg flex items-center justify-center"
                             >
@@ -106,51 +106,52 @@ export default function UserProfile() {
                         </View>
                     )}
                     <View className='mt-4'>
-                        <Text className='font-extrabold uppercase text-[16px] text-[#333] w-full'>Thông tin cá nhân</Text>
+                        <Text className='font-extrabold uppercase text-[18px] text-[#333] w-full'>Thông tin cá nhân</Text>
                         <View className='mt-4 flex-row gap-4 items-center justify-between'>
-                            <Text className='font-bold text-[16px]'>Email: </Text>
-                            <View className='border-2 border-[#D9D9D9] p-2 rounded-lg w-2/3'>
-                                <Text className='p-2 text-[14px] font-medium'>{user?.email ? user.email : 'Chưa cập nhật'}</Text>
+                            <Text className='font-bold text-[18px]'>Email </Text>
+                            <View className='border-[1px] border-[#D9D9D9] p-2 rounded-lg w-2/3'>
+                                <Text className='p-2 text-[18px] font-medium'>{user?.email ? user.email : 'Chưa cập nhật'}</Text>
                             </View>
                         </View>
                         <View className='mt-4 flex-row gap-4 items-center justify-between w-full'>
-                            <Text className='font-bold text-[16px]'>Điện thoại: </Text>
-                            <View className='border-2 border-[#D9D9D9] p-2 rounded-lg w-2/3 flex-row justify-between items-center'>
-                                <Text className='p-2 text-[14px] font-medium'>{isPhoneHidden ? '**********' : user?.phone || 'Chưa cập nhật'}</Text>
+                            <Text className='font-bold text-[18px]'>Điện thoại </Text>
+                            <View className='border-[1px] border-[#D9D9D9] p-2 rounded-lg w-2/3 flex-row justify-between items-center'>
+                                <Text className='p-2 text-[18px] font-medium'>{isPhoneHidden ? '**********' : user?.phone || 'Chưa cập nhật'}</Text>
                                 <TouchableHighlight onPress={togglePhoneVisibility}>
                                     <Icon name={isPhoneHidden ? "eye" : "eye-slash"} size={22} color={'#9C62D7'} />
                                 </TouchableHighlight>
                             </View>
                         </View>
                         <View className='mt-4 flex-row gap-4 items-center justify-between w-full'>
-                            <Text className='font-bold text-[16px]'>Địa chỉ: </Text>
-                            <View className='border-2 border-[#D9D9D9] p-2 w-2/3 rounded-lg flex-row justify-between items-center'>
-                                <Text className='p-2 text-[14px] font-medium'>{user?.address ? user.address : 'Chưa cập nhật'}</Text>
-                                <Icon name="map-marker" size={18} color="#DC143C" />
+                            <Text className='font-bold text-[18px]'>Địa chỉ </Text>
+                            <View className='border-[1px] border-[#D9D9D9] p-2 w-2/3 rounded-lg flex-row justify-between items-center'>
+                                <Text className='p-2 text-[18px] font-medium'>{user?.address ? user.address : 'Chưa cập nhật'}</Text>
+                                <Icon name="map-marker" size={30} color="#DC143C" />
                             </View>
                         </View>
                     </View>
-                    <View className='mt-6 w-full'>
-                        <Link href="/profileSettings" className="rounded-lg">
-                            <LinearGradient
-                                colors={['#523471', '#9C62D7']}
-                                start={{ x: 1, y: 0 }}
-                                end={{ x: 0, y: 0 }}
-                                style={{ padding: 10, borderRadius: 8 }}
-                            >
-                                <View className="flex-row items-center justify-center gap-2 w-full">
-                                    <Text className="font-bold text-[18px] text-[#fff] w-full text-center">Cập nhật thông tin</Text>
+                    <View className='mt-6 w-full flex items-center flex-row justify-center gap-x-2'>
+                        <View className='basis-1/2'>
+                            <Link href="/profileSettings" className="rounded-lg w-full">
+                                <LinearGradient
+                                    colors={['#523471', '#9C62D7']}
+                                    start={{ x: 1, y: 0 }}
+                                    end={{ x: 0, y: 0 }}
+                                    style={{ width: '100%', padding: 12, borderRadius: 5, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' }}
+                                >
+                                    <Icon name="edit" size={22} color="#fff" />
+                                    <Text className="font-bold text-[18px] text-[#fff] ml-2">Cập nhật thông tin</Text>
+                                </LinearGradient>
+                            </Link>
+                        </View>
+                        <View className='basis-1/2'>
+                            <TouchableHighlight underlayColor="#fff" onPress={logoutUser} className="border-2 border-[#333] w-full py-3 rounded-lg flex items-center justify-center">
+                                <View className="flex-row items-center justify-center gap-2">
+                                    <Icon name="sign-out" size={22} color="#333" />
+                                    <Text className="font-bold text-[18px] text-[#333]">Đăng xuất</Text>
                                 </View>
-                            </LinearGradient>
-                        </Link>
-                    </View>
-                    <View>
-                        <TouchableHighlight underlayColor="#fff" onPress={logoutUser} className="border-2 border-[#333] w-full py-3 rounded-lg flex items-center justify-center">
-                            <View className="flex-row items-center justify-center gap-2">
-                                <Icon name="sign-out" size={22} color="#333" />
-                                <Text className="font-bold text-[18px] text-[#333]">Đăng xuất</Text>
-                            </View>
-                        </TouchableHighlight>
+                            </TouchableHighlight>
+                        </View>
                     </View>
                 </View>
             </View >

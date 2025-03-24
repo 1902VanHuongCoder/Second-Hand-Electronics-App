@@ -17,10 +17,10 @@ exports.addCategory = async (req, res) => {
 exports.getCategories = async (req, res) => {
   try {
     const categories = await Category.find().select('_id categoryName');
-    res.status(200).json({ success: true, data: categories });
+    res.status(200).json({ data: categories });
   } catch (error) {
     console.error('Lỗi lấy danh sách Category:', error);
-    res.status(500).json({ success: false, message: 'Lỗi server' });
+    res.status(500).json({ message: 'Lỗi server' });
   }
 }; 
 

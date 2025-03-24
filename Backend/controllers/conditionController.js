@@ -17,9 +17,9 @@ exports.addCondition = async (req, res) => {
 exports.getConditions = async (req, res) => {
   try {
     const conditions = await Condition.find();
-    res.status(200).json({ success: true, data: conditions });
+    res.status(200).json({ data: conditions });
   } catch (error) {
     console.error('Lỗi lấy danh sách Condition:', error);
-    res.status(500).json({ success: false, message: 'Lỗi server' });
+    res.status(500).json({ message: 'Lỗi server' });
   }
 }; 
