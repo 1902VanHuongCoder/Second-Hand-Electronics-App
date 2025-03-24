@@ -113,17 +113,17 @@ export default function PostManagement() {
                                     <Text className='font-medium text-[16px]'>Ngày hết hạn: <Text className='font-bold'>{new Date(product.expirationDate).toLocaleDateString('vi-VN')}</Text></Text>
                                     <Text className='font-medium text-[16px]'>Trạng thái: <Text className='font-bold'>{product.status}</Text></Text>
                                 </View>
-                                <View className={`${new Date(product.expirationDate) < new Date() ? 'hidden' : 'flex-row px-4 items-center justify-between gap-4 w-full'}`}>
+                                <View className={`${new Date(product.expirationDate) < new Date() ? 'hidden' : 'flex-row items-center justify-between gap-4 w-full'}`}>
                                     <TouchableHighlight
                                         className="rounded-md p-3 border-[#808080] flex-1"
                                         onPress={() => router.push(`/postCreation?id=${product.id}`)}
                                     >
-                                        <View className="flex-row items-center justify-center gap-2">
+                                        <View className="flex-row items-center justify-center gap-2 border-[2px] rounded-md p-3 border-[#808080]">
                                             <Icon name="pencil" size={22} color={'#808080'} />
                                             <Text className="font-bold text-[#808080] text-[16px]">Sửa</Text>
                                         </View>
                                     </TouchableHighlight>
-                                    <TouchableHighlight className="border-[1px] rounded-md p-3 border-[#9661D9] flex-1">
+                                    <TouchableHighlight className="border-[2px] rounded-md p-3 border-[#9661D9] flex-1">
                                         <View className="flex-row items-center justify-center gap-2">
                                             <Icon name="arrow-circle-up" size={22} color={'#9661D9'} />
                                             <Link href={`/publishPost?id=${product.id}`}>

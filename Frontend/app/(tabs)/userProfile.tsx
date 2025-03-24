@@ -1,4 +1,4 @@
-import { Text, View, TouchableHighlight, Image } from 'react-native'
+import { Text, View, TouchableHighlight, Image, TextInput, Switch } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/FontAwesome";
@@ -35,16 +35,12 @@ export default function UserProfile() {
         }
     };
 
-    const togglePhoneVisibility = async () => {
+    const togglePhoneVisibility = async () => {  
+        setIsPhoneHidden((prev) => !prev);
         try {
-            const response = await axios.put(`${rootURL}/api/toggle-phone-visibility`, {
+            await axios.put(`${rootURL}/api/toggle-phone-visibility`, {
                 userId: user?.id,
             });
-
-            // Xử lý response.data với kiểm tra kiểu
-            if (response.data && typeof response.data === 'object' && 'isPhoneHidden' in response.data) {
-                setIsPhoneHidden(Boolean(response.data.isPhoneHidden));
-            }
         } catch (err) {
             console.log('Error: ', err);
         }
@@ -78,7 +74,7 @@ export default function UserProfile() {
             </View>
             <View className='p-4'>
                 <View className='flex-col justify-center gap-4'>
-                    <View className="flex-row items-center justify-start gap-2">
+                    <View className="flex-row items-center justify-center gap-2">
                         <Link href="/(tabs)/postManagement" className="border-[2px] border-[#333] px-4 py-3 rounded-lg flex items-center justify-center">
                             <View className="flex-row items-center justify-center gap-2">
                                 <Icon name="book" size={22} color="#9661d9" />
@@ -113,13 +109,20 @@ export default function UserProfile() {
                                 <Text className='p-2 text-[18px] font-medium'>{user?.email ? user.email : 'Chưa cập nhật'}</Text>
                             </View>
                         </View>
-                        <View className='mt-4 flex-row gap-4 items-center justify-between w-full'>
-                            <Text className='font-bold text-[18px]'>Điện thoại </Text>
-                            <View className='border-[1px] border-[#D9D9D9] p-2 rounded-lg w-2/3 flex-row justify-between items-center'>
-                                <Text className='p-2 text-[18px] font-medium'>{isPhoneHidden ? '**********' : user?.phone || 'Chưa cập nhật'}</Text>
-                                <TouchableHighlight onPress={togglePhoneVisibility}>
-                                    <Icon name={isPhoneHidden ? "eye" : "eye-slash"} size={22} color={'#9C62D7'} />
-                                </TouchableHighlight>
+                        <View className='mt-4 flex flex-col items-end justify-between w-full'>
+                            <View className='mt-4 flex-row gap-4 items-center justify-between w-full'>
+                                <Text className='font-bold text-[18px]'>Điện thoại </Text>
+                                <View className='border-[1px] border-[#D9D9D9] p-2 rounded-lg w-2/3 flex-row justify-between items-center'>
+                                    <Text className='p-2 text-[18px] font-medium'>
+                                        {isPhoneHidden ? '**********' : user?.phone || 'Chưa cập nhật'}
+                                    </Text>
+                                </View>
+                            </View>
+
+                            {/* Chuyển đổi giữa hiện/ẩn số điện thoại */}
+                            <View className="flex-row items-center gap-2 ">
+                                <Switch value={isPhoneHidden} onValueChange={togglePhoneVisibility} />
+                                <Text className='text-[18px]'>Ẩn số điện thoại trên bài đăng</Text>
                             </View>
                         </View>
                         <View className='mt-4 flex-row gap-4 items-center justify-between w-full'>

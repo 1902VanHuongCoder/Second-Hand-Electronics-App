@@ -25,7 +25,7 @@ const {
     paypal,
     ChatRoom,
     User,
-    Product, rootURL
+    Product
 } = require('./helpers');
 
 const app = express();
@@ -78,7 +78,7 @@ socketIO.on("connection", (socket) => {
         const sender = await User.findById(senderId);
         const product = await Product.findById(productId);
         let chatRoom = await ChatRoom.findOne({ roomCode: roomCode });
-
+        
         if (!chatRoom) {
             chatRoom = new ChatRoom({
                 roomCode,
@@ -158,7 +158,8 @@ socketIO.on("connection", (socket) => {
                 socket.emit("newMessageCreated", updateMessageList);
             } else {
                 console.log(" ");
-                console.log("⚠️ Room not found");
+                console.log("⚠️ Room not found"); 
+                
             }
         } catch (error) {
             console.error("Error adding new message:", error);
@@ -171,7 +172,7 @@ socketIO.on("connection", (socket) => {
             let chatRoom = await ChatRoom.findOne({ roomCode: roomCode });
             if (chatRoom) {
                 socket.join(roomCode);
-                console.log("Nguoi dung vua tham gia phong co ID", roomCode);
+                console.log("Nguoi dung vua tham gia phong co ID", roomCode); 
                 if (chatRoom.senderId === userId) {
                     chatRoom.senderMessagesNotRead = [];
                 } else {
@@ -181,7 +182,7 @@ socketIO.on("connection", (socket) => {
                 const newChatList = await ChatRoom.find(); // Update message list
                 socket.emit("newMessageCreated", newChatList);
             } else {
-                console.log("⚠️ Room not found");
+                console.log("⚠️ Room ");
             }
         } catch (error) {
             console.error("Error reading message:", error);
@@ -246,8 +247,8 @@ app.post('/api/paypal/payment', (req, res) => {
         intent: "sale",
         payer: { payment_method: "paypal" },
         redirect_urls: {
-            return_url: `${rootURL}/api/paypal/success`,
-            cancel_url: `${rootURL}/api/paypal/cancel`
+            return_url: "http://10.0.2.2:5000/api/paypal/success",
+            cancel_url: "http://10.0.2.2:5000/api/paypal/cancel"
         },
         transactions: [
             {

@@ -134,7 +134,7 @@ export default function SearchResults() {
                     {products.map((product) => (
                         <View
                             key={product.id}
-                            className="mt-6 flex-col gap-4 border-b border-[#D9D9D9] pb-4"
+                            className="w-full mt-6 flex-col gap-4 border-b border-[#D9D9D9] pb-4"
                         >
                             <View className="flex-col gap-4">
                                 <View className="flex-row gap-2 w-full gap-x-4">

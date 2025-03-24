@@ -285,16 +285,16 @@ export default function HomePage() {
     <View className="relative" style={{ flex: 1 }}>
       <Notification message={notifications.message} type={notifications.type} visible={notifications.visible} /> 
       <AppBarForHome />
-      <View className="px-4 flex flex-row gap-x-2 items-center border-b-[1px] mt-6 pb-6 border-[#D9D9D9]">
+      <View className="w-full px-4 flex flex-row items-center border-b-[1px] mt-6 pb-6 border-[#D9D9D9]">
         <TextInput
-          className="border-2 border-[#D9D9D9] w-3/4 px-2 py-4 text-[#000] rounded-lg font-semibold"
+          className="border-2 border-[#D9D9D9] w-[69%] px-2 py-4 text-[#000] rounded-lg font-semibold"
           onChangeText={setSearchTerm}
           value={searchTerm}
           placeholder="Tìm kiếm ..."
         />
         <TouchableHighlight
           onPress={handleSearch}
-          className="bg-[#9661D9] px-5 py-4 rounded-lg flex items-center justify-center w-1/4 "
+          className="bg-[#9661D9] px-5 py-4 grow-1 rounded-lg flex items-center justify-center w-[29%] ml-[2%]"
         >
           <Text className="text-[#fff] font-semibold text-[16px] text-center">
             Tìm kiếm
@@ -392,11 +392,11 @@ export default function HomePage() {
           products.map((product, index) => (
             <View
               key={index}
-              className="mt-6 flex-col gap-4 border-b border-[#D9D9D9] pb-4"
+              className="w-full max-w-screen mt-6 flex-col gap-4 border-b border-[#D9D9D9] pb-4 "
             >
-              <View className="flex flex-col gap-4">
-                <View className="flex-row gap-x-4 w-full">
-                  <View className="w-fit h-fit rounded-md overflow-hidden">
+              <View className="flex flex-col w-full ">
+                <View className="flex-row w-full">
+                  <View className="w-fit h-fit rounded-md overflow-hidden w-[33%]">
                     <Link href={`/postDetails?id=${product.id}`}>
                       <Image
                         style={{ width: 170, height: 170 }}
@@ -404,12 +404,12 @@ export default function HomePage() {
                       />
                     </Link>
                   </View>
-                  <View className="w-2/3 flex flex-col gap-3">
+                  <View className="w-[65%] ml-[2%] flex flex-col gap-3">
                     <View className="flex-row items-center justify-between">
                       <Link href={`/postDetails?id=${product.id}`}>
                         <Text numberOfLines={1} ellipsizeMode="tail" className="font-bold text-[18px] uppercase">{product.title}</Text>
                       </Link>
-                      <TouchableHighlight onPress={() => handleReportPress(product.id)}>
+                      <TouchableHighlight onPress={() => handleReportPress(product.id)} className="w-[40px] h-[40px] rounded-full flex justify-center items-center">
                         <Icon name="ellipsis-v" size={18} color="#9661D9" />
                       </TouchableHighlight>
                     </View>
@@ -431,7 +431,7 @@ export default function HomePage() {
                     </View>
                   </View>
                 </View>
-                <View className="flex-row justify-between items-center w-full">
+                <View className="flex-row pr-4 justify-between items-center w-full">
                   <View className="flex-row gap-2 items-center">
                     <Image
                       source={product.avatarUrl ? { uri: product.avatarUrl } : require("../assets/images/avatar.jpg")}
