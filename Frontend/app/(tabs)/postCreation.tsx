@@ -180,6 +180,9 @@ export default function PostCreation() {
    
 
     const [cpus, setCpus] = useState<Cpu[]>([]);
+
+    console.log("CPU**************************", cpus);
+
     const [gpus, setGpus] = useState<Gpu[]>([]);
     const [rams, setRams] = useState<Ram[]>([]);
     const [screens, setScreens] = useState<Screen[]>([]);
@@ -686,13 +689,14 @@ export default function PostCreation() {
                         detailAddress?: string;
                         fullAddress?: string;
                     };
-                    cpuId?: string;
-                    gpuId?: string;
+                    cpuId: string;
+                    gpuId: string;
                     screenId?: string;
                     storageTypeId?: string;
                     battery?: string;
                     origin?: string;
                 };
+
                 // Lưu danh sách ảnh ban đầu và hiện tại
                 if (productData.images && Array.isArray(productData.images)) {
                     setInitialImages([...productData.images]);
@@ -772,13 +776,15 @@ export default function PostCreation() {
         if (itemValue) {
             try {
                 // Lấy dữ liệu brands và versions
-                const [brandsRes, versionsRes] = await Promise.all([
+                const [brandsRes, versionsRes, cpusRes, gpusRes, screensRes, storagesTypeRes ] = await Promise.all([
                     axios.get<{ data: Brand[] }>(`${rootURL}/api/brands?categoryId=${itemValue}`),
-                    axios.get<{ data: Version[] }>(`${rootURL}/api/versions`)
+                    axios.get<{ data: Gpu[] }>(`${rootURL}/api/gpus`),
+                    axios.get<{ data: Cpu[] }>(`${rootURL}/api/cpus`),
                 ]);
 
                 setBrands(brandsRes.data.data);
                 setVersions(versionsRes.data.data);
+
             } catch (error) {
                 console.error('Lỗi khi lấy dữ liệu:', error);
                 setBrands([]);
