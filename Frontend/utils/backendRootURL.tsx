@@ -1,3 +1,3 @@
-const rootURL = "http://10.0.2.2:5000";
+const rootURL = "https://second-hand-electronics-app.onrender.com";
 
 export default rootURL;
