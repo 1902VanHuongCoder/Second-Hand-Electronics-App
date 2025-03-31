@@ -549,21 +549,21 @@ export default function PostCreation() {
             Alert.alert('Thông báo', 'Vui lòng đăng nhập để đăng tin');
             return;
         }
-
+    
         if (!validateForm()) return;
-
+    
         try {
             setIsSubmitting(true);
-
-            // Upload ảnh và video mới (nếu có)
+    
+            // Upload images and video if they exist
             if (images.length > 0) {
                 await uploadImages();
             }
             if (video) {
                 await uploadVideo();
             }
-
-            // Nếu đang ở chế độ edit, xóa các ảnh không còn sử dụng
+    
+            // Handle unused images in edit mode
             if (isEditMode && initialImages.length > 0) {
                 try {
                     await axios.post(`${rootURL}/api/deleteUnusedImages`, {
@@ -574,8 +574,8 @@ export default function PostCreation() {
                     console.error('Lỗi khi xóa ảnh không sử dụng:', error);
                 }
             }
-
-            // Kiểm tra nếu đang ở chế độ edit và video đã bị xóa
+    
+            // Handle video deletion in edit mode
             if (isEditMode && initialVideoUrl && !videoUrl) {
                 try {
                     await axios.patch(`${rootURL}/api/products/${id}/update-video`, {
@@ -585,17 +585,19 @@ export default function PostCreation() {
                     console.error('Lỗi khi cập nhật trường videos:', error);
                 }
             }
-
+    
+            // Prepare product data
             const productData = {
                 userId: user.id,
                 categoryId: selectedCategory,
                 versionId: selectedVersion,
                 conditionId: selectedCondition,
                 storageId: selectedStorage,
-                title,
-                description,
-                price: parseFloat(price),
-                isVip: selectedPostType === "Đăng tin trả phí",
+                title: title.trim(), // Ensure title is trimmed
+                description: description.trim(), // Ensure description is trimmed
+                price: parseFloat(price), // Ensure price is a number
+                isVip: false,
+                isSold: false,
                 warranty: selectedWarranty,
                 videos: videoUrl || '',
                 location: {
@@ -615,45 +617,42 @@ export default function PostCreation() {
                 screenId: selectedScreen,
                 battery: battery || "0",
                 origin: selectedOrigin,
-                storageTypeId: selectedStorageType
             };
-
+    
             let response;
             if (isEditMode) {
-                // Gọi API cập nhật sản phẩm
+                // Update existing product
                 response = await axios.put(`${rootURL}/api/products/${id}`, productData);
                 Alert.alert('Thành công', 'Cập nhật tin thành công', [
                     {
                         text: 'OK',
                         onPress: () => {
-                            // Chuyển về trang quản lý tin
                             router.replace('/postManagement');
-
-                            // Sau đó chuyển về form đăng tin mới (không phải ở chế độ edit)
                             setTimeout(() => {
-                                resetForm(); // Reset form về trạng thái ban đầu
-                                router.replace('/postCreation'); // Chuyển đến trang đăng tin mới
+                                resetForm();
+                                router.replace('/postCreation');
                             }, 100);
                         }
                     }
                 ]);
             } else {
-                // Gọi API tạo sản phẩm mới
+                // Create new product
+                console.log("Product Data:", productData); // Debugging
                 response = await axios.post(`${rootURL}/api/products`, productData);
                 Alert.alert('Thành công', 'Đăng tin thành công', [
                     {
                         text: 'OK',
                         onPress: () => {
-                            resetForm(); // Reset form về trạng thái ban đầu
-                            router.replace('/postManagement'); // Chuyển đến trang quản lý tin
+                            resetForm();
+                            router.replace('/postManagement');
                         }
                     }
                 ]);
             }
-
         } catch (error) {
             console.error('Lỗi khi xử lý tin:', error);
-            Alert.alert('Lỗi', (error as any).response?.data?.message || `Có lỗi xảy ra khi ${isEditMode ? 'cập nhật' : 'đăng'} tin`);
+            const errorMessage = (error as any).response?.data?.message || `Có lỗi xảy ra khi ${isEditMode ? 'cập nhật' : 'đăng'} tin`;
+            Alert.alert('Lỗi', errorMessage);
         } finally {
             setIsSubmitting(false);
         }
@@ -1702,7 +1701,7 @@ export default function PostCreation() {
                             onChangeText={setDescription}
                         />
                     </View>
-                    <View className='flex-col gap-2 mb-4'>
+                    {/* <View className='flex-col gap-2 mb-4'>
                         <Text className='font-bold text-[16px]'>Hình thức đăng tin<Text className='text-[#DC143C]'>*</Text></Text>
                         <View className='border-[1px] border-[#D9D9D9] rounded-lg'>
                             <Picker
@@ -1715,7 +1714,7 @@ export default function PostCreation() {
                                 ))}
                             </Picker>
                         </View>
-                    </View>
+                    </View> */}
                     <Text className='font-bold text-[16px] uppercase border-t-[1px] border-t-solid border-t-[#D9D9D9] pt-8'>Thông tin người bán</Text>
                     <View className='flex-col gap-2'>
                         <Text className='font-bold text-[16px]'>Tỉnh/Thành phố<Text className='text-[#DC143C]'>*</Text></Text>

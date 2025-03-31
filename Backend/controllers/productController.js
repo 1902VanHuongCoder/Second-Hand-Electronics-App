@@ -37,27 +37,33 @@ exports.getProductById = async (req, res) => {
 
 // Thêm sản phẩm mới
 exports.createProduct = async (req, res) => {
+   
     try {
         const newTitle = req.body.title.toLowerCase();
 
+      
         const existingProducts = await Product.find({ userId: req.body.userId });
 
+        
+        
         // Lấy danh sách tiêu đề cũ (chuyển về chữ thường)
         const existingTitles = existingProducts.map(p => p.title.toLowerCase());
-
-        // So sánh tiêu đề mới với các tiêu đề cũ
-        const matches = stringSimilarity.findBestMatch(newTitle, existingTitles);
-        const bestMatch = matches.bestMatch;
-
-        if (bestMatch.rating >= 0.9) {
-            return res.status(400).json({
-                success: false,
-                message: 'Tiêu đề sản phẩm quá giống với sản phẩm đã đăng trước đó. Vui lòng chọn tiêu đề khác.'
-            });
-        }
-
-        console.log("**** SERVER IS RUNNING ******", req.body);
         
+       if(existingTitles.length > 0) {
+
+         // So sánh tiêu đề mới với các tiêu đề cũ
+         const matches = stringSimilarity.findBestMatch(newTitle, existingTitles);
+         const bestMatch = matches.bestMatch;
+ 
+         if (bestMatch.rating >= 0.9) {
+             return res.status(400).json({
+                 success: false,
+                 message: 'Tiêu đề sản phẩm quá giống với sản phẩm đã đăng trước đó. Vui lòng chọn tiêu đề khác.'
+             });
+         }
+
+       }
+
         const productData = {
             categoryId: new mongoose.Types.ObjectId(req.body.categoryId),
             userId: new mongoose.Types.ObjectId(req.body.userId),
@@ -72,9 +78,12 @@ exports.createProduct = async (req, res) => {
             isSold: req.body.isSold || false,
             warranty: req.body.warranty,
             images: req.body.images || [],
-            videos: typeof req.body.videos === 'string' ? req.body.videos : '',
+            videos: req.body.videos || '',
             location: req.body.location
         };
+
+        
+        console.log("SERVER OK"); 
 
         // Thiết lập ngày hết hạn là 60 ngày sau ngày tạo
         const createdAt = req.body.createdAt || Date.now();
@@ -85,6 +94,8 @@ exports.createProduct = async (req, res) => {
         productData.expirationDate = expirationDate;
 
         const product = new Product(productData);
+
+
         const savedProduct = await product.save();
 
         // Thêm thông tin chi tiết cho laptop hoặc điện thoại
@@ -116,10 +127,11 @@ exports.createProduct = async (req, res) => {
             success: true,
             data: savedProduct
         });
+
     } catch (error) {
         res.status(400).json({
             success: false,
-            message: error.message
+            message: "Lỗi banh xác ní ơi!"
         });
     }
 };
