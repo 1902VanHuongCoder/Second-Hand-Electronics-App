@@ -17,7 +17,7 @@ const productSchema = new mongoose.Schema({ // This collection is used to store 
     videos: { type: String, default: '' }, // Videos
     location: {
         provinceCode: {
-            type: String,
+            type: Number,
             required: true
         },
         provinceName: {
@@ -25,7 +25,7 @@ const productSchema = new mongoose.Schema({ // This collection is used to store 
             required: false
         },
         districtCode: {
-            type: String,
+            type: Number,
             required: true
         },
         districtName: {
@@ -33,7 +33,7 @@ const productSchema = new mongoose.Schema({ // This collection is used to store 
             required: false
         },
         wardCode: {
-            type: String,
+            type: Number,
             required: true
         },
         wardName: {

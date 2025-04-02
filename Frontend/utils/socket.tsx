@@ -1,3 +1,3 @@
 import { io } from "socket.io-client";
-const socket = io("http://10.0.2.2:5000");
+const socket = io("https://second-hand-electronics-app.onrender.com");
 export default socket;
