@@ -80,7 +80,7 @@ export default function PostDetailsScreen() {
       Alert.alert('Thông báo', 'Số điện thoại đã được sao chép!');
     }
   };
-  
+
   useEffect(() => {
     const fetchProductDetails = async () => {
       try {
@@ -116,22 +116,22 @@ export default function PostDetailsScreen() {
       <MediaCarousel data={media} />
       {showPhoneNumber && (
         <View className='absolute inset-0 z-10 w-full h-full bg-[rgba(0,0,0,.5)] flex justify-center items-center'>
-        <View className='w-[90%] h-fit bg-white rounded-md flex justify-center items-start gap-y-5 p-10'>
-          <Text className='text-[18px]'>Số điện thoại người bán</Text>
-          <View className='flex items-center justify-between flex-row w-full'>
-            <Text className='text-2xl font-bold text-[#9661D9]'>{product.phone}</Text>
-            <View className='flex flex-row gap-x-5'> 
-            <TouchableOpacity className='px-4 py-2 bg-[rgba(0,0,0,.1)] rounded-md flex flex-row items-center' onPress={() => handleCopyToClipboard(product.phone)}>
-              <AntDesign name="copy1" size={24} color="black" /> <Text> Sao chép số</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setShowPhoneNumber(false)} className='px-4 py-2 border-[1px] border-solid border-[rgba(0,0,0,.1)] rounded-md flex flex-row items-center'>
-            <AntDesign name="close" size={24} color="black" /> <Text>Đóng</Text>
-            </TouchableOpacity>
-           
+          <View className='w-[90%] h-fit bg-white rounded-md flex justify-center items-start gap-y-5 p-10'>
+            <Text className='text-[18px]'>Số điện thoại người bán</Text>
+            <View className='flex items-center justify-between flex-row w-full'>
+              <Text className='text-2xl font-bold text-[#9661D9]'>{product.phone}</Text>
+              <View className='flex flex-row gap-x-5'>
+                <TouchableOpacity className='px-4 py-2 bg-[rgba(0,0,0,.1)] rounded-md flex flex-row items-center' onPress={() => handleCopyToClipboard(product.phone)}>
+                  <AntDesign name="copy1" size={24} color="black" /> <Text> Sao chép số</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setShowPhoneNumber(false)} className='px-4 py-2 border-[1px] border-solid border-[rgba(0,0,0,.1)] rounded-md flex flex-row items-center'>
+                  <AntDesign name="close" size={24} color="black" /> <Text>Đóng</Text>
+                </TouchableOpacity>
+
+              </View>
             </View>
           </View>
         </View>
-      </View>
       )}
       <View style={styles.content}>
         <Text className="uppercase" style={styles.postName} >{product.title}</Text>
@@ -141,16 +141,17 @@ export default function PostDetailsScreen() {
         <Text style={styles.location} className='font-bold'>Phiên bản: <Text className='font-normal'>{product.versionName || 'Chưa có phiên bản'}</Text></Text>
         <Text style={styles.location} className='font-bold'>Thương hiệu: <Text className='font-normal'>{product.brandName || 'Chưa có thương hiệu'}</Text></Text>
         <Text style={styles.location} className='font-bold uppercase'>Mô tả chi tiết</Text>
-        <TouchableOpacity onPress={() => setExpanded(!expanded)}>
-          <Text style={styles.expandText}>
-            {expanded ? 'Thu gọn' : 'Xem thêm'}
+        <View>
+          <Text style={styles.description} numberOfLines={expanded ? undefined : 3}>
+            {expanded ? product.configuration : product.configuration.substring(0, 120) + " ..."}
           </Text>
-        </TouchableOpacity>
-        {expanded && (
-          <Text style={styles.expandedText} className='text-justify'>
-            {<Text style={styles.description}>{product.configuration}</Text>}
-          </Text>
-        )}
+
+          <TouchableOpacity onPress={() => setExpanded(!expanded)}>
+            <Text style={styles.expandText}>
+              {expanded ? "Thu gọn" : "Xem thêm"}
+            </Text>
+          </TouchableOpacity>
+        </View>
         <Text style={styles.specs} className='font-bold uppercase'>Thông số kỹ thuật</Text>
         {product.type === 'laptop' && (
           <View style={styles.specsContainer}>
@@ -236,7 +237,7 @@ export default function PostDetailsScreen() {
           <TouchableOpacity style={[
             styles.buttonWrapper,
             product.isPhoneHidden ? { display: 'none' } : { width: '48%' }
-          ]} onPress={() => setShowPhoneNumber(true) }>
+          ]} onPress={() => setShowPhoneNumber(true)}>
             <LinearGradient
               colors={['rgba(156,98,215,1)', 'rgba(82,52,113,1)']}
               start={{ x: 0, y: 0 }}
@@ -372,6 +373,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#D9D9D9',
     borderTopWidth: 1,
     borderStyle: 'solid',
+    backgroundColor: 'white',
   },
   description: {
     fontSize: 16,

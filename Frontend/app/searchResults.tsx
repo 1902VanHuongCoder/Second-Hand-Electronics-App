@@ -79,6 +79,7 @@ const mapApiResponseToProduct = (apiProduct: ProductResponse): Product => {
 };
 
 export default function SearchResults() {
+    const [isPressed, setIsPressed] = useState(false);
     const [reportVisible, setReportVisible] = useState(false); // State để theo dõi trạng thái hiển thị menu báo cáo
     const [selectedProductId, setSelectedProductId] = useState<string | null>(null); // Chỉ định kiểu cho selectedProductId
     const [selectedReason, setSelectedReason] = useState<string | null>(null); // State để lưu lý do đã chọn
@@ -152,7 +153,17 @@ export default function SearchResults() {
                                             <Link href={`/postDetails?id=${product.id}`}>
                                                 <Text className="font-bold text-[18px] uppercase">{product.title}</Text>
                                             </Link>
-                                            <TouchableHighlight className="pr-2" onPress={() => handleReportPress(product.id)}>
+                                            <TouchableHighlight 
+                                             style={{
+                                                width: 40,
+                                                height: 40,
+                                                borderRadius: 20,
+                                                justifyContent: "center",
+                                                alignItems: "center",
+                                                backgroundColor: isPressed ? "green" : "transparent", // Change background on click
+                                              }}
+                                              underlayColor="rgba(0,0,0,.2)" // Light red when pressed
+                                            onPress={() => handleReportPress(product.id)}>
                                                 <Icon name="ellipsis-v" size={20} color="#9661D9" />
                                             </TouchableHighlight>
                                         </View>
@@ -161,7 +172,6 @@ export default function SearchResults() {
                                             {formatCurrency(product.price)} đ
                                         </Text>
                                         <View className="flex-row gap-2 items-center">
-                                            <Icon name="map-marker" size={20} color="#9661D9" />
                                             <Text className=" text-[16px]">
                                                 {product.address}
                                             </Text>

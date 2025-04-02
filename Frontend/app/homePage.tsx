@@ -83,6 +83,7 @@ interface Brand {
 export default function HomePage() {
   const router = useRouter();
   const { notifications, showNotification } = useContext(NotificationContext);
+  const [isPressed, setIsPressed] = useState(false);
   const { user } = useSelector((state: RootState) => state.auth);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [reportVisible, setReportVisible] = useState(false); // State để theo dõi trạng thái hiển thị menu báo cáo
@@ -176,7 +177,7 @@ export default function HomePage() {
     setSelectedProductId(productId);
     setReportVisible(!reportVisible);
   };
-  
+
 
   const handleReasonSelect = async (reason: string) => {
     setSelectedReason(reason);
@@ -283,7 +284,7 @@ export default function HomePage() {
 
   return (
     <View className="relative" style={{ flex: 1 }}>
-      <Notification message={notifications.message} type={notifications.type} visible={notifications.visible} /> 
+      <Notification message={notifications.message} type={notifications.type} visible={notifications.visible} />
       <AppBarForHome />
       <View className="w-full px-4 flex flex-row items-center border-b-[1px] mt-6 pb-6 border-[#D9D9D9]">
         <TextInput
@@ -295,6 +296,7 @@ export default function HomePage() {
         <TouchableHighlight
           onPress={handleSearch}
           className="bg-[#9661D9] px-5 py-4 grow-1 rounded-lg flex items-center justify-center w-[29%] ml-[2%]"
+          underlayColor="rgba(0,0,0,.2)" // Light red when pressed
         >
           <Text className="text-[#fff] font-semibold text-[16px] text-center">
             Tìm kiếm
@@ -392,9 +394,9 @@ export default function HomePage() {
           products.map((product, index) => (
             <View
               key={index}
-              className="w-full max-w-screen mt-6 flex-col gap-4 border-b border-[#D9D9D9] pb-4 "
+              className={`w-full max-w-screen mt-6 flex-col gap-4 [&:not(:last-child)]:border-b-[1px] border-none border-b border-[#D9D9D9] pb-4 `}
             >
-              <View className="flex flex-col w-full ">
+              <View className="flex flex-col w-full gap-y-5">
                 <View className="flex-row w-full">
                   <View className="w-fit h-fit rounded-md overflow-hidden w-[33%]">
                     <Link href={`/postDetails?id=${product.id}`}>
@@ -404,22 +406,32 @@ export default function HomePage() {
                       />
                     </Link>
                   </View>
-                  <View className="w-[65%] ml-[2%] flex flex-col gap-3">
+                  <View className="w-[65%] ml-[2%] flex flex-col gap-3 flex-wrap">
                     <View className="flex-row items-center justify-between">
                       <Link href={`/postDetails?id=${product.id}`}>
-                        <Text numberOfLines={1} ellipsizeMode="tail" className="font-bold text-[18px] uppercase">{product.title}</Text>
+                        <Text numberOfLines={1} ellipsizeMode="tail" className="font-bold text-[18px] uppercase inline max-w-full line-clamp-2">{product.title.length > 32 ? product.title.substring(0, 32) + "..." : product.title}</Text>
                       </Link>
-                      <TouchableHighlight onPress={() => handleReportPress(product.id)} className="w-[40px] h-[40px] rounded-full flex justify-center items-center">
+                      <TouchableHighlight onPress={() => handleReportPress(product.id)} 
+                        style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: 20,
+                          justifyContent: "center",
+                          alignItems: "center",
+                          backgroundColor: isPressed ? "green" : "transparent", // Change background on click
+                        }}
+                        underlayColor="rgba(0,0,0,.2)" // Light red when pressed
+                        >
                         <Icon name="ellipsis-v" size={18} color="#9661D9" />
                       </TouchableHighlight>
                     </View>
-                    <Text className="text-[16px]">{product.description || product.configuration}</Text>
-                    <Text className="font-bold text-[#9661D9] text-[16px]">
+                    {product.description ? <Text className="text-[16px]">{product.description.length > 35 ? product.description.substring(0, 35) + "..." : product.description}</Text> : <Text className="text-[16px]">{product.configuration ? product.configuration.length > 35 ? product.configuration.substring(0, 35) + "..." : product.configuration : ""}</Text>}
+                    <Text className="font-bold text-[#9661D9] text-[20px]">
                       {formatCurrency(product.price.toString())} đ
                     </Text>
                     <View className="flex-row gap-2 items-center">
-                      <Icon name="map-marker" size={20} color="#9661D9" />
-                      <Text className="text-[16px]">
+                      {/* <Icon name="map-marker" size={20} color="#9661D9" /> */}
+                      <Text className="text-[16px] w-full">
                         {product.address}
                       </Text>
                     </View>
