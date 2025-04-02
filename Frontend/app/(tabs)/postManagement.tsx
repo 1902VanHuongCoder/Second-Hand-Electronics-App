@@ -49,6 +49,21 @@ export default function PostManagement() {
         fetchUserPosts();
     }, [user]);
 
+    useEffect(() => {
+        checkAuth();
+        const fetchUserPosts = async () => {
+            try {
+                if (user) {
+                    const response = await axios.get<Product[]>(`${rootURL}/api/post-management/user/${user.id}`);
+                    setProducts(response.data);
+                }
+            } catch (error) {
+                console.error('Error fetching user posts:', error);
+            }
+        }
+        fetchUserPosts();
+    }, []);
+
     const toggleHiddenPosts = async (id: string) => {
         try {
             const response = await axios.patch(`${rootURL}/api/products/hiddenPost/${id}`, { reason: "" });

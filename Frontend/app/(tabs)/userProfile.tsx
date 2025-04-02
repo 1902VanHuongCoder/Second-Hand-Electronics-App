@@ -35,7 +35,7 @@ export default function UserProfile() {
         }
     };
 
-    const togglePhoneVisibility = async () => {  
+    const togglePhoneVisibility = async () => {
         setIsPhoneHidden((prev) => !prev);
         try {
             await axios.put(`${rootURL}/api/toggle-phone-visibility`, {
@@ -109,29 +109,33 @@ export default function UserProfile() {
                                 <Text className='p-2 text-[18px] font-medium'>{user?.email ? user.email : 'Chưa cập nhật'}</Text>
                             </View>
                         </View>
-                        <View className='mt-4 flex flex-col items-end justify-between w-full'>
-                            <View className='mt-4 flex-row gap-4 items-center justify-between w-full'>
-                                <Text className='font-bold text-[18px]'>Điện thoại </Text>
-                                <View className='border-[1px] border-[#D9D9D9] p-2 rounded-lg w-2/3 flex-row justify-between items-center'>
-                                    <Text className='p-2 text-[18px] font-medium'>
-                                        {isPhoneHidden ? '**********' : user?.phone || 'Chưa cập nhật'}
-                                    </Text>
-                                </View>
-                            </View>
-
-                            {/* Chuyển đổi giữa hiện/ẩn số điện thoại */}
-                            <View className="flex-row items-center gap-2 ">
-                                <Switch value={isPhoneHidden} onValueChange={togglePhoneVisibility} />
-                                <Text className='text-[18px]'>Ẩn số điện thoại trên bài đăng</Text>
-                            </View>
-                        </View>
-                        <View className='mt-4 flex-row gap-4 items-center justify-between w-full'>
+                         <View className='mt-4 flex-row gap-4 items-center justify-between w-full'>
                             <Text className='font-bold text-[18px]'>Địa chỉ </Text>
                             <View className='border-[1px] border-[#D9D9D9] p-2 w-2/3 rounded-lg flex-row justify-between items-center'>
                                 <Text className='p-2 text-[18px] font-medium'>{user?.address ? user.address : 'Chưa cập nhật'}</Text>
                                 <Icon name="map-marker" size={30} color="#DC143C" />
                             </View>
                         </View>
+                        <View className='mt-4 flex flex-col items-end justify-between w-full'>
+                            <View className='flex-row gap-4 items-start justify-between w-full'>
+                                <Text className='font-bold text-[18px]'>Điện thoại </Text>
+                                <View className='flex flex-col items-start justify-between w-2/3'>
+                                <View className='border-[1px] border-[#D9D9D9] p-2 rounded-lg w-full'>
+                                    <Text className='p-2 text-[18px] font-medium'>
+                                        {isPhoneHidden ? '**********' : user?.phone || 'Chưa cập nhật'}
+                                    </Text>
+                                </View>
+                                {/* Chuyển đổi giữa hiện/ẩn số điện thoại */}
+                                <View className="flex-row items-center gap-2 ">
+                                    <Switch value={isPhoneHidden} onValueChange={togglePhoneVisibility} />
+                                    <Text className='text-[18px]'>Ẩn số điện thoại trên bài đăng</Text>
+                                </View>
+                                </View>
+                            </View>
+
+
+                        </View>
+                       
                     </View>
                     <View className='mt-6 w-full flex items-center flex-row justify-center gap-x-2'>
                         <View className='basis-1/2'>
