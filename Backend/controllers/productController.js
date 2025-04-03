@@ -37,32 +37,29 @@ exports.getProductById = async (req, res) => {
 
 // Thêm sản phẩm mới
 exports.createProduct = async (req, res) => {
-   
+
     try {
         const newTitle = req.body.title.toLowerCase();
 
-      
         const existingProducts = await Product.find({ userId: req.body.userId });
 
-        
-        
         // Lấy danh sách tiêu đề cũ (chuyển về chữ thường)
         const existingTitles = existingProducts.map(p => p.title.toLowerCase());
-        
-       if(existingTitles.length > 0) {
 
-         // So sánh tiêu đề mới với các tiêu đề cũ
-         const matches = stringSimilarity.findBestMatch(newTitle, existingTitles);
-         const bestMatch = matches.bestMatch;
- 
-         if (bestMatch.rating >= 0.9) {
-             return res.status(400).json({
-                 success: false,
-                 message: 'Tiêu đề sản phẩm quá giống với sản phẩm đã đăng trước đó. Vui lòng chọn tiêu đề khác.'
-             });
-         }
+        if (existingTitles.length > 0) {
 
-       }
+            // So sánh tiêu đề mới với các tiêu đề cũ
+            const matches = stringSimilarity.findBestMatch(newTitle, existingTitles);
+            const bestMatch = matches.bestMatch;
+
+            if (existingTitles.includes(newTitle) || bestMatch.rating >= 0.7) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Tiêu đề sản phẩm quá giống với sản phẩm đã đăng trước đó. Vui lòng chọn tiêu đề khác.'
+                });
+            }
+
+        }
 
         const productData = {
             categoryId: new mongoose.Types.ObjectId(req.body.categoryId),
@@ -82,8 +79,8 @@ exports.createProduct = async (req, res) => {
             location: req.body.location
         };
 
-        
-        console.log("SERVER OK"); 
+
+        console.log("SERVER OK");
 
         // Thiết lập ngày hết hạn là 60 ngày sau ngày tạo
         const createdAt = req.body.createdAt || Date.now();
@@ -452,7 +449,7 @@ exports.updateProductVideo = async (req, res) => {
     try {
         const { id } = req.params;
         const { videos } = req.body;
-        
+
         // Kiểm tra xem sản phẩm có tồn tại không
         const product = await Product.findById(id);
         if (!product) {
