@@ -7,7 +7,8 @@ import {
   TextInput,
   StyleSheet,
   Button,
-  Alert
+  Alert,
+  RefreshControl
 } from "react-native";
 import React, { useContext, useEffect, useLayoutEffect, useState, useRef } from "react";
 import { LinearGradient } from "expo-linear-gradient";
@@ -82,6 +83,7 @@ interface Brand {
 
 export default function HomePage() {
   const router = useRouter();
+  const [refreshing, setRefreshing] = useState(false);
   const { notifications, showNotification } = useContext(NotificationContext);
   const [isPressed, setIsPressed] = useState(false);
   const { user } = useSelector((state: RootState) => state.auth);
@@ -282,6 +284,22 @@ export default function HomePage() {
     setProducts(filtered);
   };
 
+  const handleRefresh = async () => {
+    setRefreshing(true); // Show the refreshing indicator
+    try {
+        if (user) {
+          const response = await axios.get<Product[]>(`${rootURL}/api/home`);
+          setProducts(response.data);
+          setAllProducts(response.data);
+          setFilteredProductsByCategory(response.data); // Reset cả danh sách lọc
+        }
+    } catch (error) {
+        console.error('Error refreshing posts:', error);
+    } finally {
+        setRefreshing(false); // Hide the refreshing indicator
+    }
+};
+
   return (
     <View className="relative" style={{ flex: 1 }}>
       <Notification message={notifications.message} type={notifications.type} visible={notifications.visible} />
@@ -303,7 +321,9 @@ export default function HomePage() {
           </Text>
         </TouchableHighlight>
       </View>
-      <ScrollView className="px-4 shadow-inner">
+      <ScrollView className="px-4 shadow-inner"  refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+    }>
         <LinearGradient
           colors={['#523471', '#9C62D7']}
           start={{ x: 1, y: 0 }}

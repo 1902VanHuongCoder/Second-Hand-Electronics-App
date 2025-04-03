@@ -1,4 +1,4 @@
-import { ScrollView, Text, TouchableHighlight, View, Image } from 'react-native'
+import { ScrollView, Text, TouchableHighlight, View, Image, RefreshControl } from 'react-native'
 import React, { useEffect, useState, useContext } from 'react'
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -27,6 +27,7 @@ interface Product {
 }
 
 export default function PostManagement() {
+    const [refreshing, setRefreshing] = useState(false);
     const checkAuth = useAuthCheck();
     const [products, setProducts] = useState<Product[]>([]);
     const { user } = useSelector((state: RootState) => state.auth);
@@ -47,22 +48,9 @@ export default function PostManagement() {
             }
         }
         fetchUserPosts();
-    }, [user]);
 
-    useEffect(() => {
-        checkAuth();
-        const fetchUserPosts = async () => {
-            try {
-                if (user) {
-                    const response = await axios.get<Product[]>(`${rootURL}/api/post-management/user/${user.id}`);
-                    setProducts(response.data);
-                }
-            } catch (error) {
-                console.error('Error fetching user posts:', error);
-            }
-        }
-        fetchUserPosts();
-    }, []);
+        console.log("Useeffect 1 run...."); 
+    }, [user]);
 
     const toggleHiddenPosts = async (id: string) => {
         try {
@@ -90,6 +78,20 @@ export default function PostManagement() {
         return true;
     });
 
+    const handleRefresh = async () => {
+        setRefreshing(true); // Show the refreshing indicator
+        try {
+            if (user) {
+                const response = await axios.get<Product[]>(`${rootURL}/api/post-management/user/${user.id}`);
+                setProducts(response.data); // Update the products list
+            }
+        } catch (error) {
+            console.error('Error refreshing posts:', error);
+        } finally {
+            setRefreshing(false); // Hide the refreshing indicator
+        }
+    };
+
     return (
         <View className='w-full bg-white'>
             <Notification
@@ -97,7 +99,9 @@ export default function PostManagement() {
                 type={notifications.type}
                 visible={notifications.visible}
             />
-            <ScrollView className='mt-6 px-4 border-[#D9D9D9]'>
+            <ScrollView className='mt-6 px-4 border-[#D9D9D9]'  refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+    }>
                 <View className='flex flex-row gap-10 items-center justify-center mb-6'>
                     {['Đang hiển thị', 'Tin đã ẩn', 'Tin hết hạn'].map((tab, index) => (
                         <TouchableHighlight
